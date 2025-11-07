@@ -23,5 +23,9 @@ Route::prefix('widget')->group(function () {
     // API для получения истории вращений гостя
     Route::get('/guest/{guestId}/spins', [WidgetController::class, 'getGuestSpins'])
         ->name('widget.guest.spins');
+    
+    // API для получения сегодняшнего выигрыша
+    Route::get('/wheel/{slug}/today-win', [WidgetController::class, 'getTodayWin'])
+        ->name('widget.today-win');
 });
 

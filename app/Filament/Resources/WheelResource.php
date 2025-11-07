@@ -62,10 +62,12 @@ class WheelResource extends Resource
                     ->helperText(__('filament.wheel.spins_limit_hint')),
                 Forms\Components\DateTimePicker::make('starts_at')
                     ->label(__('filament.wheel.starts_at'))
-                    ->native(false),
+                    ->native(false)
+                    ->hidden(),
                 Forms\Components\DateTimePicker::make('ends_at')
                     ->label(__('filament.wheel.ends_at'))
-                    ->native(false),
+                    ->native(false)
+                    ->hidden(),
                 Forms\Components\KeyValue::make('settings')
                     ->label(__('filament.wheel.settings'))
                     ->columnSpanFull()
@@ -107,11 +109,13 @@ class WheelResource extends Resource
                 Tables\Columns\TextColumn::make('starts_at')
                     ->label(__('filament.wheel.starts_at'))
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(),
                 Tables\Columns\TextColumn::make('ends_at')
                     ->label(__('filament.wheel.ends_at'))
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->hidden(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('filament.wheel.created_at'))
                     ->dateTime()
@@ -121,7 +125,8 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.updated_at'))
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                ,
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')

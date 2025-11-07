@@ -9,6 +9,7 @@ use App\Models\Prize;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class WidgetController extends Controller
@@ -67,6 +68,23 @@ class WidgetController extends Controller
         }
 
         $prizes = $wheel->activePrizes->map(function ($prize) {
+            $imageUrl = null;
+            if ($prize->image) {
+                // Если изображение - это полный URL, используем как есть
+                if (filter_var($prize->image, FILTER_VALIDATE_URL)) {
+                    $imageUrl = $prize->image;
+                } elseif (str_starts_with($prize->image, '/')) {
+                    // Если путь начинается с /, это абсолютный путь
+                    $imageUrl = url($prize->image);
+                } elseif (Storage::disk('public')->exists($prize->image)) {
+                    // Если файл в public storage
+                    $imageUrl = Storage::disk('public')->url($prize->image);
+                } else {
+                    // По умолчанию используем asset для storage
+                    $imageUrl = asset('storage/' . ltrim($prize->image, '/'));
+                }
+            }
+            
             return [
                 'id' => $prize->id,
                 'name' => $prize->name,
@@ -75,6 +93,7 @@ class WidgetController extends Controller
                 'probability' => (float) $prize->probability,
                 'type' => $prize->type,
                 'value' => $prize->value,
+                'image' => $imageUrl,
             ];
         });
 
@@ -184,12 +203,35 @@ class WidgetController extends Controller
             ], 403);
         }
 
+        // Проверка выигрыша сегодня - блокируем повторное вращение до полуночи
+        $todayWin = Spin::where('guest_id', $guest->id)
+            ->where('wheel_id', $wheel->id)
+            ->whereNotNull('prize_id')
+            ->whereDate('created_at', today())
+            ->first();
+
+        if ($todayWin) {
+            $prize = $todayWin->prize;
+            return response()->json([
+                'error' => 'Already won today',
+                'message' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
+                'today_win' => [
+                    'prize' => [
+                        'id' => $prize->id,
+                        'name' => $prize->name,
+                        'value' => $prize->value,
+                        'text_for_winner' => $prize->text_for_winner,
+                        'type' => $prize->type,
+                    ],
+                ],
+            ], 403);
+        }
+
         try {
             DB::beginTransaction();
 
             // Выбор приза с учетом вероятностей и лимитов
-            //$prize = $this->selectPrize($wheel, $guest->id);
-            $prize = $this->selectRandomPrize($wheel, $guest->id);
+            $prize = $this->selectPrize($wheel, $guest->id);
 
             // Создание записи о вращении
             $spin = Spin::create([
@@ -236,6 +278,49 @@ class WidgetController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Получить сегодняшний выигрыш гостя
+     */
+    public function getTodayWin(Request $request, string $slug)
+    {
+        $guestId = $request->query('guest_id');
+        
+        if (!$guestId) {
+            return response()->json([
+                'error' => 'Guest ID required',
+            ], 422);
+        }
+
+        $wheel = Wheel::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $todayWin = Spin::where('guest_id', $guestId)
+            ->where('wheel_id', $wheel->id)
+            ->whereNotNull('prize_id')
+            ->whereDate('created_at', today())
+            ->with('prize')
+            ->first();
+
+        if ($todayWin && $todayWin->prize) {
+            return response()->json([
+                'has_win' => true,
+                'prize' => [
+                    'id' => $todayWin->prize->id,
+                    'name' => $todayWin->prize->name,
+                    'value' => $todayWin->prize->value,
+                    'text_for_winner' => $todayWin->prize->text_for_winner,
+                    'type' => $todayWin->prize->type,
+                ],
+                'win_date' => $todayWin->created_at->toIso8601String(),
+            ]);
+        }
+
+        return response()->json([
+            'has_win' => false,
+        ]);
     }
 
     /**

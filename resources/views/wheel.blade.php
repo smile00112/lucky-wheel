@@ -173,14 +173,14 @@
 <body>
     <div class="container">
         <h1>🎡 Колесо Фортуны</h1>
-        
+
         <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheelCanvas" class="wheel" width="400" height="400"></canvas>
         </div>
-        
+
         <button id="spinButton" class="spin-button">Крутить колесо!</button>
-        
+
         <div id="result" class="result">
             <h2>🎉 Поздравляем!</h2>
             <p id="resultText"></p>
@@ -202,7 +202,7 @@
             }
         @endphp
         const prizesData = @json($prizesData);
-        
+
         // Если нет призов, создаем тестовые
         const testPrizes = prizesData.length > 0 ? prizesData : [
             { name: 'Скидка 10%', color: '#FF6B6B', probability: 20 },
@@ -243,29 +243,29 @@
         // Рисуем колесо
         function drawWheel(rotation = 0) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             const totalAngle = 2 * Math.PI;
             let currentAngle = -Math.PI / 2 + rotation; // Начинаем сверху
-            
+
             normalizedPrizes.forEach((prize, index) => {
                 const angle = (prize.probability / 100) * totalAngle;
-                
+
                 // Рисуем сектор
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + angle);
                 ctx.closePath();
-                
+
                 // Цвет сектора
                 const color = prize.color || getColorByIndex(index);
                 ctx.fillStyle = color;
                 ctx.fill();
-                
+
                 // Обводка
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-                
+
                 // Текст
                 ctx.save();
                 ctx.translate(centerX, centerY);
@@ -276,7 +276,7 @@
                 ctx.font = 'bold 14px Arial';
                 ctx.fillText(prize.name, radius * 0.6, 0);
                 ctx.restore();
-                
+
                 currentAngle += angle;
             });
         }
@@ -295,85 +295,85 @@
         function selectPrize() {
             const random = Math.random() * 100;
             let cumulative = 0;
-            
+
             for (const prize of normalizedPrizes) {
                 cumulative += prize.probability;
                 if (random <= cumulative) {
                     return prize;
                 }
             }
-            
+
             return normalizedPrizes[normalizedPrizes.length - 1];
         }
 
         // Вычислить угол для выбранного приза
         function getPrizeAngle(prize) {
             let cumulativeAngle = -Math.PI / 2;
-            
+
             for (const p of normalizedPrizes) {
                 if (p === prize) {
                     return cumulativeAngle + (p.probability / 100) * Math.PI;
                 }
                 cumulativeAngle += (p.probability / 100) * 2 * Math.PI;
             }
-            
+
             return cumulativeAngle;
         }
 
         // Вращение колеса
         function spin() {
             if (isSpinning) return;
-            
+
             isSpinning = true;
             const spinButton = document.getElementById('spinButton');
             const result = document.getElementById('result');
             spinButton.disabled = true;
             result.classList.remove('show');
-            
+
             // Выбираем приз
             const selectedPrize = selectPrize();
             const prizeAngle = getPrizeAngle(selectedPrize);
-            
+
             // Вычисляем финальный угол (несколько полных оборотов + угол до приза)
             const spins = 5; // Количество полных оборотов
             const finalRotation = currentRotation + (spins * 2 * Math.PI) + (2 * Math.PI - prizeAngle);
-            
+
             // Анимация
             const startRotation = currentRotation;
             const rotationDiff = finalRotation - startRotation;
             const duration = 4000; // 4 секунды
             const startTime = Date.now();
-            
+
             function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                
+
                 // Easing функция для плавного замедления
                 const easeOut = 1 - Math.pow(1 - progress, 3);
                 currentRotation = startRotation + rotationDiff * easeOut;
-                
+
                 drawWheel(currentRotation);
-                
+
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
                     // Анимация завершена
                     isSpinning = false;
                     spinButton.disabled = false;
-                    
+
                     // Показываем результат
                     const resultText = document.getElementById('resultText');
                     resultText.textContent = `Вы выиграли: ${selectedPrize.name}!`;
                     result.classList.add('show');
                 }
             }
-            
+
             animate();
         }
 
         // Инициализация
         drawWheel();
-        
+
         // Обработчик кнопки
         document.getElementById('spinButton').addEventListener('click', spin);
     </script>

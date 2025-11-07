@@ -30,7 +30,9 @@ class PrizeSchema
                 ->searchable()
                 ->preload()
                 ->live()
-                ->afterStateUpdated(fn () => null);
+                ->afterStateUpdated(fn () => null)
+                ->columnSpanFull()
+            ;
         }
 
         $components = array_merge($components, [
@@ -42,10 +44,16 @@ class PrizeSchema
                 ->label(__('filament.prize.name'))
                 ->required()
                 ->maxLength(255),
+            Forms\Components\TextInput::make('value')
+                ->label(__('filament.prize.value'))
+                ->maxLength(255)
+                ->helperText(__('filament.prize.value_hint')),
+                //->hidden($hideValue),
             Forms\Components\Textarea::make('description')
                 ->label(__('filament.prize.description'))
                 ->rows(3)
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->hidden(),
             Forms\Components\Textarea::make('text_for_winner')
                 ->label(__('filament.prize.text_for_winner'))
                 ->rows(2)
@@ -62,11 +70,7 @@ class PrizeSchema
                 ])
                 ->default('other')
                 ->hidden(),
-            Forms\Components\TextInput::make('value')
-                ->label(__('filament.prize.value'))
-                ->maxLength(255)
-                ->helperText(__('filament.prize.value_hint'))
-                ->hidden($hideValue),
+
             Forms\Components\TextInput::make('probability')
                 ->label(__('filament.prize.probability'))
                 ->numeric()
@@ -76,13 +80,16 @@ class PrizeSchema
                 ->step(0.01)
                 ->suffix('%')
                 ->helperText(__('filament.prize.probability_hint'))
-                ->required(),
+                //->required()
+                ->hidden(),
             Forms\Components\FileUpload::make('image')
                 ->label(__('filament.prize.image'))
                 ->image()
+                ->disk('public')  // Добавьте эту строку
                 ->directory('prizes')
                 ->visibility('public')
                 ->columnSpanFull(),
+
             Forms\Components\ColorPicker::make('color')
                 ->label(__('filament.prize.color'))
                 ->helperText(__('filament.prize.color_hint')),
@@ -91,22 +98,26 @@ class PrizeSchema
                 ->label(__('filament.prize.sort'))
                 ->numeric()
                 ->default(0)
-                ->required(),
+                ->required()
+                ->hidden(),
             Forms\Components\TextInput::make('quantity_limit')
                 ->label(__('filament.prize.quantity_limit'))
                 ->numeric()
                 ->minValue(1)
-                ->helperText(__('filament.prize.quantity_limit_hint')),
+                ->helperText(__('filament.prize.quantity_limit_hint'))
+                ->hidden(),
             Forms\Components\TextInput::make('quantity_day_limit')
                 ->label(__('filament.prize.quantity_day_limit'))
                 ->numeric()
                 ->minValue(1)
-                ->helperText(__('filament.prize.quantity_day_limit_hint')),
+                ->helperText(__('filament.prize.quantity_day_limit_hint'))
+                ->hidden(),
             Forms\Components\TextInput::make('quantity_guest_limit')
                 ->label(__('filament.prize.quantity_guest_limit'))
                 ->numeric()
                 ->minValue(1)
-                ->helperText(__('filament.prize.quantity_guest_limit_hint')),
+                ->helperText(__('filament.prize.quantity_guest_limit_hint'))
+                ->hidden(),
         ]);
 
         return $schema->components($components);
@@ -126,6 +137,8 @@ class PrizeSchema
         $columns = [
             Tables\Columns\ImageColumn::make('image')
                 ->label(__('filament.prize.image'))
+                ->disk('public')  // Добавьте эту строку
+                ->visibility('public')
                 ->circular()
                 ->defaultImageUrl(asset('images/logo.png')),
             Tables\Columns\TextColumn::make('name')

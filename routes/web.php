@@ -9,17 +9,23 @@ Route::get('/', function () {
 });
 
 Route::get('/wheel', function () {
-    // Получаем первое активное колесо или создаем тестовое
+    // Получаем первое активное колесо или первое доступное
     $wheel = Wheel::where('is_active', true)
         ->with('activePrizes')
         ->first();
     
-    // Если нет колеса, создаем тестовое
+    // Если нет активного колеса, берем первое доступное
     if (!$wheel) {
         $wheel = Wheel::first();
     }
     
-    return view('wheel', compact('wheel'));
+    // Если нет колеса вообще, возвращаем ошибку
+    if (!$wheel) {
+        abort(404, 'No wheel found');
+    }
+    
+    // Используем шаблон виджета
+    return view('widget.wheel', compact('wheel'));
 });
 
 // Веб-маршрут для виджета (для iframe)
