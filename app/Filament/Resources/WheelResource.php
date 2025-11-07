@@ -4,9 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WheelResource\Pages;
 use App\Models\Wheel;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +21,7 @@ class WheelResource extends Resource
 {
     protected static ?string $model = Wheel::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-sparkles';
+    protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedSparkles;
 
     protected static ?string $navigationLabel = 'Колеса';
 
@@ -26,22 +31,17 @@ class WheelResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Select::make('user_id')
-                    ->label(__('filament.wheel.user_id'))
-                    ->relationship('user', 'name')
-                    ->required()
-                    ->searchable()
-                    ->preload(),
+        return $schema
+            ->components([
+                Forms\Components\Hidden::make('user_id'),
                 Forms\Components\TextInput::make('name')
                     ->label(__('filament.wheel.name'))
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true)
-                    ->afterStateUpdated(fn (Forms\Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                    ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
                 Forms\Components\TextInput::make('slug')
                     ->label(__('filament.wheel.slug'))
                     ->required()
@@ -68,7 +68,8 @@ class WheelResource extends Resource
                     ->native(false),
                 Forms\Components\KeyValue::make('settings')
                     ->label(__('filament.wheel.settings'))
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->hidden(),
             ]);
     }
 
@@ -80,13 +81,13 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.name'))
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label(__('filament.wheel.user_id'))
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('slug')
-                    ->label(__('filament.wheel.slug'))
-                    ->searchable(),
+//                Tables\Columns\TextColumn::make('user.name')
+//                    ->label(__('filament.wheel.user_id'))
+//                    ->searchable()
+//                    ->sortable(),
+//                Tables\Columns\TextColumn::make('slug')
+//                    ->label(__('filament.wheel.slug'))
+//                    ->searchable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label(__('filament.wheel.is_active'))
                     ->boolean()
@@ -123,11 +124,6 @@ class WheelResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('user_id')
-                    ->label(__('filament.wheel.user_id'))
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload(),
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label(__('filament.wheel.is_active'))
                     ->placeholder(__('filament.all'))
@@ -136,20 +132,18 @@ class WheelResource extends Resource
                     ->native(false),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                DeleteBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            WheelResource\RelationManagers\PrizesRelationManager::class,
         ];
     }
 
@@ -162,5 +156,6 @@ class WheelResource extends Resource
         ];
     }
 }
+
 
 

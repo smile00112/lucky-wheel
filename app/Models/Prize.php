@@ -71,4 +71,56 @@ class Prize extends Model
     {
         $this->increment('quantity_used');
     }
+
+    /**
+     * Проверка доступности приза для гостя (не превышен ли лимит гостя)
+     */
+    public function isAvailableForGuest(int $guestId): bool
+    {
+        if ($this->quantity_guest_limit === null) {
+            return true;
+        }
+
+        $guestWinsCount = $this->spins()
+            ->where('guest_id', $guestId)
+            ->count();
+
+        return $guestWinsCount < $this->quantity_guest_limit;
+    }
+
+    /**
+     * Проверка дневного лимита приза
+     */
+    public function isAvailableToday(): bool
+    {
+        if ($this->quantity_day_limit === null) {
+            return true;
+        }
+
+        $todayWins = $this->spins()
+            ->whereDate('created_at', today())
+            ->count();
+
+        return $todayWins < $this->quantity_day_limit;
+    }
+
+    /**
+     * Полная проверка доступности приза (все лимиты)
+     */
+    public function isFullyAvailable(int $guestId = null): bool
+    {
+        if (!$this->isAvailable()) {
+            return false;
+        }
+
+        if (!$this->isAvailableToday()) {
+            return false;
+        }
+
+        if ($guestId && !$this->isAvailableForGuest($guestId)) {
+            return false;
+        }
+
+        return true;
+    }
 }

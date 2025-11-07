@@ -16,6 +16,15 @@ class EditWheel extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Убеждаемся, что user_id не меняется при редактировании
+        $data['user_id'] = $this->record->user_id;
+
+        return $data;
+    }
 }
+
 
 

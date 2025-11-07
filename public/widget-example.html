@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пример встраивания виджета колеса фортуны</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .widget-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Пример встраивания виджета колеса фортуны</h1>
+        
+        <p>Это пример страницы, на которой встроен виджет колеса фортуны.</p>
+        
+        <div class="widget-container">
+            <h2>🎡 Виджет:</h2>
+            <p style="color: #666; margin-top: 10px;">
+                После загрузки виджета в правом нижнем углу страницы появится плавающая иконка колеса фортуны. 
+                Кликните на неё, чтобы открыть колесо в модальном окне.
+            </p>
+        </div>
+        
+        <div class="code-block">
+            <code>
+&lt;!-- Подключение виджета (контейнер больше не нужен) --&gt;
+&lt;script src="https://yourdomain.com/js/lucky-wheel-widget.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  LuckyWheel.init({
+    slug: 'wheel-slug',
+    apiUrl: 'https://yourdomain.com/api/widget',
+    width: '600px',      // Опционально: ширина модального окна
+    height: '700px',     // Опционально: высота модального окна
+    onSpin: function(spinData) {
+      console.log('Вращение выполнено:', spinData);
+    },
+    onWin: function(prize) {
+      console.log('Выигрыш:', prize);
+      alert('Поздравляем! Вы выиграли: ' + prize.name);
+    },
+    onError: function(error) {
+      console.error('Ошибка:', error);
+    },
+    onLoad: function() {
+      console.log('Виджет загружен');
+    }
+  });
+&lt;/script&gt;
+            </code>
+        </div>
+    </div>
+
+    <!-- Подключение виджета -->
+    <script src="/js/lucky-wheel-widget.js"></script>
+    <script>
+        // Автоматическое определение URL для локального тестирования
+        const currentHost = window.location.host;
+        const currentProtocol = window.location.protocol;
+        const apiUrl = `${currentProtocol}//${currentHost}/api/widget`;
+        
+        // Замените 'your-wheel-slug' на реальный slug вашего колеса
+        const wheelSlug = 'your-wheel-slug'; // ← ЗАМЕНИТЕ НА РЕАЛЬНЫЙ SLUG
+        
+        console.log('API URL:', apiUrl);
+        console.log('Wheel Slug:', wheelSlug);
+        
+        if (wheelSlug === 'your-wheel-slug') {
+            console.warn('⚠️ Не забудьте заменить "your-wheel-slug" на реальный slug вашего колеса!');
+        }
+        
+        LuckyWheel.init({
+            slug: wheelSlug,
+            apiUrl: apiUrl,
+            width: '600px',
+            height: '700px',
+            onSpin: function(spinData) {
+                console.log('Вращение выполнено:', spinData);
+            },
+            onWin: function(prize) {
+                console.log('Выигрыш:', prize);
+                alert('Поздравляем! Вы выиграли: ' + prize.name);
+            },
+            onError: function(error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка: ' + (error.message || error));
+            },
+            onLoad: function() {
+                console.log('✓ Виджет успешно загружен. Иконка появилась в правом нижнем углу');
+            }
+        });
+    </script>
+</body>
+</html>
+

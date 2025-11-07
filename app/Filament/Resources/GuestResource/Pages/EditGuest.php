@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\SpinResource\Pages;
+namespace App\Filament\Resources\GuestResource\Pages;
 
-use App\Filament\Resources\SpinResource;
+use App\Filament\Resources\GuestResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditSpin extends EditRecord
+class EditGuest extends EditRecord
 {
-    protected static string $resource = SpinResource::class;
+    protected static string $resource = GuestResource::class;
 
     protected function getHeaderActions(): array
     {
@@ -17,6 +17,4 @@ class EditSpin extends EditRecord
         ];
     }
 }
-
-
 

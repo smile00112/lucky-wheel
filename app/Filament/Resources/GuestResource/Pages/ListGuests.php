@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\WheelResource\Pages;
+namespace App\Filament\Resources\GuestResource\Pages;
 
-use App\Filament\Resources\WheelResource;
+use App\Filament\Resources\GuestResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
-class ListWheels extends ListRecords
+class ListGuests extends ListRecords
 {
-    protected static string $resource = WheelResource::class;
+    protected static string $resource = GuestResource::class;
 
     protected function getHeaderActions(): array
     {
@@ -20,9 +20,8 @@ class ListWheels extends ListRecords
 
     protected function getTableQuery(): Builder
     {
-        return parent::getTableQuery()->where('user_id', auth()->id());
+        return parent::getTableQuery()
+            ->withCount(['spins', 'wins']);
     }
 }
-
-
 

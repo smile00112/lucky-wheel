@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест виджета колеса фортуны</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .config-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+        }
+
+        .config-panel h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .widget-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .info-panel {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-panel h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-panel ul {
+            margin-left: 20px;
+            color: #495057;
+        }
+
+        .info-panel li {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .log-panel {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .log-panel h3 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .log-content {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-entry.success {
+            color: #98c379;
+        }
+
+        .log-entry.error {
+            color: #e06c75;
+        }
+
+        .log-entry.info {
+            color: #61afef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 Тестирование виджета колеса фортуны</h1>
+        <p class="subtitle">Локальное тестирование виджета на вашей машине</p>
+
+        <div class="info-panel">
+            <h3>📋 Инструкция:</h3>
+            <ul>
+                <li>Убедитесь, что ваш Laravel сервер запущен (например, <code>php artisan serve</code>)</li>
+                <li>Введите slug вашего активного колеса</li>
+                <li>Нажмите "Загрузить виджет"</li>
+                <li>Смотрите логи в консоли браузера (F12) и в панели ниже</li>
+            </ul>
+        </div>
+
+        <div class="config-panel">
+            <h2>⚙️ Настройки</h2>
+            <div class="form-group">
+                <label for="apiUrl">API URL:</label>
+                <input type="text" id="apiUrl" value="http://localhost:8000/api/widget" placeholder="http://localhost:8000/api/widget">
+            </div>
+            <div class="form-group">
+                <label for="wheelSlug">Slug колеса:</label>
+                <input type="text" id="wheelSlug" placeholder="Введите slug колеса (например: summer-promo)">
+            </div>
+            <div class="form-group">
+                <label for="widgetWidth">Ширина виджета:</label>
+                <input type="text" id="widgetWidth" value="600px" placeholder="600px">
+            </div>
+            <div class="form-group">
+                <label for="widgetHeight">Высота виджета:</label>
+                <input type="text" id="widgetHeight" value="700px" placeholder="700px">
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="loadWidget()">Загрузить виджет</button>
+                <button class="btn-secondary" onclick="destroyWidget()">Удалить виджет</button>
+                <button class="btn-secondary" onclick="clearLog()">Очистить лог</button>
+            </div>
+        </div>
+
+        <div class="widget-container">
+            <h3 style="color: #495057; margin-bottom: 10px;">ℹ️ Информация:</h3>
+            <p style="color: #666; line-height: 1.6;">
+                После загрузки виджета в правом нижнем углу страницы появится плавающая иконка колеса фортуны. 
+                Кликните на неё, чтобы открыть колесо в модальном окне.
+            </p>
+            <p style="color: #666; line-height: 1.6; margin-top: 10px;">
+                <strong>Примечание:</strong> Виджет теперь работает в режиме плавающей иконки. Контейнер больше не требуется.
+            </p>
+        </div>
+
+        <div class="log-panel">
+            <h3>📝 Лог событий:</h3>
+            <div id="logContent" class="log-content">
+                <div class="log-entry info">Готов к загрузке виджета...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключение виджета -->
+    <script src="/js/lucky-wheel-widget.js"></script>
+    <script>
+        let widgetLoaded = false;
+
+        function addLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logContent').innerHTML = '';
+            addLog('Лог очищен', 'info');
+        }
+
+        function loadWidget() {
+            const apiUrl = document.getElementById('apiUrl').value.trim();
+            const wheelSlug = document.getElementById('wheelSlug').value.trim();
+            const width = document.getElementById('widgetWidth').value.trim();
+            const height = document.getElementById('widgetHeight').value.trim();
+
+            if (!wheelSlug) {
+                addLog('Ошибка: Введите slug колеса', 'error');
+                alert('Пожалуйста, введите slug колеса');
+                return;
+            }
+
+            if (!apiUrl) {
+                addLog('Ошибка: Введите API URL', 'error');
+                alert('Пожалуйста, введите API URL');
+                return;
+            }
+
+            // Удаляем предыдущий виджет, если он есть
+            if (widgetLoaded) {
+                try {
+                    LuckyWheel.destroy();
+                } catch (e) {
+                    console.error('Error destroying widget:', e);
+                }
+            }
+
+            addLog(`Загрузка виджета: slug="${wheelSlug}", apiUrl="${apiUrl}"`, 'info');
+
+            try {
+                LuckyWheel.init({
+                    slug: wheelSlug,
+                    apiUrl: apiUrl,
+                    width: width || '600px',
+                    height: height || '700px',
+                    onLoad: function() {
+                        addLog('✓ Виджет успешно загружен. Иконка появилась в правом нижнем углу', 'success');
+                        widgetLoaded = true;
+                    },
+                    onSpin: function(spinData) {
+                        addLog(`Вращение выполнено: spins_count=${spinData.spins_count}, has_prize=${spinData.has_prize}`, 'info');
+                        console.log('Spin data:', spinData);
+                    },
+                    onWin: function(prize) {
+                        addLog(`🎉 ВЫИГРЫШ: ${prize.name} (${prize.type}: ${prize.value})`, 'success');
+                        console.log('Prize:', prize);
+                        alert(`🎉 Поздравляем!\n\nВы выиграли: ${prize.name}\n${prize.text_for_winner || ''}`);
+                    },
+                    onError: function(error) {
+                        const errorMsg = typeof error === 'string' ? error : (error.message || JSON.stringify(error));
+                        addLog(`✗ Ошибка: ${errorMsg}`, 'error');
+                        console.error('Widget error:', error);
+                        alert('Ошибка: ' + errorMsg);
+                    }
+                });
+            } catch (error) {
+                addLog(`✗ Ошибка инициализации: ${error.message}`, 'error');
+                console.error('Initialization error:', error);
+                alert('Ошибка инициализации: ' + error.message);
+            }
+        }
+
+        function destroyWidget() {
+            if (widgetLoaded) {
+                try {
+                    LuckyWheel.destroy();
+                    widgetLoaded = false;
+                    addLog('Виджет удален (иконка и модальное окно)', 'info');
+                } catch (error) {
+                    addLog(`Ошибка при удалении: ${error.message}`, 'error');
+                }
+            } else {
+                addLog('Виджет не загружен', 'info');
+            }
+        }
+
+        // Автоматическое определение локального URL
+        window.addEventListener('DOMContentLoaded', function() {
+            const currentHost = window.location.host;
+            const currentProtocol = window.location.protocol;
+            const defaultApiUrl = `${currentProtocol}//${currentHost}/api/widget`;
+            
+            // Если используется стандартный порт Laravel, обновим URL
+            if (currentHost.includes('localhost') || currentHost.includes('127.0.0.1')) {
+                const port = window.location.port || '8000';
+                const host = currentHost.split(':')[0];
+                document.getElementById('apiUrl').value = `${currentProtocol}//${host}:${port}/api/widget`;
+            } else {
+                document.getElementById('apiUrl').value = defaultApiUrl;
+            }
+
+            addLog(`Автоматически определен API URL: ${document.getElementById('apiUrl').value}`, 'info');
+        });
+
+        // Обработка Enter в полях ввода
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+                loadWidget();
+            }
+        });
+    </script>
+</body>
+</html>
+

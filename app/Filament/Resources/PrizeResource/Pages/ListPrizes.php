@@ -19,3 +19,4 @@ class ListPrizes extends ListRecords
 }
 
 
+

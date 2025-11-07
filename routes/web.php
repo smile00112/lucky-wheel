@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\Wheel;
+use App\Http\Controllers\WidgetController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,3 +21,7 @@ Route::get('/wheel', function () {
     
     return view('wheel', compact('wheel'));
 });
+
+// Веб-маршрут для виджета (для iframe)
+Route::get('/widget/embed/{slug}', [WidgetController::class, 'embed'])
+    ->name('widget.embed.web');

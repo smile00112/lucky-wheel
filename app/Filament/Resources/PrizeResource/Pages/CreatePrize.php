@@ -11,3 +11,4 @@ class CreatePrize extends CreateRecord
 }
 
 
+

@@ -4,9 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SpinResource\Pages;
 use App\Models\Spin;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +20,7 @@ class SpinResource extends Resource
 {
     protected static ?string $model = Spin::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
+    protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedArrowPath;
 
     protected static ?string $navigationLabel = 'Вращения';
 
@@ -25,10 +30,10 @@ class SpinResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Forms\Components\Select::make('wheel_id')
                     ->label(__('filament.spin.wheel_id'))
                     ->relationship('wheel', 'name')
@@ -86,7 +91,7 @@ class SpinResource extends Resource
                     ->label(__('filament.spin.guest_id'))
                     ->searchable(['guests.name', 'guests.email', 'guests.phone'])
                     ->sortable()
-                    ->formatStateUsing(fn ($record) => $record->guest 
+                    ->formatStateUsing(fn ($record) => $record->guest
                         ? ($record->guest->name ?: $record->guest->email ?: $record->guest->phone ?: __('filament.spin.guest_number') . $record->guest->id)
                         : '-'),
                 Tables\Columns\TextColumn::make('guest.email')
@@ -154,20 +159,18 @@ class SpinResource extends Resource
                     ->toggle(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('mark_claimed')
+                EditAction::make(),
+                Action::make('mark_claimed')
                     ->label(__('filament.spin.mark_claimed'))
-                    ->icon('heroicon-o-check-circle')
+                    ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('success')
                     ->requiresConfirmation()
                     ->visible(fn ($record) => $record->status !== 'claimed' && $record->prize_id !== null)
                     ->action(fn ($record) => $record->markAsClaimed()),
-                Tables\Actions\DeleteAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                DeleteBulkAction::make(),
             ])
             ->defaultSort('created_at', 'desc');
     }
