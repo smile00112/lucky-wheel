@@ -12,3 +12,4 @@ class CreateSpin extends CreateRecord
 
 
 
+

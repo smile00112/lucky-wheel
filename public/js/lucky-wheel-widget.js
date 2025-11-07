@@ -59,18 +59,55 @@
                 return;
             }
 
-            // Получение или создание гостя
-            this.getOrCreateGuest()
-                .then(() => {
-                    this.createFloatingIcon();
-                    this.createModal();
-                })
-                .catch((error) => {
-                    console.error('LuckyWheel: Failed to initialize', error);
-                    if (this.config.callbacks.onError) {
-                        this.config.callbacks.onError(error);
+            // Ждем, пока DOM будет готов
+            const initWidget = () => {
+                if (document.body && document.head) {
+                    // Получение или создание гостя
+                    this.getOrCreateGuest()
+                        .then(() => {
+                            this.createFloatingIcon();
+                            this.createModal();
+                        })
+                        .catch((error) => {
+                            console.error('LuckyWheel: Failed to initialize', error);
+                            if (this.config.callbacks.onError) {
+                                this.config.callbacks.onError(error);
+                            }
+                        });
+                } else {
+                    // Если DOM еще не готов, ждем события
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initWidget, { once: true });
+                    } else {
+                        // DOM уже загружен, но body еще нет - используем более надежный способ
+                        const checkBody = () => {
+                            if (document.body && document.head) {
+                                initWidget();
+                            } else {
+                                // Продолжаем проверять с интервалом, но не более 5 секунд
+                                const maxAttempts = 50;
+                                let attempts = 0;
+                                const intervalId = setInterval(() => {
+                                    attempts++;
+                                    if (document.body && document.head) {
+                                        clearInterval(intervalId);
+                                        initWidget();
+                                    } else if (attempts >= maxAttempts) {
+                                        clearInterval(intervalId);
+                                        console.error('LuckyWheel: DOM is not ready after 5 seconds');
+                                        if (this.config.callbacks.onError) {
+                                            this.config.callbacks.onError(new Error('DOM is not ready'));
+                                        }
+                                    }
+                                }, 100);
+                            }
+                        };
+                        checkBody();
                     }
-                });
+                }
+            };
+
+            initWidget();
 
             // Обработка сообщений от iframe
             window.addEventListener('message', this.handleMessage.bind(this), false);
@@ -101,17 +138,31 @@
                         // Можно добавить email, phone, name если есть
                     }),
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        // Пытаемся получить детали ошибки
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                        }).catch(() => {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    if (data.id) {
-                        this.config.guestId = data.id;
-                        localStorage.setItem('lucky_wheel_guest_id', data.id.toString());
+                    // API возвращает 'id', а не 'guest_id'
+                    const guestId = data.id || data.guest_id;
+                    if (guestId) {
+                        this.config.guestId = parseInt(guestId);
+                        localStorage.setItem('lucky_wheel_guest_id', this.config.guestId.toString());
                         resolve();
                     } else {
-                        reject(new Error('Failed to create guest'));
+                        console.error('LuckyWheel: Invalid guest response', data);
+                        reject(new Error('Failed to create guest: invalid response'));
                     }
                 })
                 .catch(error => {
+                    console.error('LuckyWheel: Error creating guest', error);
                     reject(error);
                 });
             });
@@ -178,7 +229,18 @@
                         }
                     }
                 `;
-                document.head.appendChild(style);
+                if (document.head) {
+                    document.head.appendChild(style);
+                } else {
+                    console.error('LuckyWheel: document.head is not available');
+                    return;
+                }
+            }
+
+            // Проверяем доступность document.body
+            if (!document.body) {
+                console.error('LuckyWheel: document.body is not available');
+                return;
             }
 
             // Создаем иконку
@@ -321,7 +383,18 @@
                         }
                     }
                 `;
-                document.head.appendChild(style);
+                if (document.head) {
+                    document.head.appendChild(style);
+                } else {
+                    console.error('LuckyWheel: document.head is not available');
+                    return;
+                }
+            }
+
+            // Проверяем доступность document.body
+            if (!document.body) {
+                console.error('LuckyWheel: document.body is not available');
+                return;
             }
 
             // Создаем модальное окно
@@ -373,6 +446,21 @@
         openModal: function () {
             if (!this.config.modal) {
                 this.createModal();
+            }
+
+            // Убеждаемся, что guestId установлен
+            if (!this.config.guestId) {
+                this.getOrCreateGuest()
+                    .then(() => {
+                        this.openModal();
+                    })
+                    .catch((error) => {
+                        console.error('LuckyWheel: Failed to get guest ID', error);
+                        if (this.config.callbacks.onError) {
+                            this.config.callbacks.onError(error);
+                        }
+                    });
+                return;
             }
 
             // Создаем iframe, если его еще нет

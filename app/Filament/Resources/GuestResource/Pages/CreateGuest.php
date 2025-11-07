@@ -10,3 +10,4 @@ class CreateGuest extends CreateRecord
     protected static string $resource = GuestResource::class;
 }
 
+

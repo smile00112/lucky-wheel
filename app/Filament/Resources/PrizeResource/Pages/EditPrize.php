@@ -20,3 +20,4 @@ class EditPrize extends EditRecord
 
 
 
+
