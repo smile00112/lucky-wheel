@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Guest extends Model
+{
+    protected $fillable = [
+        'email',
+        'phone',
+        'name',
+        'ip_address',
+        'user_agent',
+        'metadata',
+    ];
+
+    protected $casts = [
+        'metadata' => 'array',
+    ];
+
+    /**
+     * Вращения гостя
+     */
+    public function spins(): HasMany
+    {
+        return $this->hasMany(Spin::class);
+    }
+
+    /**
+     * Выигрыши гостя
+     */
+    public function wins(): HasMany
+    {
+        return $this->hasMany(Spin::class)->whereNotNull('prize_id');
+    }
+
+    /**
+     * Получить количество вращений для конкретного колеса
+     */
+    public function getSpinsCountForWheel(int $wheelId): int
+    {
+        return $this->spins()->where('wheel_id', $wheelId)->count();
+    }
+}

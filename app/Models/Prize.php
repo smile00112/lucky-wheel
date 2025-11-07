@@ -1,0 +1,74 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Prize extends Model
+{
+    protected $fillable = [
+        'wheel_id',
+        'name',
+        'description',
+        'text_for_winner',
+        'type',
+        'value',
+        'probability',
+        'image',
+        'color',
+        'is_active',
+        'sort',
+        'quantity_limit',
+        'quantity_day_limit',
+        'quantity_guest_limit',
+        'quantity_used',
+    ];
+
+    protected $casts = [
+        'probability' => 'decimal:2',
+        'is_active' => 'boolean',
+        'sort' => 'integer',
+        'quantity_limit' => 'integer',
+        'quantity_day_limit' => 'integer',
+        'quantity_guest_limit' => 'integer',
+        'quantity_used' => 'integer',
+    ];
+
+    /**
+     * Колесо, к которому относится приз
+     */
+    public function wheel(): BelongsTo
+    {
+        return $this->belongsTo(Wheel::class);
+    }
+
+    /**
+     * Вращения, где выигран этот приз
+     */
+    public function spins(): HasMany
+    {
+        return $this->hasMany(Spin::class);
+    }
+
+    /**
+     * Проверка доступности приза (не превышен ли лимит)
+     */
+    public function isAvailable(): bool
+    {
+        if ($this->quantity_limit === null) {
+            return true;
+        }
+
+        return $this->quantity_used < $this->quantity_limit;
+    }
+
+    /**
+     * Увеличить счетчик использованных призов
+     */
+    public function incrementUsed(): void
+    {
+        $this->increment('quantity_used');
+    }
+}
