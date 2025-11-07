@@ -84,7 +84,7 @@ class WidgetController extends Controller
                     $imageUrl = asset('storage/' . ltrim($prize->image, '/'));
                 }
             }
-            
+
             return [
                 'id' => $prize->id,
                 'name' => $prize->name,
@@ -231,7 +231,8 @@ class WidgetController extends Controller
             DB::beginTransaction();
 
             // Выбор приза с учетом вероятностей и лимитов
-            $prize = $this->selectPrize($wheel, $guest->id);
+            $prize = $this->selectRandomPrize($wheel, $guest->id);
+            //$prize = $this->selectPrize($wheel, $guest->id);
 
             // Создание записи о вращении
             $spin = Spin::create([
@@ -286,7 +287,7 @@ class WidgetController extends Controller
     public function getTodayWin(Request $request, string $slug)
     {
         $guestId = $request->query('guest_id');
-        
+
         if (!$guestId) {
             return response()->json([
                 'error' => 'Guest ID required',
