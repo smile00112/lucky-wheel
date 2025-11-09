@@ -21,7 +21,9 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            /*justify-content: center;*/
+            justify-content: flex-start;
             align-items: center;
             padding: 10px;
         }
@@ -78,6 +80,63 @@
             border-top: 30px solid #ff4444;
             z-index: 10;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .won-prize-block {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 11;
+            text-align: center;
+            min-width: 150px;
+            animation: slideDownPrize 0.5s ease;
+        }
+
+        .won-prize-label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .won-prize-name {
+            font-size: 14px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        @keyframes slideDownPrize {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .won-prize-block {
+                top: 15px;
+                padding: 8px 15px;
+                min-width: 120px;
+            }
+
+            .won-prize-label {
+                font-size: 10px;
+            }
+
+            .won-prize-name {
+                font-size: 12px;
+            }
         }
 
         .spin-button {
@@ -143,10 +202,37 @@
             border-radius: 10px;
             color: #c33;
             display: none;
+            position: relative;
+            z-index: 1;
         }
 
         .error.show {
             display: block;
+        }
+
+        /* Ошибка поверх секции выигрыша */
+        .error.show.error-overlay {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10001; /* Выше секции выигрыша (z-index: 10000) */
+            max-width: 500px;
+            width: calc(100% - 40px);
+            margin-top: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideDownError 0.3s ease forwards;
+        }
+
+        @keyframes slideDownError {
+            from {
+                top: -100px;
+                opacity: 0;
+            }
+            to {
+                top: 20px;
+                opacity: 1;
+            }
         }
 
         .loading {
@@ -204,6 +290,7 @@
             background: rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             padding: 12px;
+            flex-direction: row;
         }
 
         .win-notification-code input {
@@ -267,7 +354,7 @@
             height: 30px;
             border-radius: 50%;
             cursor: pointer;
-            display: none; /* Скрываем, но не удаляем */
+            display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
@@ -277,6 +364,75 @@
 
         .win-notification-close:hover {
             background: rgba(255, 255, 255, 0.3);
+        }
+
+        .win-notification-form {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .win-notification-form-text {
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .win-notification-form-group {
+            margin-bottom: 12px;
+        }
+
+        .win-notification-form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .win-notification-form-group input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: white;
+        }
+
+        .win-notification-form-group input::placeholder {
+            color: #999;
+        }
+
+        .win-notification-submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .win-notification-submit-btn:hover:not(:disabled) {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .win-notification-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .win-notification-send-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         @keyframes fadeIn {
@@ -325,11 +481,11 @@
             }
 
             .win-notification-code {
-                flex-direction: column;
+                flex-direction: row;
             }
 
             .win-notification-code button {
-                width: 100%;
+                /*width: 100%;*/
             }
         }
     </style>
@@ -347,6 +503,11 @@
             <div class="wheel-container">
                 <div class="pointer"></div>
                 <canvas id="wheelCanvas" class="wheel"></canvas>
+                <!-- Блок выигранного приза под стрелкой -->
+                <div id="wonPrizeBlock" class="won-prize-block" style="display: none;">
+                    <div class="won-prize-label">Выиграно сегодня:</div>
+                    <div class="won-prize-name" id="wonPrizeName"></div>
+                </div>
             </div>
 
             <button id="spinButton" class="spin-button">Крутить колесо!</button>
@@ -372,6 +533,32 @@
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                 </svg>
+            </button>
+        </div>
+
+        <!-- Форма для получения приза -->
+        <div class="win-notification-form" id="winNotificationFormContainer" style="display: none;">
+            <p class="win-notification-form-text">Для получения приза на почту заполните данные:</p>
+            <form id="winNotificationForm" onsubmit="submitPrizeForm(event)">
+                <div class="win-notification-form-group">
+                    <input type="text" id="winNotificationName" name="name" placeholder="Ваше имя" required>
+                </div>
+                <div class="win-notification-form-group">
+                    <input type="email" id="winNotificationEmail" name="email" placeholder="Email" required>
+                </div>
+                <div class="win-notification-form-group">
+                    <input type="tel" id="winNotificationPhone" name="phone" placeholder="+7 (XXX) XXX-XX-XX" required maxlength="18">
+                </div>
+                <button type="submit" class="win-notification-submit-btn" id="winNotificationSubmitBtn">
+                    Отправить приз
+                </button>
+            </form>
+        </div>
+
+        <!-- Кнопка отправки приза (если данные уже заполнены) -->
+        <div class="win-notification-send-container" id="winNotificationSendContainer" style="display: none;">
+            <button type="button" class="win-notification-submit-btn" onclick="submitPrizeForm(event)">
+                Отправить приз
             </button>
         </div>
     </div>
@@ -472,6 +659,12 @@
                 }
             }
 
+            // Применяем маску для поля телефона
+            const phoneInput = document.getElementById('winNotificationPhone');
+            if (phoneInput) {
+                applyPhoneMask(phoneInput);
+            }
+
             // Проверяем, был ли выигрыш сегодня
             checkTodayWin();
 
@@ -482,6 +675,171 @@
                 checkTodayWin();
             }, 60000); // Каждую минуту
         });
+
+        // Применить маску для российского номера телефона
+        function applyPhoneMask(input) {
+            if (!input) return;
+
+            // Обработчик ввода
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, ''); // Удаляем все нецифровые символы
+
+                // Если начинается с 8, заменяем на 7
+                if (value.startsWith('8')) {
+                    value = '7' + value.substring(1);
+                }
+
+                // Ограничиваем до 11 цифр
+                if (value.length > 11) {
+                    value = value.substring(0, 11);
+                }
+
+                // Форматируем номер
+                let formattedValue = '';
+                if (value.length > 0) {
+                    formattedValue = '+7';
+                    if (value.length > 1) {
+                        formattedValue += ' (' + value.substring(1, 4);
+                        if (value.length >= 4) {
+                            formattedValue += ') ' + value.substring(4, 7);
+                            if (value.length >= 7) {
+                                formattedValue += '-' + value.substring(7, 9);
+                                if (value.length >= 9) {
+                                    formattedValue += '-' + value.substring(9, 11);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                e.target.value = formattedValue;
+            });
+
+            // Обработчик вставки (paste)
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                let pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                let value = pastedText.replace(/\D/g, '');
+
+                if (value.startsWith('8')) {
+                    value = '7' + value.substring(1);
+                }
+
+                if (value.length > 11) {
+                    value = value.substring(0, 11);
+                }
+
+                let formattedValue = '';
+                if (value.length > 0) {
+                    formattedValue = '+7';
+                    if (value.length > 1) {
+                        formattedValue += ' (' + value.substring(1, 4);
+                        if (value.length >= 4) {
+                            formattedValue += ') ' + value.substring(4, 7);
+                            if (value.length >= 7) {
+                                formattedValue += '-' + value.substring(7, 9);
+                                if (value.length >= 9) {
+                                    formattedValue += '-' + value.substring(9, 11);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                input.value = formattedValue;
+            });
+
+            // Обработчик удаления (backspace)
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Backspace' && input.value.length <= 4) {
+                    e.preventDefault();
+                    input.value = '';
+                }
+            });
+        }
+
+        // Показать блок выигранного приза под стрелкой
+        function showWonPrizeBlock(prize) {
+            const block = document.getElementById('wonPrizeBlock');
+            const nameElement = document.getElementById('wonPrizeName');
+
+            if (block && nameElement && prize) {
+                nameElement.textContent = prize.name;
+                block.style.display = 'block';
+            }
+        }
+
+        // Скрыть блок выигранного приза
+        function hideWonPrizeBlock() {
+            const block = document.getElementById('wonPrizeBlock');
+            if (block) {
+                block.style.display = 'none';
+            }
+        }
+
+        // Применить поворот колеса для выигранного приза
+        function applyWonPrizeRotation(prize) {
+            if (!prize || !prizes || prizes.length === 0) {
+                console.warn('Cannot apply rotation: prize or prizes array is empty', { prize, prizesLength: prizes?.length });
+                return;
+            }
+
+            // Вычисляем поворот для размещения приза под стрелкой
+            const rotation = calculateRotationForPrize(prize.id);
+            console.log('Applying rotation for prize:', {
+                prizeId: prize.id,
+                prizeName: prize.name,
+                rotation: rotation,
+                rotationDegrees: (rotation * 180 / Math.PI).toFixed(2)
+            });
+
+            currentRotation = rotation;
+
+            // Перерисовываем колесо с новым поворотом
+            if (canvas && ctx) {
+                drawWheel(currentRotation);
+            }
+        }
+
+        // Применить поворот колеса для выигранного приза, если он есть
+        async function applyWonPrizeRotationIfNeeded() {
+            if (!prizes || prizes.length === 0) {
+                return;
+            }
+
+            // Проверяем localStorage
+            const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
+            const winData = localStorage.getItem(todayWinKey);
+
+            if (winData) {
+                try {
+                    const win = JSON.parse(winData);
+                    const winDate = new Date(win.date);
+                    const today = new Date();
+
+                    // Проверяем, что это сегодня (не вчера)
+                    if (winDate.toDateString() === today.toDateString() && win.prize) {
+                        applyWonPrizeRotation(win.prize);
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error parsing win data:', e);
+                }
+            }
+
+            // Также проверяем на сервере
+            try {
+                const response = await fetch(`${API_URL}/wheel/${WHEEL_SLUG}/today-win?guest_id=${GUEST_ID}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.has_win && data.prize) {
+                        applyWonPrizeRotation(data.prize);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking today win for rotation:', error);
+            }
+        }
 
         // Проверить выигрыш сегодня
         async function checkTodayWin() {
@@ -497,10 +855,16 @@
 
                     // Проверяем, что это сегодня (не вчера)
                     if (winDate.toDateString() === today.toDateString()) {
-                        // Получаем код из сохраненных данных или из объекта prize
-                        const prizeCode = win.code || (win.prize && win.prize.value) || null;
+                    // Получаем код из сохраненных данных
+                    const prizeCode = win.code || null;
+                    // Получаем информацию о заполненных данных из сохраненных данных
+                    const guestHasData = win.guest_has_data !== undefined ? win.guest_has_data : null;
                         // Показываем уведомление о выигрыше
-                        showWinNotification(win.prize, prizeCode);
+                        showWinNotification(win.prize, prizeCode, guestHasData);
+                        // Показываем блок выигранного приза под стрелкой
+                        showWonPrizeBlock(win.prize);
+                        // Применяем поворот колеса для выигранного приза
+                        applyWonPrizeRotation(win.prize);
                         // Блокируем вращение
                         blockSpinning();
                         return;
@@ -509,6 +873,12 @@
                         localStorage.removeItem(todayWinKey);
                         unblockSpinning();
                         hideWinNotification();
+                        hideWonPrizeBlock();
+                        // Сбрасываем поворот
+                        currentRotation = 0;
+                        if (canvas && ctx) {
+                            drawWheel(currentRotation);
+                        }
                     }
                 } catch (e) {
                     console.error('Error parsing win data:', e);
@@ -521,11 +891,17 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.has_win && data.prize) {
-                        // Сохраняем в localStorage
-                        const prizeCode = data.prize.value || null;
-                        saveWin(data.prize, prizeCode);
-                        // Показываем уведомление
-                        showWinNotification(data.prize, prizeCode);
+                        // Сохраняем в localStorage (включая информацию о заполненных данных и spin_id)
+                        const prizeCode = data.code || null;
+                        const spinId = data.spin_id || null;
+                        saveWin(data.prize, prizeCode, data.guest_has_data || false, spinId);
+
+                        // Показываем уведомление (передаем информацию о заполненных данных)
+                        showWinNotification(data.prize, prizeCode, data.guest_has_data);
+                        // Показываем блок выигранного приза под стрелкой
+                        showWonPrizeBlock(data.prize);
+                        // Применяем поворот колеса для выигранного приза
+                        applyWonPrizeRotation(data.prize);
                         // Блокируем вращение
                         blockSpinning();
                     } else {
@@ -535,6 +911,13 @@
                         if (spinButton && spinButton.disabled && spinButton.textContent.includes('уже выиграли')) {
                             unblockSpinning();
                         }
+                        // Скрываем блок выигранного приза
+                        hideWonPrizeBlock();
+                        // Сбрасываем поворот
+                        currentRotation = 0;
+                        if (canvas && ctx) {
+                            drawWheel(currentRotation);
+                        }
                     }
                 }
             } catch (error) {
@@ -543,12 +926,14 @@
         }
 
         // Сохранить выигрыш
-        function saveWin(prize, code) {
+        function saveWin(prize, code, guestHasData = null, spinId = null) {
             const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
             const winData = {
                 date: new Date().toISOString(),
                 prize: prize,
-                code: code
+                code: code,
+                guest_has_data: guestHasData,
+                spin_id: spinId
             };
             localStorage.setItem(todayWinKey, JSON.stringify(winData));
         }
@@ -574,11 +959,13 @@
         }
 
         // Показать уведомление о выигрыше
-        function showWinNotification(prize, code) {
+        async function showWinNotification(prize, code, guestHasDataParam = null) {
             const notification = document.getElementById('winNotification');
             const message = document.getElementById('winNotificationMessage');
             const codeInput = document.getElementById('winNotificationCode');
             const codeContainer = document.getElementById('winNotificationCodeContainer');
+            const formContainer = document.getElementById('winNotificationFormContainer');
+            const sendContainer = document.getElementById('winNotificationSendContainer');
 
             if (!prize) {
                 return;
@@ -592,11 +979,8 @@
             message.innerHTML = messageText;
 
             // Определяем код приза
-            // Если код не передан явно, пытаемся взять из объекта prize
+            // Код передается явно в параметре code
             let prizeCode = code;
-            if (!prizeCode && prize && prize.value) {
-                prizeCode = prize.value;
-            }
 
             // Всегда показываем поле с кодом
             codeContainer.style.display = 'flex';
@@ -609,6 +993,56 @@
                 // Если код есть, устанавливаем его и убираем placeholder
                 codeInput.placeholder = '';
                 codeInput.value = prizeCode.toString().trim();
+            }
+
+            // Проверяем, заполнены ли данные гостя
+            let guestHasData = guestHasDataParam; // Используем переданный параметр, если есть
+
+            // Если параметр не передан, проверяем через API
+            if (guestHasData === null || guestHasData === undefined) {
+                // Сначала проверяем информацию из ответа getTodayWin (для случая, когда выигрыш найден по IP)
+                try {
+                    const todayWinResponse = await fetch(`${API_URL}/wheel/${WHEEL_SLUG}/today-win?guest_id=${GUEST_ID}`);
+                    if (todayWinResponse.ok) {
+                        const todayWinData = await todayWinResponse.json();
+                        if (todayWinData.has_win && todayWinData.guest_has_data !== undefined) {
+                            guestHasData = todayWinData.guest_has_data;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not check guest data from today-win:', e);
+                }
+
+                // Если не получили информацию из today-win, проверяем через guest info
+                if (guestHasData === null || guestHasData === undefined) {
+                    try {
+                        const response = await fetch(`${API_URL}/guest/${GUEST_ID}/info`);
+                        if (response.ok) {
+                            const guestData = await response.json();
+                            guestHasData = guestData.has_data || false;
+                        }
+                    } catch (error) {
+                        console.error('Error checking guest data:', error);
+                        guestHasData = false; // По умолчанию показываем форму
+                    }
+                }
+            }
+
+            // Показываем форму или кнопку в зависимости от наличия данных
+            if (guestHasData === true) {
+                // Данные уже заполнены - показываем только кнопку отправки
+                formContainer.style.display = 'none';
+                sendContainer.style.display = 'block';
+            } else {
+                // Данные не заполнены - показываем форму
+                formContainer.style.display = 'block';
+                sendContainer.style.display = 'none';
+                // Применяем маску для поля телефона, если форма показывается
+                const phoneInput = document.getElementById('winNotificationPhone');
+                if (phoneInput && !phoneInput.hasAttribute('data-mask-applied')) {
+                    applyPhoneMask(phoneInput);
+                    phoneInput.setAttribute('data-mask-applied', 'true');
+                }
             }
 
             notification.style.display = 'block';
@@ -624,6 +1058,268 @@
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 500);
+        }
+
+        // Отправить форму для получения приза
+        async function submitPrizeForm(event) {
+            console.log('submitPrizeForm called', event);
+
+            // Убеждаемся, что функция доступна глобально
+            if (typeof window !== 'undefined') {
+                window.submitPrizeForm = submitPrizeForm;
+            }
+
+            if (event) {
+                event.preventDefault();
+            }
+
+            const formContainer = document.getElementById('winNotificationFormContainer');
+            const sendContainer = document.getElementById('winNotificationSendContainer');
+
+            console.log('formContainer:', formContainer, 'display:', formContainer?.style.display);
+            console.log('sendContainer:', sendContainer, 'display:', sendContainer?.style.display);
+
+            // Ищем кнопку: сначала в форме, потом в контейнере отправки
+            let submitBtn = document.getElementById('winNotificationSubmitBtn');
+            if (!submitBtn && sendContainer) {
+                submitBtn = sendContainer.querySelector('.win-notification-submit-btn');
+            }
+
+            console.log('submitBtn found:', submitBtn);
+
+            // Блокируем кнопку сразу после нажатия
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Отправка...';
+                submitBtn.style.cursor = 'not-allowed';
+            }
+
+            let formData = {};
+
+            // Если форма видна, берем данные из формы
+            if (formContainer && formContainer.style.display !== 'none') {
+                console.log('Form is visible, using form data');
+                const nameInput = document.getElementById('winNotificationName');
+                const emailInput = document.getElementById('winNotificationEmail');
+                const phoneInput = document.getElementById('winNotificationPhone');
+
+                // Очищаем номер телефона от форматирования перед отправкой
+                let phoneValue = phoneInput?.value || '';
+                // Удаляем все символы кроме цифр, но сохраняем +7 в начале
+                phoneValue = phoneValue.replace(/\D/g, '');
+                if (phoneValue.startsWith('7')) {
+                    phoneValue = '+' + phoneValue;
+                } else if (phoneValue && !phoneValue.startsWith('+')) {
+                    phoneValue = '+7' + phoneValue;
+                }
+
+                formData = {
+                    name: nameInput?.value || '',
+                    email: emailInput?.value || '',
+                    phone: phoneValue || ''
+                };
+            } else {
+                // Если форма не видна, значит данные уже заполнены
+                console.log('Form is not visible, using send-email route');
+                // Используем новый роут для отправки приза на почту по spin_id
+                const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
+                const winData = localStorage.getItem(todayWinKey);
+                let spinId = null;
+
+                console.log('todayWinKey:', todayWinKey);
+                console.log('winData from localStorage:', winData);
+
+                if (winData) {
+                    try {
+                        const parsed = JSON.parse(winData);
+                        spinId = parsed.spin_id;
+                        console.log('Parsed spin_id:', spinId);
+                    } catch (e) {
+                        console.error('Error parsing win data:', e);
+                    }
+                }
+
+                if (!spinId) {
+                    console.error('spin_id not found in localStorage');
+                    showError('Не найден ID спина. Пожалуйста, обновите страницу.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Отправить приз';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+                    return;
+                }
+
+                console.log('Sending request to:', `${API_URL}/spin/${spinId}/send-email`);
+
+                // Используем новый роут для отправки приза на почту
+                try {
+                    const response = await fetch(`${API_URL}/spin/${spinId}/send-email`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    console.log('Response status:', response.status);
+                    console.log('Response data:', data);
+
+                    if (response.ok) {
+                        console.log('Email sent successfully');
+                        // Успешно отправлено - кнопка остается заблокированной
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = '✓ Приз отправлен!';
+                            submitBtn.style.background = '#4caf50';
+                            submitBtn.style.color = 'white';
+                            submitBtn.style.cursor = 'not-allowed';
+                        }
+
+                        // Показываем сообщение об успехе
+                        const message = document.getElementById('winNotificationMessage');
+                        if (message) {
+                            message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Приз отправлен на почту!</strong>';
+                        }
+                    } else {
+                        // Обработка ошибок
+                        if (response.status === 403 && data.error === 'Prize already claimed today') {
+                            const errorMsg = data.message || 'Приз уже был получен сегодня. Попробуйте завтра!';
+
+                            const message = document.getElementById('winNotificationMessage');
+                            if (message) {
+                                const originalMessage = message.innerHTML;
+                                message.innerHTML = originalMessage + '<br><br><strong style="color: #ff6b6b;">⚠️ ' + errorMsg + '</strong>';
+                            }
+
+                            showError(errorMsg);
+
+                            // Кнопка остается заблокированной при ошибке "уже получен"
+                            if (submitBtn) {
+                                submitBtn.disabled = true;
+                                submitBtn.textContent = 'Приз уже получен';
+                                submitBtn.style.background = '#ff6b6b';
+                                submitBtn.style.color = 'white';
+                                submitBtn.style.cursor = 'not-allowed';
+                            }
+                        } else {
+                            const errorMsg = data.error || data.message || 'Ошибка при отправке приза';
+                            showError(errorMsg);
+                            // Разблокируем кнопку только при других ошибках
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = 'Отправить приз';
+                                submitBtn.style.cursor = 'pointer';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error sending prize email:', error);
+                    showError('Ошибка при отправке приза: ' + error.message);
+                    // Разблокируем кнопку при ошибке сети
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Отправить приз';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+                }
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/guest/${GUEST_ID}/claim-prize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ...formData,
+                        wheel_slug: WHEEL_SLUG,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Успешно отправлено - кнопка остается заблокированной
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = '✓ Приз отправлен!';
+                        submitBtn.style.background = '#4caf50';
+                        submitBtn.style.color = 'white';
+                        submitBtn.style.cursor = 'not-allowed';
+                    }
+
+                    // Скрываем форму и показываем только кнопку
+                    if (formContainer) {
+                        formContainer.style.display = 'none';
+                    }
+                    if (sendContainer) {
+                        sendContainer.style.display = 'block';
+                        // Обновляем кнопку в контейнере отправки
+                        const sendBtn = sendContainer.querySelector('.win-notification-submit-btn');
+                        if (sendBtn) {
+                            sendBtn.disabled = true;
+                            sendBtn.textContent = '✓ Приз отправлен!';
+                            sendBtn.style.background = '#4caf50';
+                            sendBtn.style.color = 'white';
+                            sendBtn.style.cursor = 'not-allowed';
+                        }
+                    }
+
+                    // Показываем сообщение об успехе
+                    const message = document.getElementById('winNotificationMessage');
+                    if (message) {
+                        message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Данные сохранены! Приз будет отправлен на указанную почту.</strong>';
+                    }
+                } else {
+                    // Обработка ошибок
+                    if (response.status === 403 && data.error === 'Prize already claimed today') {
+                        // Приз уже был получен сегодня
+                        const errorMsg = data.message || 'Приз уже был получен сегодня. Попробуйте завтра!';
+
+                        // Показываем сообщение в области уведомления о выигрыше
+                        const message = document.getElementById('winNotificationMessage');
+                        if (message) {
+                            const originalMessage = message.innerHTML;
+                            message.innerHTML = originalMessage + '<br><br><strong style="color: #ff6b6b;">⚠️ ' + errorMsg + '</strong>';
+                        }
+
+                        // Также показываем общую ошибку
+                        showError(errorMsg);
+
+                        // Блокируем кнопку отправки
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = 'Приз уже получен';
+                            submitBtn.style.background = '#ff6b6b';
+                            submitBtn.style.color = 'white';
+                            submitBtn.style.cursor = 'not-allowed';
+                        }
+                    } else {
+                        // Другие ошибки - разблокируем кнопку
+                        const errorMsg = data.error || data.message || 'Ошибка при отправке данных';
+                        showError(errorMsg);
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Отправить приз';
+                            submitBtn.style.cursor = 'pointer';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error submitting prize form:', error);
+                showError('Ошибка при отправке данных: ' + error.message);
+                // Разблокируем кнопку при ошибке сети
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Отправить приз';
+                    submitBtn.style.cursor = 'pointer';
+                }
+            }
         }
 
         // Копировать код приза
@@ -699,6 +1395,9 @@
 
                 initWheel();
                 updateSpinsInfo();
+
+                // Проверяем выигрыш и применяем поворот после загрузки призов
+                await applyWonPrizeRotationIfNeeded();
             } catch (error) {
                 console.error('Error loading wheel:', error);
                 showError('Ошибка загрузки данных: ' + error.message);
@@ -819,7 +1518,8 @@
 
                 const prizeImage = prizeImages[prize.id];
 
-                if (0 && prizeImage && prize.image) {
+                //вывод картинки
+                if (prizeImage && prize.image) {
                     // Вычисляем размер изображения по размеру секции
                     // Ширина сектора на средней линии (на половине радиуса)
                     const midRadius = radius * 0.65; // Средняя точка сектора
@@ -944,6 +1644,79 @@
             return cumulativeAngle;
         }
 
+        // Вычислить угол центра приза (середина сектора)
+        function getPrizeCenterAngle(prizeIndex) {
+            const normalizedPrizes = normalizeProbabilities(prizes);
+            let cumulativeAngle = -Math.PI / 2;
+
+            for (let i = 0; i < normalizedPrizes.length; i++) {
+                const prizeAngle = (normalizedPrizes[i].probability / 100) * 2 * Math.PI;
+                if (i === prizeIndex) {
+                    // Возвращаем центр сектора (начало + половина угла)
+                    return cumulativeAngle + prizeAngle / 2;
+                }
+                cumulativeAngle += prizeAngle;
+            }
+
+            return cumulativeAngle;
+        }
+
+        // Вычислить поворот колеса для размещения приза под стрелкой
+        function calculateRotationForPrize(prizeId) {
+            const prizeIndex = findPrizeIndex(prizeId);
+            if (prizeIndex === -1) {
+                console.warn('Prize not found:', prizeId, 'Available prizes:', prizes.map(p => ({ id: p.id, name: p.name })));
+                return 0;
+            }
+
+            // Угол центра выигранного приза (относительно начального положения -Math.PI/2)
+            const prizeCenterAngle = getPrizeCenterAngle(prizeIndex);
+
+            console.log('Calculating rotation:', {
+                prizeId: prizeId,
+                prizeIndex: prizeIndex,
+                prizeCenterAngle: prizeCenterAngle,
+                prizeCenterAngleDegrees: (prizeCenterAngle * 180 / Math.PI).toFixed(2)
+            });
+
+            // Стрелка указывает на -Math.PI/2 (вверх)
+            // В drawWheel начальный угол: currentAngle = -Math.PI / 2 + rotation
+            // prizeCenterAngle = -Math.PI/2 + offset (где offset - сумма углов до центра приза)
+            //
+            // При повороте колеса на rotation, центр приза будет находиться на:
+            // prizeCenterAngle + rotation = (-Math.PI/2 + offset) + rotation
+            //
+            // Чтобы центр приза был под стрелкой (на -Math.PI/2), нужно:
+            // (-Math.PI/2 + offset) + rotation = -Math.PI/2
+            // rotation = -Math.PI/2 - (-Math.PI/2 + offset)
+            // rotation = -Math.PI/2 + Math.PI/2 - offset
+            // rotation = -offset
+            //
+            // Но offset = prizeCenterAngle + Math.PI/2
+            // Поэтому: rotation = -(prizeCenterAngle + Math.PI/2)
+            // rotation = -prizeCenterAngle - Math.PI/2
+
+            // Правильная формула: нужно повернуть так, чтобы центр приза был на -Math.PI/2
+            // Если prizeCenterAngle - это угол центра приза в неповернутом колесе,
+            // то после поворота на rotation он будет на prizeCenterAngle + rotation
+            // Нам нужно: prizeCenterAngle + rotation = -Math.PI/2
+            // rotation = -Math.PI/2 - prizeCenterAngle
+
+            const rotation = -Math.PI / 2 - prizeCenterAngle;
+
+            // Нормализуем угол в диапазон [0, 2π]
+            const normalizedRotation = ((rotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
+
+            console.log('Rotation result:', {
+                rotation: rotation,
+                rotationDegrees: (rotation * 180 / Math.PI).toFixed(2),
+                normalizedRotation: normalizedRotation,
+                normalizedRotationDegrees: (normalizedRotation * 180 / Math.PI).toFixed(2)
+            });
+
+            return normalizedRotation;
+        }
+
         // Выполнить вращение
         async function spin() {
             if (isSpinning) return;
@@ -975,11 +1748,14 @@
                     // Обработка случая, когда уже выиграли сегодня
                     if (data.error === 'Already won today' && data.today_win) {
                         const prize = data.today_win.prize;
-                        const prizeCode = prize.value || null;
-                        saveWin(prize, prizeCode);
+                        const prizeCode = data.today_win.code || null;
+                        const spinId = data.today_win.spin_id || null;
+                        saveWin(prize, prizeCode, null, spinId);
                         // Показываем уведомление вместо ошибки
                         setTimeout(() => {
                             showWinNotification(prize, prizeCode);
+                            // Показываем блок выигранного приза под стрелкой
+                            showWonPrizeBlock(prize);
                         }, 100);
                         blockSpinning();
                         // Не показываем ошибку, только блокируем вращение
@@ -996,6 +1772,20 @@
                 let prizeIndex = -1;
                 if (data.prize) {
                     prizeIndex = findPrizeIndex(data.prize.id);
+                    console.log('Spin result:', {
+                        prizeId: data.prize.id,
+                        prizeName: data.prize.name,
+                        prizeIndex: prizeIndex,
+                        allPrizes: prizes.map((p, idx) => ({ index: idx, id: p.id, name: p.name }))
+                    });
+
+                    if (prizeIndex === -1) {
+                        console.error('Prize not found in prizes array!', {
+                            prizeId: data.prize.id,
+                            prizeName: data.prize.name,
+                            availablePrizes: prizes.map(p => ({ id: p.id, name: p.name }))
+                        });
+                    }
                 }
 
                 // Анимация вращения
@@ -1010,14 +1800,17 @@
                     notifyParent('win', data.prize);
 
                     // Сохраняем выигрыш и показываем уведомление
-                    // Код приза берем из поля value
-                    const prizeCode = data.prize.value || null;
-                    saveWin(data.prize, prizeCode);
+                    // Код приза берем из поля code ответа API
+                    const prizeCode = data.code || null;
+                    const spinId = data.spin_id || null;
+                    saveWin(data.prize, prizeCode, null, spinId);
 
                     // Показываем уведомление с задержкой после анимации
                     // Передаем код явно, если он есть
                     setTimeout(() => {
                         showWinNotification(data.prize, prizeCode);
+                        // Показываем блок выигранного приза под стрелкой
+                        showWonPrizeBlock(data.prize);
                     }, 500);
 
                     // Блокируем дальнейшие вращения сегодня
@@ -1053,14 +1846,38 @@
                 // Если приз не выигран, останавливаемся в случайном месте
                 let finalAngle = 0;
                 if (prizeIndex >= 0 && prizeIndex < normalizedPrizes.length) {
-                    finalAngle = getPrizeAngle(prizeIndex);
+                    // Используем центр сектора приза, чтобы стрелка указывала точно на приз
+                    finalAngle = getPrizeCenterAngle(prizeIndex);
+                    console.log('Animation: prizeIndex=', prizeIndex, 'finalAngle (center)=', finalAngle, 'degrees=', (finalAngle * 180 / Math.PI).toFixed(2));
                 } else {
                     // Случайный угол
                     finalAngle = -Math.PI / 2 + Math.random() * 2 * Math.PI;
                 }
 
                 const spins = 5; // Количество полных оборотов
-                const finalRotation = currentRotation + (spins * 2 * Math.PI) + (2 * Math.PI - finalAngle);
+
+                // Логика вычисления финального поворота:
+                // 1. finalAngle - это угол центра приза в неповернутом колесе (rotation = 0)
+                //    Он измеряется от начала координат и включает -Math.PI/2
+                // 2. В drawWheel сектор рисуется от currentAngle = -Math.PI/2 + rotation
+                // 3. После поворота на rotation, центр приза будет на finalAngle + rotation
+                // 4. Стрелка указывает на -Math.PI/2 (вверх)
+                // 5. Чтобы стрелка указывала на центр приза: finalAngle + rotation = -Math.PI/2
+                // 6. Отсюда: rotation = -Math.PI/2 - finalAngle
+                // 7. Добавляем полные обороты для эффекта вращения
+                const targetRotation = -Math.PI / 2 - finalAngle;
+                const finalRotation = currentRotation + (spins * 2 * Math.PI) + targetRotation;
+
+                console.log('Animation calculation:', {
+                    prizeIndex: prizeIndex,
+                    finalAngle: finalAngle,
+                    finalAngleDegrees: (finalAngle * 180 / Math.PI).toFixed(2),
+                    targetRotation: targetRotation,
+                    targetRotationDegrees: (targetRotation * 180 / Math.PI).toFixed(2),
+                    currentRotation: currentRotation,
+                    finalRotation: finalRotation,
+                    finalRotationDegrees: (finalRotation * 180 / Math.PI).toFixed(2)
+                });
 
                 const startRotation = currentRotation;
                 const rotationDiff = finalRotation - startRotation;
@@ -1133,13 +1950,33 @@
         function showError(message) {
             document.getElementById('loading').style.display = 'none';
             const errorEl = document.getElementById('error');
+            const winNotification = document.getElementById('winNotification');
+
             errorEl.textContent = message;
             errorEl.classList.add('show');
+
+            // Если секция выигрыша видна, показываем ошибку поверх неё
+            const isWinNotificationVisible = winNotification &&
+                winNotification.style.display !== 'none' &&
+                winNotification.style.display !== '' &&
+                (winNotification.classList.contains('show') || winNotification.offsetHeight > 0);
+
+            if (isWinNotificationVisible) {
+                errorEl.classList.add('error-overlay');
+
+                // Автоматически скрываем ошибку через 5 секунд
+                setTimeout(() => {
+                    errorEl.classList.remove('show', 'error-overlay');
+                }, 5000);
+            } else {
+                errorEl.classList.remove('error-overlay');
+            }
         }
 
         // Скрыть ошибку
         function hideError() {
-            document.getElementById('error').classList.remove('show');
+            const errorEl = document.getElementById('error');
+            errorEl.classList.remove('show', 'error-overlay');
         }
 
         // Уведомить родительское окно

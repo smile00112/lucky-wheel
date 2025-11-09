@@ -83,11 +83,11 @@ class GuestResource extends Resource
                     ->label(__('filament.guest.spins_count'))
                     ->counts('spins')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('wins_count')
-                    ->label(__('filament.guest.wins_count'))
-                    ->counts('wins')
-                    ->sortable()
-                    ->toggleable(),
+//                Tables\Columns\TextColumn::make('wins_count')
+//                    ->label(__('filament.guest.wins_count'))
+//                    ->counts('wins')
+//                    ->sortable()
+//                    ->toggleable(),
                 Tables\Columns\TextColumn::make('ip_address')
                     ->label(__('filament.guest.ip_address'))
                     ->searchable()
@@ -129,7 +129,8 @@ class GuestResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            GuestResource\RelationManagers\WinsRelationManager::class,
+            GuestResource\RelationManagers\GuestIpAddressesRelationManager::class,
         ];
     }
 

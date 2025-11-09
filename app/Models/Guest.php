@@ -37,6 +37,14 @@ class Guest extends Model
     }
 
     /**
+     * IP-адреса гостя
+     */
+    public function ipAddresses(): HasMany
+    {
+        return $this->hasMany(GuestIpAddress::class);
+    }
+
+    /**
      * Получить количество вращений для конкретного колеса
      */
     public function getSpinsCountForWheel(int $wheelId): int

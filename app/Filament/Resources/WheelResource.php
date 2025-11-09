@@ -36,6 +36,10 @@ class WheelResource extends Resource
         return $schema
             ->components([
                 Forms\Components\Hidden::make('user_id'),
+                Forms\Components\Toggle::make('is_active')
+                    ->label(__('filament.wheel.is_active'))
+                    ->default(true)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('name')
                     ->label(__('filament.wheel.name'))
                     ->required()
@@ -52,14 +56,17 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.description'))
                     ->rows(3)
                     ->columnSpanFull(),
-                Forms\Components\Toggle::make('is_active')
-                    ->label(__('filament.wheel.is_active'))
-                    ->default(true),
                 Forms\Components\TextInput::make('spins_limit')
                     ->label(__('filament.wheel.spins_limit'))
                     ->numeric()
                     ->minValue(1)
                     ->helperText(__('filament.wheel.spins_limit_hint')),
+                Forms\Components\TextInput::make('refresh_hour')
+                    ->label(__('filament.wheel.refresh_hour'))
+                    ->type('time')
+                    ->helperText(__('filament.wheel.refresh_hour_hint'))
+                    ->formatStateUsing(fn ($state) => $state ?: null)
+                    ->dehydrateStateUsing(fn ($state) => $state ?: null),
                 Forms\Components\DateTimePicker::make('starts_at')
                     ->label(__('filament.wheel.starts_at'))
                     ->native(false)
@@ -97,6 +104,9 @@ class WheelResource extends Resource
                 Tables\Columns\TextColumn::make('spins_limit')
                     ->label(__('filament.wheel.spins_limit'))
                     ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('refresh_hour')
+                    ->label(__('filament.wheel.refresh_hour'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('prizes_count')
                     ->label(__('filament.wheel.prizes_count'))

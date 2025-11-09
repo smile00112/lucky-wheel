@@ -27,5 +27,17 @@ Route::prefix('widget')->group(function () {
     // API для получения сегодняшнего выигрыша
     Route::get('/wheel/{slug}/today-win', [WidgetController::class, 'getTodayWin'])
         ->name('widget.today-win');
+    
+    // API для получения информации о госте
+    Route::get('/guest/{guestId}/info', [WidgetController::class, 'getGuestInfo'])
+        ->name('widget.guest.info');
+    
+    // API для сохранения данных гостя и отправки приза
+    Route::post('/guest/{guestId}/claim-prize', [WidgetController::class, 'claimPrize'])
+        ->name('widget.guest.claim-prize');
+    
+    // API для отправки приза на почту (без ввода данных, только по spin_id)
+    Route::post('/spin/{spinId}/send-email', [WidgetController::class, 'sendPrizeEmail'])
+        ->name('widget.spin.send-email');
 });
 

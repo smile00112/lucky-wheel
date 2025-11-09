@@ -16,6 +16,7 @@ class Wheel extends Model
         'is_active',
         'settings',
         'spins_limit',
+        'refresh_hour',
         'starts_at',
         'ends_at',
     ];

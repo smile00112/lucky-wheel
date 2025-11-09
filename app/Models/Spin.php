@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Random\RandomException;
 
 class Spin extends Model
 {
@@ -11,6 +12,8 @@ class Spin extends Model
         'wheel_id',
         'guest_id',
         'prize_id',
+        'code',
+        'email_notification',
         'ip_address',
         'user_agent',
         'status',
@@ -21,6 +24,7 @@ class Spin extends Model
     protected $casts = [
         'metadata' => 'array',
         'claimed_at' => 'datetime',
+        'email_notification' => 'boolean',
     ];
 
     /**
@@ -64,5 +68,46 @@ class Spin extends Model
     public function isWin(): bool
     {
         return $this->prize_id !== null;
+    }
+
+    /**
+     * Генерация уникального шестизначного кода
+     * @throws RandomException
+     */
+    public static function generateUniqueCode(): string
+    {
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $length = 6;
+        do {
+            $code= '';
+            for ($i = 0; $i < $length; $i++) {
+                $code .= $characters[random_int(0, $charactersLength - 1)];
+            }
+            //$code = str_pad((string) mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+        } while (self::where('code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * Отправить письмо о выигрыше
+     */
+    public function sendWinEmail(): bool
+    {
+        if (!$this->isWin() || !$this->guest->email) {
+            return false;
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($this->guest->email)
+                ->send(new \App\Mail\PrizeWinMail($this));
+
+            $this->update(['email_notification' => true]);
+            return true;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send prize email: ' . $e->getMessage());
+            return false;
+        }
     }
 }

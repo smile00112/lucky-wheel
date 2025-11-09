@@ -39,6 +39,7 @@ class PrizeSchema
             Forms\Components\Toggle::make('is_active')
                 ->label(__('filament.prize.is_active'))
                 ->default(true)
+                ->columnSpanFull()
             ,
             Forms\Components\TextInput::make('name')
                 ->label(__('filament.prize.name'))
@@ -47,13 +48,13 @@ class PrizeSchema
             Forms\Components\TextInput::make('value')
                 ->label(__('filament.prize.value'))
                 ->maxLength(255)
-                ->helperText(__('filament.prize.value_hint')),
-                //->hidden($hideValue),
+                ->helperText(__('filament.prize.value_hint'))
+                ->hidden($hideValue),
             Forms\Components\Textarea::make('description')
                 ->label(__('filament.prize.description'))
                 ->rows(3)
-                ->columnSpanFull()
-                ->hidden(),
+                //->columnSpanFull()
+            ,
             Forms\Components\Textarea::make('text_for_winner')
                 ->label(__('filament.prize.text_for_winner'))
                 ->rows(2)
