@@ -34,8 +34,9 @@
             padding: 30px 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 500px;
+            max-width: 450px;
             width: 100%;
+            max-height: 100%;
         }
 
         h1 {
@@ -256,11 +257,12 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 20px 30px;
-            border-radius: 15px;
+            border-radius: 15px 15px 0 0;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             z-index: 10000;
-            max-width: 500px;
+            max-width: 450px;
             width: calc(100% - 40px);
+            min-height: 44%;
             transition: bottom 0.5s ease;
             animation: slideUpNotification 0.5s ease forwards;
         }
@@ -452,7 +454,7 @@
                 opacity: 0;
             }
             to {
-                bottom: 20px;
+                bottom: 0px;
                 opacity: 1;
             }
         }

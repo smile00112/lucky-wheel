@@ -316,6 +316,9 @@
                         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                         animation: lucky-wheel-slideUp 0.3s ease;
                         overflow: hidden;
+                        height: 100%;
+
+
                     }
                     #lucky-wheel-modal-close {
                         position: absolute;
@@ -333,6 +336,11 @@
                         justify-content: center;
                         transition: all 0.3s ease;
                         flex-direction: column;
+
+                        font-size: 20px;
+                        line-height: 1;
+                        color: white;
+                        font-weight: 100;
                     }
                     #lucky-wheel-modal-close:hover {
                         background: rgba(0, 0, 0, 0.2);
@@ -347,6 +355,7 @@
                         width: 100%;
                         height: 100%;
                         min-height: 600px;
+                        display: table;
                     }
                     #lucky-wheel-modal iframe {
                         width: 100%;
@@ -407,12 +416,7 @@
 
             const closeButton = document.createElement('button');
             closeButton.id = 'lucky-wheel-modal-close';
-            closeButton.innerHTML = `
-             <svg width="80px" height="80px" viewBox="0 0 76 76" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" enable-background="new 0 0 76.00 76.00" xml:space="preserve">
-            \t<path fill="#000000" fill-opacity="1" stroke-width="0.2" stroke-linejoin="round" d="M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "/>
-            </svg>
-
-            `;
+            closeButton.innerHTML = `×`;
             closeButton.addEventListener('click', () => {
                 this.closeModal();
             });
@@ -474,7 +478,7 @@
                 iframe.src = `${embedUrl}/${this.config.slug}?guest_id=${this.config.guestId}`;
                 iframe.style.width = '100%';
                 iframe.style.heigth = '100%';
-                iframe.style.minHeight = '760px';
+                //iframe.style.minHeight = '760px';
                 iframe.style.border = 'none';
                 iframe.allow = 'payment';
                 iframe.setAttribute('scrolling', 'no');

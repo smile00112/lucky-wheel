@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class ClaimedVsPendingChart extends ChartWidget
 {
-    protected ?string $heading = 'Полученные vs Неполученные выигрыши';
+    protected ?string $heading = 'Полученные vs Использованные выигрыши';
 
     protected static ?int $sort = 5;
 
@@ -80,11 +80,11 @@ class ClaimedVsPendingChart extends ChartWidget
     protected function getStartDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customStartDate) {
             return Carbon::parse($this->customStartDate)->startOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->startOfDay(),
             'yesterday' => now()->subDay()->startOfDay(),
@@ -100,11 +100,11 @@ class ClaimedVsPendingChart extends ChartWidget
     protected function getEndDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customEndDate) {
             return Carbon::parse($this->customEndDate)->endOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->endOfDay(),
             'yesterday' => now()->subDay()->endOfDay(),

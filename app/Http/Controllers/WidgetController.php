@@ -321,7 +321,7 @@ class WidgetController extends Controller
 
             $spin = Spin::create($spinData);
 
-            // Увеличение счетчика использованных призов, если приз был выигран
+            // Увеличение счетчика полученных призов, если приз был выигран
             if ($prize) {
                 $prize->incrementUsed();
             }

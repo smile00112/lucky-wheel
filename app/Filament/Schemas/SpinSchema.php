@@ -63,6 +63,7 @@ class SpinSchema
                 ->maxLength(6)
                 ->disabled() // Код генерируется автоматически, не редактируется
                 ->helperText(__('filament.spin.code_hint')),
+
             Forms\Components\Toggle::make('email_notification')
                 ->label(__('filament.spin.email_notification'))
                 ->helperText(__('filament.spin.email_notification_hint'))
@@ -120,21 +121,21 @@ class SpinSchema
         if ($includeWheelColumn) {
             $columns[] = Tables\Columns\TextColumn::make('wheel.name')
                 ->label(__('filament.spin.wheel_id'))
-                ->searchable()
+                //->searchable()
                 ->sortable();
         }
 
         if ($includeGuestColumn) {
             $columns[] = Tables\Columns\TextColumn::make('guest.name')
                 ->label(__('filament.spin.guest_id'))
-                ->searchable(['guests.name', 'guests.email', 'guests.phone'])
-                ->sortable()
-                ->formatStateUsing(fn ($record) => $record->guest
-                    ? ($record->guest->name ?: $record->guest->email ?: $record->guest->phone ?: __('filament.spin.guest_number') . $record->guest->id)
-                    : '-');
+                //->searchable(['guests.name', 'guests.email', 'guests.phone'])
+                ->sortable();
+//                ->formatStateUsing(fn ($record) => $record->guest
+//                    ? ($record->guest->name ?: $record->guest->email ?: $record->guest->phone ?: __('filament.spin.guest_number') . $record->guest->id)
+//                    : '-');
             $columns[] = Tables\Columns\TextColumn::make('guest.email')
                 ->label(__('filament.spin.guest_name'))
-                ->searchable()
+                //->searchable()
                 ->toggleable(isToggledHiddenByDefault: true);
         }
 
@@ -234,7 +235,6 @@ class SpinSchema
         ]);
 
         $actions = [
-            \Filament\Actions\EditAction::make(),
             Action::make('mark_claimed')
                 ->label(__('filament.spin.mark_claimed'))
                 ->icon(Heroicon::OutlinedCheckCircle)
@@ -261,6 +261,7 @@ class SpinSchema
                             ->send();
                     }
                 }),
+            \Filament\Actions\EditAction::make(),
             \Filament\Actions\DeleteAction::make(),
         ];
 

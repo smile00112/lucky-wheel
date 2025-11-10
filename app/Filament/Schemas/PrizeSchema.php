@@ -106,7 +106,7 @@ class PrizeSchema
                 ->numeric()
                 ->minValue(1)
                 ->helperText(__('filament.prize.quantity_limit_hint'))
-                ->hidden(),
+                ,
             Forms\Components\TextInput::make('quantity_day_limit')
                 ->label(__('filament.prize.quantity_day_limit'))
                 ->numeric()

@@ -123,4 +123,8 @@ class Prize extends Model
 
         return true;
     }
+
+    public function getUsedAttribute(){
+        return $this->spins()->whereHas('');
+    }
 }

@@ -72,11 +72,11 @@ class StatsOverview extends BaseWidget
                 ->description('За выбранный период')
                 ->descriptionIcon('heroicon-m-arrow-path')
                 ->color('info'),
-            Stat::make('Получено выигрышей', $claimedWins)
+            Stat::make('Использовано выигрышей', $claimedWins)
                 ->description('За выбранный период')
                 ->descriptionIcon('heroicon-m-gift')
                 ->color('success'),
-            Stat::make('Процент полученных выигрышей', $claimedRate . '%')
+            Stat::make('Процент использованных выигрышей', $claimedRate . '%')
                 ->description('От общего количества выигрышей')
                 ->descriptionIcon('heroicon-m-chart-bar')
                 ->color($claimedRate > 50 ? 'success' : ($claimedRate > 25 ? 'warning' : 'danger')),
@@ -90,11 +90,11 @@ class StatsOverview extends BaseWidget
     protected function getStartDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customStartDate) {
             return Carbon::parse($this->customStartDate)->startOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->startOfDay(),
             'yesterday' => now()->subDay()->startOfDay(),
@@ -110,11 +110,11 @@ class StatsOverview extends BaseWidget
     protected function getEndDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customEndDate) {
             return Carbon::parse($this->customEndDate)->endOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->endOfDay(),
             'yesterday' => now()->subDay()->endOfDay(),
