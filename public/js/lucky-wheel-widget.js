@@ -317,7 +317,7 @@
                         animation: lucky-wheel-slideUp 0.3s ease;
                         overflow: hidden;
                         height: 100%;
-
+                        max-height: 650px;
 
                     }
                     #lucky-wheel-modal-close {

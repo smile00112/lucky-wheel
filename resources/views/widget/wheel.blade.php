@@ -260,7 +260,7 @@
             border-radius: 15px 15px 0 0;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             z-index: 10000;
-            max-width: 450px;
+            max-width: 451px;
             width: calc(100% - 40px);
             min-height: 44%;
             transition: bottom 0.5s ease;
@@ -559,7 +559,7 @@
 
         <!-- Кнопка отправки приза (если данные уже заполнены) -->
         <div class="win-notification-send-container" id="winNotificationSendContainer" style="display: none;">
-            <button type="button" class="win-notification-submit-btn" onclick="submitPrizeForm(event)">
+            <button type="button" class="win-notification-submit-btn"  id="winNotificationSubmitBtn2" onclick="submitPrizeForm(event)">
                 Отправить приз
             </button>
         </div>
@@ -1083,8 +1083,9 @@
 
             // Ищем кнопку: сначала в форме, потом в контейнере отправки
             let submitBtn = document.getElementById('winNotificationSubmitBtn');
-            if (!submitBtn && sendContainer) {
-                submitBtn = sendContainer.querySelector('.win-notification-submit-btn');
+
+            if (sendContainer?.style.display === 'block') {
+                submitBtn = sendContainer.querySelector('#winNotificationSubmitBtn2');
             }
 
             console.log('submitBtn found:', submitBtn);
@@ -1181,10 +1182,10 @@
                         }
 
                         // Показываем сообщение об успехе
-                        const message = document.getElementById('winNotificationMessage');
-                        if (message) {
-                            message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Приз отправлен на почту!</strong>';
-                        }
+                        // const message = document.getElementById('winNotificationMessage');
+                        // if (message) {
+                        //     message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Приз отправлен на почту!</strong>';
+                        // }
                     } else {
                         // Обработка ошибок
                         if (response.status === 403 && data.error === 'Prize already claimed today') {
