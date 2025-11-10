@@ -883,10 +883,15 @@
 
                     // Проверяем, что это сегодня (не вчера)
                     if (winDate.toDateString() === today.toDateString()) {
-                    // Получаем код из сохраненных данных
-                    const prizeCode = win.code || null;
-                    // Получаем информацию о заполненных данных из сохраненных данных
-                    const guestHasData = win.guest_has_data !== undefined ? win.guest_has_data : null;
+                        // Получаем код из сохраненных данных
+                        const prizeCode = win.code || null;
+
+                        const prizeEmailImage = win?.prize?.email_image || null;
+                        if(prizeEmailImage)
+                            set_prize_image(prizeEmailImage);
+
+                        // Получаем информацию о заполненных данных из сохраненных данных
+                        const guestHasData = win.guest_has_data !== undefined ? win.guest_has_data : null;
                         // Показываем уведомление о выигрыше
                         showWinNotification(win.prize, prizeCode, guestHasData);
                         // Показываем блок выигранного приза под стрелкой
@@ -1306,28 +1311,9 @@
                         }
                     }
 
-                    // Показываем изображение приза, если оно есть
-                    const imageContainer = document.getElementById('winNotificationImageContainer');
-                    const imageElement = document.getElementById('winNotificationImage');
+                    if(prizeEmailImage)
+                        set_prize_image(prizeEmailImage);
 
-                    if (prizeEmailImage && imageContainer && imageElement) {
-                        // Формируем URL изображения (аналогично email шаблону)
-                        let imageUrl = prizeEmailImage;
-                        // Проверяем, является ли это полным URL
-                        if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-                            // Если путь начинается с /, используем как есть
-                            if (imageUrl.startsWith('/')) {
-                                imageUrl = imageUrl;
-                            } else {
-                                // Иначе добавляем /storage/
-                                imageUrl = `/storage/${prizeEmailImage}`;
-                            }
-                        }
-
-                        imageElement.src = imageUrl;
-                        imageElement.alt = 'Приз';
-                        imageContainer.style.display = 'block';
-                    }
 
                     // Показываем сообщение об успехе
                     const message = document.getElementById('winNotificationMessage');
@@ -1743,29 +1729,6 @@
                 prizeCenterAngleDegrees: (prizeCenterAngle * 180 / Math.PI).toFixed(2)
             });
 
-            // Стрелка указывает на -Math.PI/2 (вверх)
-            // В drawWheel начальный угол: currentAngle = -Math.PI / 2 + rotation
-            // prizeCenterAngle = -Math.PI/2 + offset (где offset - сумма углов до центра приза)
-            //
-            // При повороте колеса на rotation, центр приза будет находиться на:
-            // prizeCenterAngle + rotation = (-Math.PI/2 + offset) + rotation
-            //
-            // Чтобы центр приза был под стрелкой (на -Math.PI/2), нужно:
-            // (-Math.PI/2 + offset) + rotation = -Math.PI/2
-            // rotation = -Math.PI/2 - (-Math.PI/2 + offset)
-            // rotation = -Math.PI/2 + Math.PI/2 - offset
-            // rotation = -offset
-            //
-            // Но offset = prizeCenterAngle + Math.PI/2
-            // Поэтому: rotation = -(prizeCenterAngle + Math.PI/2)
-            // rotation = -prizeCenterAngle - Math.PI/2
-
-            // Правильная формула: нужно повернуть так, чтобы центр приза был на -Math.PI/2
-            // Если prizeCenterAngle - это угол центра приза в неповернутом колесе,
-            // то после поворота на rotation он будет на prizeCenterAngle + rotation
-            // Нам нужно: prizeCenterAngle + rotation = -Math.PI/2
-            // rotation = -Math.PI/2 - prizeCenterAngle
-
             const rotation = -Math.PI / 2 - prizeCenterAngle;
 
             // Нормализуем угол в диапазон [0, 2π]
@@ -2055,6 +2018,31 @@
                     action: action,
                     data: data,
                 }, '*');
+            }
+        }
+
+        function set_prize_image(prizeEmailImage){
+            // Показываем изображение приза, если оно есть
+            const imageContainer = document.getElementById('winNotificationImageContainer');
+            const imageElement = document.getElementById('winNotificationImage');
+
+            if (prizeEmailImage && imageContainer && imageElement) {
+                // Формируем URL изображения (аналогично email шаблону)
+                let imageUrl = prizeEmailImage;
+                // Проверяем, является ли это полным URL
+                if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+                    // Если путь начинается с /, используем как есть
+                    if (imageUrl.startsWith('/')) {
+                        imageUrl = imageUrl;
+                    } else {
+                        // Иначе добавляем /storage/
+                        imageUrl = `/storage/${prizeEmailImage}`;
+                    }
+                }
+
+                imageElement.src = imageUrl;
+                imageElement.alt = 'Приз';
+                imageContainer.style.display = 'block';
             }
         }
 

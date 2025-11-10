@@ -99,6 +99,7 @@ class WidgetController extends Controller
                     // По умолчанию используем asset для storage
                     $imageUrl = asset('storage/' . ltrim($prize->email_image, '/'));
                 }
+
             }
 
             return [
