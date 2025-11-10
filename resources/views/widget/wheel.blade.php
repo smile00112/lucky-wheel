@@ -437,6 +437,21 @@
             border-top: 1px solid rgba(255, 255, 255, 0.3);
         }
 
+        .win-notification-image-container {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .win-notification-image-container img {
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-height: 300px;
+            max-width: 290px;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -563,6 +578,11 @@
             <button type="button" class="win-notification-submit-btn"  id="winNotificationSubmitBtn2" onclick="submitPrizeForm(event)">
                 Отправить приз
             </button>
+        </div>
+
+        <!-- Контейнер для изображения приза (показывается после отправки формы) -->
+        <div class="win-notification-image-container" id="winNotificationImageContainer" style="display: none;">
+            <img id="winNotificationImage" src="" alt="Приз">
         </div>
     </div>
 
@@ -1262,21 +1282,51 @@
                         submitBtn.style.cursor = 'not-allowed';
                     }
 
-                    // Скрываем форму и показываем только кнопку
+                    // Скрываем форму и кнопку отправки
                     if (formContainer) {
                         formContainer.style.display = 'none';
                     }
                     if (sendContainer) {
-                        sendContainer.style.display = 'block';
-                        // Обновляем кнопку в контейнере отправки
-                        const sendBtn = sendContainer.querySelector('.win-notification-submit-btn');
-                        if (sendBtn) {
-                            sendBtn.disabled = true;
-                            sendBtn.textContent = '✓ Приз отправлен!';
-                            sendBtn.style.background = '#4caf50';
-                            sendBtn.style.color = 'white';
-                            sendBtn.style.cursor = 'not-allowed';
+                        sendContainer.style.display = 'none';
+                    }
+
+                    // Получаем данные приза из localStorage
+                    const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
+                    const winDataStr = localStorage.getItem(todayWinKey);
+                    let prizeEmailImage = null;
+
+                    if (winDataStr) {
+                        try {
+                            const winData = JSON.parse(winDataStr);
+                            if (winData.prize && winData.prize.email_image) {
+                                prizeEmailImage = winData.prize.email_image;
+                            }
+                        } catch (e) {
+                            console.warn('Could not parse win data:', e);
                         }
+                    }
+
+                    // Показываем изображение приза, если оно есть
+                    const imageContainer = document.getElementById('winNotificationImageContainer');
+                    const imageElement = document.getElementById('winNotificationImage');
+
+                    if (prizeEmailImage && imageContainer && imageElement) {
+                        // Формируем URL изображения (аналогично email шаблону)
+                        let imageUrl = prizeEmailImage;
+                        // Проверяем, является ли это полным URL
+                        if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
+                            // Если путь начинается с /, используем как есть
+                            if (imageUrl.startsWith('/')) {
+                                imageUrl = imageUrl;
+                            } else {
+                                // Иначе добавляем /storage/
+                                imageUrl = `/storage/${prizeEmailImage}`;
+                            }
+                        }
+
+                        imageElement.src = imageUrl;
+                        imageElement.alt = 'Приз';
+                        imageContainer.style.display = 'block';
                     }
 
                     // Показываем сообщение об успехе

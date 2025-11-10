@@ -69,8 +69,11 @@
                         .then(() => {
                             this.createFloatingIcon();
                             this.createModal();
-                            // Если open === true, открываем модальное окно
-                            if (this.config.open === true || this.config.open === 'true') {
+                            // Проверяем, нужно ли открыть модальное окно
+                            // Приоритет: config.open > localStorage
+                            const shouldOpen = this.config.open === true || this.config.open === 'true';
+                            const storedOpen = localStorage.getItem('lucky_wheel_modal_open') === 'true';
+                            if (shouldOpen || storedOpen) {
                                 this.openModal();
                             }
                         })
@@ -509,6 +512,9 @@
             this.config.modal.classList.add('open');
             this.config.isModalOpen = true;
             document.body.style.overflow = 'hidden'; // Блокируем скролл страницы
+            
+            // Сохраняем состояние открытия в localStorage
+            localStorage.setItem('lucky_wheel_modal_open', 'true');
         },
 
         /**
@@ -519,6 +525,9 @@
                 this.config.modal.classList.remove('open');
                 this.config.isModalOpen = false;
                 document.body.style.overflow = ''; // Восстанавливаем скролл
+                
+                // Сохраняем состояние закрытия в localStorage
+                localStorage.setItem('lucky_wheel_modal_open', 'false');
             }
         },
 

@@ -85,6 +85,21 @@ class WidgetController extends Controller
                     $imageUrl = asset('storage/' . ltrim($prize->image, '/'));
                 }
             }
+            if ($prize->email_image) {
+                // Если изображение - это полный URL, используем как есть
+                if (filter_var($prize->email_image, FILTER_VALIDATE_URL)) {
+                    $imageUrl = $prize->email_image;
+                } elseif (str_starts_with($prize->email_image, '/')) {
+                    // Если путь начинается с /, это абсолютный путь
+                    $imageUrl = url($prize->email_image);
+                } elseif (Storage::disk('public')->exists($prize->email_image)) {
+                    // Если файл в public storage
+                    $imageUrl = Storage::disk('public')->url($prize->email_image);
+                } else {
+                    // По умолчанию используем asset для storage
+                    $imageUrl = asset('storage/' . ltrim($prize->email_image, '/'));
+                }
+            }
 
             return [
                 'id' => $prize->id,
@@ -95,6 +110,7 @@ class WidgetController extends Controller
                 'type' => $prize->type,
                 'value' => $prize->value,
                 'image' => $imageUrl,
+                'email_image' => $imageUrl,
             ];
         });
 
@@ -336,6 +352,7 @@ class WidgetController extends Controller
                     'description' => $prize->description,
                     'text_for_winner' => $prize->text_for_winner,
                     'type' => $prize->type,
+                    'email_image' => $prize->email_image,
                 ] : null,
                 'code' => $spin->code, // Код из spin, а не value из prize
                 'has_prize' => $prize !== null,
@@ -457,6 +474,7 @@ class WidgetController extends Controller
                         'name' => $lastWin->prize->name,
                         'text_for_winner' => $lastWin->prize->text_for_winner,
                         'type' => $lastWin->prize->type,
+                        'email_image' => $lastWin->prize->email_image,
                     ],
                     'code' => $lastWin->code, // Код из spin
                     'win_date' => $lastWin->created_at->toIso8601String(),
