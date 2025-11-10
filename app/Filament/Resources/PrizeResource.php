@@ -36,8 +36,8 @@ class PrizeResource extends Resource
     public static function table(Table $table): Table
     {
         return PrizeSchema::table(
-            $table, 
-            includeWheelColumn: true, 
+            $table,
+            includeWheelColumn: true,
             includeFullColumns: false,
             additionalColumns: [
                 \Filament\Tables\Columns\TextColumn::make('created_at')
@@ -48,8 +48,8 @@ class PrizeResource extends Resource
             ]
         )
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()->iconButton(),
+                DeleteAction::make()->iconButton(),
             ])
             ->bulkActions([
                 DeleteBulkAction::make(),

@@ -508,7 +508,8 @@
                 <!-- Блок выигранного приза под стрелкой -->
                 <div id="wonPrizeBlock" class="won-prize-block" style="display: none;">
                     <div class="won-prize-label">Выиграно сегодня:</div>
-                    <div class="won-prize-name" id="wonPrizeName"></div>
+{{--                    <div class="won-prize-name" id="wonPrizeName"></div>--}}
+                    <div class="won-prize-name" id="wonPrizeCode"></div>
                 </div>
             </div>
 
@@ -761,14 +762,17 @@
         }
 
         // Показать блок выигранного приза под стрелкой
-        function showWonPrizeBlock(prize) {
+        function showWonPrizeBlock(prize, prizeCode) {
             const block = document.getElementById('wonPrizeBlock');
-            const nameElement = document.getElementById('wonPrizeName');
+            // const nameElement = document.getElementById('wonPrizeName');
+            const nameElement = document.getElementById('wonPrizeCode');
 
             if (block && nameElement && prize) {
-                nameElement.textContent = prize.name;
+                //nameElement.textContent = prize.name;
+                nameElement.textContent = prizeCode;
                 block.style.display = 'block';
             }
+
         }
 
         // Скрыть блок выигранного приза
@@ -845,9 +849,11 @@
 
         // Проверить выигрыш сегодня
         async function checkTodayWin() {
+            console.log('____checkTodayWin')
             // Сначала проверяем localStorage
             const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
             const winData = localStorage.getItem(todayWinKey);
+            console.log(winData)
 
             if (winData) {
                 try {
@@ -864,7 +870,7 @@
                         // Показываем уведомление о выигрыше
                         showWinNotification(win.prize, prizeCode, guestHasData);
                         // Показываем блок выигранного приза под стрелкой
-                        showWonPrizeBlock(win.prize);
+                        showWonPrizeBlock(win.prize, prizeCode);
                         // Применяем поворот колеса для выигранного приза
                         applyWonPrizeRotation(win.prize);
                         // Блокируем вращение
@@ -901,7 +907,7 @@
                         // Показываем уведомление (передаем информацию о заполненных данных)
                         showWinNotification(data.prize, prizeCode, data.guest_has_data);
                         // Показываем блок выигранного приза под стрелкой
-                        showWonPrizeBlock(data.prize);
+                        showWonPrizeBlock(data.prize, prizeCode);
                         // Применяем поворот колеса для выигранного приза
                         applyWonPrizeRotation(data.prize);
                         // Блокируем вращение
@@ -1277,6 +1283,11 @@
                     const message = document.getElementById('winNotificationMessage');
                     if (message) {
                         message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Данные сохранены! Приз будет отправлен на указанную почту.</strong>';
+                    }
+
+                    // Отправляем guest_id в родительское окно, если он есть в ответе
+                    if (data.guest_id && typeof data.guest_id === 'number') {
+                        notifyParent('claim-prize', { guest_id: data.guest_id });
                     }
                 } else {
                     // Обработка ошибок
@@ -1758,7 +1769,7 @@
                         setTimeout(() => {
                             showWinNotification(prize, prizeCode);
                             // Показываем блок выигранного приза под стрелкой
-                            showWonPrizeBlock(prize);
+                            showWonPrizeBlock(prize, prizeCode);
                         }, 100);
                         blockSpinning();
                         // Не показываем ошибку, только блокируем вращение
@@ -1799,7 +1810,7 @@
 
                 // Показ результата
                 if (data.prize) {
-                    showResult(data.prize);
+                    showResult(data.prize, data.code);
                     notifyParent('win', data.prize);
 
                     // Сохраняем выигрыш и показываем уведомление
@@ -1813,7 +1824,7 @@
                     setTimeout(() => {
                         showWinNotification(data.prize, prizeCode);
                         // Показываем блок выигранного приза под стрелкой
-                        showWonPrizeBlock(data.prize);
+                        showWonPrizeBlock(data.prize, prizeCode);
                     }, 500);
 
                     // Блокируем дальнейшие вращения сегодня
@@ -1910,7 +1921,7 @@
         }
 
         // Показать результат
-        function showResult(prize) {
+        function showResult(prize, code = '') {
             const result = document.getElementById('result');
             const resultText = document.getElementById('resultText');
             const spinButton = document.getElementById('spinButton');
@@ -1920,6 +1931,10 @@
                     <strong>Вы выиграли: ${prize.name}</strong><br>
                     ${prize.text_for_winner ? prize.text_for_winner : ''}
                 `;
+
+                if(code){
+                    resultText.innerHTML = `<strong>Код: ${code}</strong><br>`;
+                }
             } else {
                 resultText.textContent = 'К сожалению, вы ничего не выиграли. Попробуйте еще раз!';
             }

@@ -147,8 +147,8 @@ class WheelResource extends Resource
                     ->native(false),
             ])
             ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()->iconButton(),
+                DeleteAction::make()->iconButton(),
             ])
             ->bulkActions([
                 DeleteBulkAction::make(),

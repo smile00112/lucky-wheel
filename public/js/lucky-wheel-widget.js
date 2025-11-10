@@ -11,6 +11,7 @@
  *     container: '#wheel-container',
  *     width: '600px',
  *     height: '700px',
+ *     open: true,
  *     onSpin: function(spinData) { console.log('Spin:', spinData); },
  *     onWin: function(prize) { console.log('Win:', prize); },
  *     onError: function(error) { console.error('Error:', error); }
@@ -33,6 +34,7 @@
             modal: null,
             floatingIcon: null,
             isModalOpen: false,
+            open: false,
             callbacks: {
                 onSpin: null,
                 onWin: null,
@@ -67,6 +69,10 @@
                         .then(() => {
                             this.createFloatingIcon();
                             this.createModal();
+                            // Если open === true, открываем модальное окно
+                            if (this.config.open === true || this.config.open === 'true') {
+                                this.openModal();
+                            }
                         })
                         .catch((error) => {
                             console.error('LuckyWheel: Failed to initialize', error);
@@ -341,6 +347,7 @@
                         line-height: 1;
                         color: white;
                         font-weight: 100;
+                        padding: 0;
                     }
                     #lucky-wheel-modal-close:hover {
                         background: rgba(0, 0, 0, 0.2);
@@ -541,6 +548,9 @@
                     // Можно раскомментировать, если нужно автоматически закрывать
                     // setTimeout(() => this.closeModal(), 3000);
                     break;
+                case 'claim-prize':
+                    this.handleClaimPrize(data.data);
+                    break;
                 case 'error':
                     this.handleError(data.data);
                     break;
@@ -565,6 +575,17 @@
         handleWin: function (prize) {
             if (this.config.callbacks.onWin) {
                 this.config.callbacks.onWin(prize);
+            }
+        },
+
+        /**
+         * Обработка успешного claim-prize
+         */
+        handleClaimPrize: function (data) {
+            // Если в ответе есть guest_id (число), обновляем localStorage
+            if (data && data.guest_id && typeof data.guest_id === 'number') {
+                this.config.guestId = parseInt(data.guest_id);
+                localStorage.setItem('lucky_wheel_guest_id', this.config.guestId.toString());
             }
         },
 
@@ -649,12 +670,14 @@
                 const slug = script.getAttribute('data-slug');
                 const apiUrl = script.getAttribute('data-api-url') || '';
                 const container = script.getAttribute('data-container') || '#lucky-wheel-container';
+                const open = script.getAttribute('data-open') === 'true';
 
                 if (slug && apiUrl) {
                     LuckyWheel.init({
                         slug: slug,
                         apiUrl: apiUrl,
                         container: container,
+                        open: open
                     });
                 }
             }

@@ -89,8 +89,14 @@ class PrizeSchema
                 ->disk('public')  // Добавьте эту строку
                 ->directory('prizes')
                 ->visibility('public')
-                ->columnSpanFull(),
-
+                ->columns(1),
+            Forms\Components\FileUpload::make('email_image')
+                ->label(__('filament.prize.email_image'))
+                ->image()
+                ->disk('public')  // Добавьте эту строку
+                ->directory('prizes')
+                ->visibility('public')
+                ->columns(1),
             Forms\Components\ColorPicker::make('color')
                 ->label(__('filament.prize.color'))
                 ->helperText(__('filament.prize.color_hint')),
@@ -195,13 +201,18 @@ class PrizeSchema
                 ->label(__('filament.prize.is_active'))
                 ->boolean()
                 ->sortable(),
-            Tables\Columns\TextColumn::make('quantity_used')
+            Tables\Columns\TextColumn::make('used')
+                ->label(__('filament.prize.quantity_wins'))
+                ->numeric()
+                ->sortable(),
+            Tables\Columns\TextColumn::make('wins')
                 ->label(__('filament.prize.quantity_used'))
                 ->numeric()
                 ->sortable(),
             Tables\Columns\TextColumn::make('quantity_limit')
                 ->label(__('filament.prize.quantity_limit'))
                 ->numeric()
+                ->default('-')
                 ->sortable()
                 ->formatStateUsing(fn ($state) => $state ?? __('filament.prize.unlimited')),
         ]);

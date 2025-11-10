@@ -139,6 +139,10 @@ class SpinSchema
                 ->toggleable(isToggledHiddenByDefault: true);
         }
 
+        $columns[] = Tables\Columns\TextColumn::make('id')
+            ->label('ID')
+            ->sortable();
+
         $columns[] = Tables\Columns\TextColumn::make('prize.name')
             ->label(__('filament.spin.prize_id'))
             ->searchable()
@@ -154,6 +158,14 @@ class SpinSchema
             ->copyable()
             ->copyMessage(__('filament.spin.code_copied'))
             ->copyMessageDuration(1500);
+
+        $columns[] = Tables\Columns\IconColumn::make('status_claimed')
+            ->label(__('filament.spin.status_claimed'))
+            ->getStateUsing(fn ($record) => $record->status === 'claimed')
+            ->boolean()
+            ->trueColor('success')
+            ->falseColor('gray')
+            ->sortable();
 
         $columns[] = Tables\Columns\IconColumn::make('email_notification')
             ->label(__('filament.spin.email_notification'))
@@ -260,9 +272,10 @@ class SpinSchema
                             ->danger()
                             ->send();
                     }
-                }),
-            \Filament\Actions\EditAction::make(),
-            \Filament\Actions\DeleteAction::make(),
+                })
+            ,
+            \Filament\Actions\EditAction::make()->iconButton(),
+            \Filament\Actions\DeleteAction::make()->iconButton(),
         ];
 
         return $table

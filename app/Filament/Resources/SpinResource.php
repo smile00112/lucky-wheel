@@ -17,11 +17,11 @@ class SpinResource extends Resource
 
     protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedArrowPath;
 
-    protected static ?string $navigationLabel = 'Вращения';
+    protected static ?string $navigationLabel = 'Купоны';
 
-    protected static ?string $modelLabel = 'Вращение';
+    protected static ?string $modelLabel = 'Купон';
 
-    protected static ?string $pluralModelLabel = 'Вращения';
+    protected static ?string $pluralModelLabel = 'Купоны';
 
     protected static ?int $navigationSort = 3;
 

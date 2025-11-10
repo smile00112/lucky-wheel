@@ -17,6 +17,7 @@ class Prize extends Model
         'value',
         'probability',
         'image',
+        'email_image',
         'color',
         'is_active',
         'sort',
@@ -124,7 +125,12 @@ class Prize extends Model
         return true;
     }
 
-    public function getUsedAttribute(){
-        return $this->spins()->whereHas('');
+    public function getUsedAttribute(): int
+    {
+        return $this->spins()->where('status', 'claimed')->count();
+    }
+    public function getWinsAttribute(): int
+    {
+        return $this->spins()->where('status', 'completed')->count();
     }
 }

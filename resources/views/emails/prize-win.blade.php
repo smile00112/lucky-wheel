@@ -41,6 +41,13 @@
             max-width: 150px;
             margin-bottom: 20px;
         }
+        .prize-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
         .email-body {
             padding: 40px 30px;
             background-color: #ffffff;
@@ -182,6 +189,16 @@
         <div class="email-body">
             <div class="prize-section">
                 <div class="prize-title">🏆 Ваш приз: {{ $spin->prize->name }}</div>
+                @if($spin->prize->email_image)
+                    @php
+                        $emailImageUrl = filter_var($spin->prize->email_image, FILTER_VALIDATE_URL) 
+                            ? $spin->prize->email_image 
+                            : (str_starts_with($spin->prize->email_image, '/') 
+                                ? url($spin->prize->email_image) 
+                                : asset('storage/' . $spin->prize->email_image));
+                    @endphp
+                    <img src="{{ $emailImageUrl }}" alt="{{ $spin->prize->name }}" class="prize-image">
+                @endif
                 @if($spin->prize->description)
                     <div class="prize-description">{{ $spin->prize->description }}</div>
                 @endif
