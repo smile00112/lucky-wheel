@@ -201,14 +201,12 @@ class PrizeSchema
                 ->label(__('filament.prize.is_active'))
                 ->boolean()
                 ->sortable(),
-            Tables\Columns\TextColumn::make('used')
-                ->label(__('filament.prize.quantity_wins'))
-                ->numeric()
-                ->sortable(),
             Tables\Columns\TextColumn::make('wins')
+                ->label(__('filament.prize.quantity_wins'))
+                ->numeric(),
+            Tables\Columns\TextColumn::make('used')
                 ->label(__('filament.prize.quantity_used'))
-                ->numeric()
-                ->sortable(),
+                ->numeric(),
             Tables\Columns\TextColumn::make('quantity_limit')
                 ->label(__('filament.prize.quantity_limit'))
                 ->numeric()
