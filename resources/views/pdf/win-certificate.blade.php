@@ -51,7 +51,7 @@
             padding: 15px;
             background: #f8f9fa;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
+            font-family: 'DejaVu Sans', Arial, sans-serif;
             letter-spacing: 3px;
         }
         .prize-description {
@@ -105,7 +105,7 @@
         @endif
 
         @if($code)
-        <div class="prize-code">{{ $code }}</div>
+        <div class="prize-code">Код для получения приза: {{ $code }}</div>
         @endif
 
         @if($prize->text_for_winner)
