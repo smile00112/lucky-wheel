@@ -202,8 +202,8 @@
                 style.textContent = `
                     #lucky-wheel-floating-icon {
                         position: fixed;
-                        right: 20px;
-                        bottom: 20px;
+                        right: 48px;
+                        bottom: 128px;
                         width: 70px;
                         height: 70px;
                         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
