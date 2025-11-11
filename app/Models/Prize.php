@@ -131,6 +131,6 @@ class Prize extends Model
     }
     public function getWinsAttribute(): int
     {
-        return $this->spins()->where('status', 'completed')->count();
+        return $this->spins()->count();
     }
 }

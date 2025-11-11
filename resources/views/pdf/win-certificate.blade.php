@@ -77,6 +77,14 @@
             color: #667eea;
             margin-bottom: 10px;
         }
+        .prize-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -87,6 +95,10 @@
         <div class="wheel-name">{{ $wheel->name ?? 'Колесо Фортуны' }}</div>
         
         <div class="prize-name">Название приза: {{ $prize->name }}</div>
+        
+        @if(isset($emailImageUrl) && $emailImageUrl)
+        <img src="{{ $emailImageUrl }}" alt="{{ $prize->name }}" class="prize-image">
+        @endif
         
         @if($prize->description)
         <div class="prize-description">{{ $prize->description }}</div>

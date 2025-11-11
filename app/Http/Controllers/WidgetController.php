@@ -965,6 +965,24 @@ class WidgetController extends Controller
             abort(404, 'Prize not found');
         }
 
+        // Получаем URL изображения для email
+        $emailImageUrl = null;
+        if ($spin->prize->email_image) {
+            // Если изображение - это полный URL, используем как есть
+            if (filter_var($spin->prize->email_image, FILTER_VALIDATE_URL)) {
+                $emailImageUrl = $spin->prize->email_image;
+            } elseif (str_starts_with($spin->prize->email_image, '/')) {
+                // Если путь начинается с /, это абсолютный путь
+                $emailImageUrl = url($spin->prize->email_image);
+            } elseif (Storage::disk('public')->exists($spin->prize->email_image)) {
+                // Если файл в public storage
+                $emailImageUrl = Storage::disk('public')->url($spin->prize->email_image);
+            } else {
+                // По умолчанию используем asset для storage
+                $emailImageUrl = asset('storage/' . ltrim($spin->prize->email_image, '/'));
+            }
+        }
+
         // Настройки Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -979,6 +997,7 @@ class WidgetController extends Controller
             'code' => $spin->code,
             'wheel' => $spin->wheel,
             'date' => $spin->created_at->format('d.m.Y H:i'),
+            'emailImageUrl' => $emailImageUrl,
         ])->render();
 
         $dompdf->loadHtml($html);
