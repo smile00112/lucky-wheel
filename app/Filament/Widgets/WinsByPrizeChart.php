@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class WinsByPrizeChart extends ChartWidget
 {
-    protected ?string $heading = 'Выигрыши по призам';
+    protected ?string $heading = 'Статистика выигрышей по призам';
 
     protected static ?int $sort = 3;
 
@@ -90,11 +90,11 @@ class WinsByPrizeChart extends ChartWidget
     protected function getStartDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customStartDate) {
             return Carbon::parse($this->customStartDate)->startOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->startOfDay(),
             'yesterday' => now()->subDay()->startOfDay(),
@@ -110,11 +110,11 @@ class WinsByPrizeChart extends ChartWidget
     protected function getEndDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customEndDate) {
             return Carbon::parse($this->customEndDate)->endOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->endOfDay(),
             'yesterday' => now()->subDay()->endOfDay(),

@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class ClaimedVsPendingChart extends ChartWidget
 {
-    protected ?string $heading = 'Полученные vs Использованные выигрыши';
+    protected ?string $heading = 'Отношение Полученных призов к Использованным';
 
     protected static ?int $sort = 5;
 
@@ -53,7 +53,7 @@ class ClaimedVsPendingChart extends ChartWidget
             ->count();
 
         $pendingWins = Spin::whereNotNull('spins.prize_id')
-            ->where('spins.status', 'pending')
+            //->where('spins.status', 'pending')
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
@@ -61,14 +61,14 @@ class ClaimedVsPendingChart extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'Выигрыши',
-                    'data' => [$claimedWins, $pendingWins],
+                    'data' => [$pendingWins, $claimedWins],
                     'backgroundColor' => [
                         'rgba(34, 197, 94, 0.8)', // Зелёный для полученных
                         'rgba(239, 68, 68, 0.8)', // Красный для неполученных
                     ],
                 ],
             ],
-            'labels' => ['Полученные', 'Неполученные'],
+            'labels' => ['Полученные', 'Использованные'],
         ];
     }
 
