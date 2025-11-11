@@ -6,6 +6,7 @@ use App\Models\Spin;
 use App\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -32,8 +33,13 @@ class PrizeWinMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $companyName = $this->settings->company_name ?: 'Колесо фортуны';
+        // Перезагружаем настройки, чтобы получить актуальные данные
+        $settings = Setting::getInstance();
+        $companyName = $settings->company_name ?: 'Колесо фортуны';
+        $fromAddress = config('mail.from.address', 'hello@example.com');
+
         return new Envelope(
+            from: new Address($fromAddress, $companyName),
             subject: "Поздравляем! Вы выиграли приз - {$companyName}",
         );
     }
