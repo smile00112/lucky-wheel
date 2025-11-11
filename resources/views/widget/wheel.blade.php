@@ -23,7 +23,7 @@
             display: flex;
             flex-direction: column;
             /*justify-content: center;*/
-            justify-content: flex-start;
+            /*justify-content: flex-start;*/
             align-items: center;
             padding: 10px;
         }
@@ -125,6 +125,9 @@
         }
 
         @media (max-width: 768px) {
+            body{
+                justify-content: flex-start;
+            }
             .won-prize-block {
                 top: 15px;
                 padding: 8px 15px;
@@ -1613,19 +1616,19 @@
             // Создаем временный контекст для измерения текста
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');
-            
+
             let bestFontSize = minFontSize;
             let bestLines = [];
-            
+
             // Бинарный поиск оптимального размера шрифта
             while (maxFontSize - minFontSize > 1) {
                 const fontSize = Math.floor((minFontSize + maxFontSize) / 2);
                 tempCtx.font = `bold ${fontSize}px Arial`;
-                
+
                 // Сначала пробуем одну строку
                 const singleLineMetrics = tempCtx.measureText(text);
                 let lines = [];
-                
+
                 if (singleLineMetrics.width <= sectorWidth * 0.9) {
                     // Текст помещается в одну строку
                     lines = [text];
@@ -1634,12 +1637,12 @@
                     const words = text.split(' ');
                     let firstLine = '';
                     let secondLine = '';
-                    
+
                     // Ищем точку разрыва для двух строк
                     for (let i = 0; i < words.length; i++) {
                         const testFirstLine = firstLine ? firstLine + ' ' + words[i] : words[i];
                         const testFirstMetrics = tempCtx.measureText(testFirstLine);
-                        
+
                         if (testFirstMetrics.width > sectorWidth * 0.9 && firstLine) {
                             // Первая строка заполнена, остальное во вторую
                             secondLine = words.slice(i).join(' ');
@@ -1649,18 +1652,18 @@
                             firstLine = testFirstLine;
                         }
                     }
-                    
+
                     // Если не нашли разрыв, пробуем разделить пополам
                     if (!secondLine && words.length > 1) {
                         const midPoint = Math.floor(words.length / 2);
                         firstLine = words.slice(0, midPoint).join(' ');
                         secondLine = words.slice(midPoint).join(' ');
                     }
-                    
+
                     // Проверяем, помещаются ли обе строки
                     const firstMetrics = tempCtx.measureText(firstLine);
                     const secondMetrics = tempCtx.measureText(secondLine);
-                    
+
                     if (firstMetrics.width <= sectorWidth * 0.9 && secondMetrics.width <= sectorWidth * 0.9) {
                         lines = [firstLine, secondLine];
                     } else {
@@ -1668,11 +1671,11 @@
                         lines = [text]; // Будет обрезано позже
                     }
                 }
-                
+
                 // Проверяем, помещается ли весь текст по высоте
                 const lineHeight = fontSize * 1.2; // Межстрочный интервал
                 const totalHeight = lines.length * lineHeight;
-                
+
                 if (totalHeight <= sectorHeight * 0.8 && lines.every(line => tempCtx.measureText(line).width <= sectorWidth * 0.9)) {
                     // Текст помещается, сохраняем результат и пробуем больший размер
                     bestFontSize = fontSize;
@@ -1683,7 +1686,7 @@
                     maxFontSize = fontSize;
                 }
             }
-            
+
             // Если не нашли подходящий размер, используем минимальный с переносом на две строки
             if (bestLines.length === 0) {
                 bestFontSize = minFontSize;
@@ -1691,12 +1694,12 @@
                 const words = text.split(' ');
                 let firstLine = '';
                 let secondLine = '';
-                
+
                 // Пробуем разбить на две строки
                 for (let i = 0; i < words.length; i++) {
                     const testFirstLine = firstLine ? firstLine + ' ' + words[i] : words[i];
                     const testFirstMetrics = tempCtx.measureText(testFirstLine);
-                    
+
                     if (testFirstMetrics.width > sectorWidth * 0.9 && firstLine) {
                         secondLine = words.slice(i).join(' ');
                         firstLine = firstLine;
@@ -1705,16 +1708,16 @@
                         firstLine = testFirstLine;
                     }
                 }
-                
+
                 if (!secondLine && words.length > 1) {
                     const midPoint = Math.floor(words.length / 2);
                     firstLine = words.slice(0, midPoint).join(' ');
                     secondLine = words.slice(midPoint).join(' ');
                 }
-                
+
                 bestLines = secondLine ? [firstLine, secondLine] : [firstLine];
             }
-            
+
             return { fontSize: bestFontSize, lines: bestLines };
         }
 
@@ -1813,20 +1816,20 @@
                         ctx.restore();
                         ctx.restore();
                         ctx.restore();
-                        
+
                         // Вычисляем размеры сектора для текста
                         const midRadius = radius * 0.65;
                         const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
                         const sectorHeight = radius * 0.8;
-                        
+
                         // Рассчитываем оптимальный размер шрифта и перенос текста
                         const textConfig = calculateOptimalTextSize(prize.name, sectorWidth, sectorHeight);
-                        
+
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillStyle = '#fff';
                         ctx.font = `bold ${textConfig.fontSize}px Arial`;
-                        
+
                         // Рисуем текст построчно
                         const lineHeight = textConfig.fontSize * 1.2;
                         const startY = -(textConfig.lines.length - 1) * lineHeight / 2;
@@ -1841,16 +1844,16 @@
                     const midRadius = radius * 0.65; // Средняя точка сектора
                     const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
                     const sectorHeight = radius * 0.8; // Высота секции (80% радиуса)
-                    
+
                     // Рассчитываем оптимальный размер шрифта и перенос текста
                     const textConfig = calculateOptimalTextSize(prize.name, sectorWidth, sectorHeight);
-                    
+
                     // Рисуем текст (если нет изображения)
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#fff';
                     ctx.font = `bold ${textConfig.fontSize}px Arial`;
-                    
+
                     // Рисуем текст построчно
                     const lineHeight = textConfig.fontSize * 1.2;
                     const startY = -(textConfig.lines.length - 1) * lineHeight / 2;
