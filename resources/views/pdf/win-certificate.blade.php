@@ -91,27 +91,27 @@
     <div class="certificate">
         <div class="certificate-header">ПОЗДРАВЛЯЕМ!</div>
         <div class="certificate-title">Сертификат выигрыша</div>
-        
+
         <div class="wheel-name">{{ $wheel->name ?? 'Колесо Фортуны' }}</div>
-        
+
         <div class="prize-name">Название приза: {{ $prize->name }}</div>
-        
+
         @if(isset($emailImageUrl) && $emailImageUrl)
         <img src="{{ $emailImageUrl }}" alt="{{ $prize->name }}" class="prize-image">
         @endif
-        
+
         @if($prize->description)
         <div class="prize-description">{{ $prize->description }}</div>
         @endif
-        
+
         @if($code)
-        <div class="prize-code">Код для получения приза: {{ $code }}</div>
+        <div class="prize-code">{{ $code }}</div>
         @endif
-        
+
         @if($prize->text_for_winner)
         <div class="prize-description">{{ $prize->text_for_winner }}</div>
         @endif
-        
+
         <div class="certificate-footer">
             <div class="date">Дата выигрыша: {{ $date }}</div>
         </div>

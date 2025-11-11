@@ -561,10 +561,10 @@
             <button id="spinButton" class="spin-button">Крутить колесо!</button>
             <div id="spinsInfo" class="spins-info"></div>
 
-            <div id="result" class="result">
-                <h2>🎉 Поздравляем!</h2>
-                <p id="resultText"></p>
-            </div>
+{{--            <div id="result" class="result">--}}
+{{--                <h2>🎉 Поздравляем!</h2>--}}
+{{--                <p id="resultText"></p>--}}
+{{--            </div>--}}
         </div>
 
         <div id="error" class="error"></div>
@@ -1829,9 +1829,9 @@
 
             isSpinning = true;
             const spinButton = document.getElementById('spinButton');
-            const result = document.getElementById('result');
+            //const result = document.getElementById('result');
             spinButton.disabled = true;
-            result.classList.remove('show');
+           // result.classList.remove('show');
             hideError();
 
             try {
@@ -2014,24 +2014,24 @@
 
         // Показать результат
         function showResult(prize, code = '') {
-            const result = document.getElementById('result');
-            const resultText = document.getElementById('resultText');
+            // const result = document.getElementById('result');
+            // const resultText = document.getElementById('resultText');
             const spinButton = document.getElementById('spinButton');
 
-            if (prize) {
-                resultText.innerHTML = `
-                    <strong>Вы выиграли: ${prize.name}</strong><br>
-                    ${prize.text_for_winner ? prize.text_for_winner : ''}
-                `;
-
-                if(code){
-                    resultText.innerHTML = `<strong>Код: ${code}</strong><br>`;
-                }
-            } else {
-                resultText.textContent = 'К сожалению, вы ничего не выиграли. Попробуйте еще раз!';
-            }
-
-            result.classList.add('show');
+            // if (prize) {
+            //     resultText.innerHTML = `
+            //         <strong>Вы выиграли: ${prize.name}</strong><br>
+            //         ${prize.text_for_winner ? prize.text_for_winner : ''}
+            //     `;
+            //
+            //     if(code){
+            //         resultText.innerHTML = `<strong>Код: ${code}</strong><br>`;
+            //     }
+            // } else {
+            //     resultText.textContent = 'К сожалению, вы ничего не выиграли. Попробуйте еще раз!';
+            // }
+            //
+            // result.classList.add('show');
 
             // Проверка лимита вращений
             if (wheelData.spins_limit) {

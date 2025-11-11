@@ -73,7 +73,7 @@
                             // Приоритет: config.open > localStorage
                             const shouldOpen = this.config.open === true || this.config.open === 'true';
                             const storedOpen = localStorage.getItem('lucky_wheel_modal_open') === 'true';
-                            const hasStoredOpen = localStorage.getItem('lucky_wheel_modal_open') !== undefined;
+                            const hasStoredOpen = localStorage.getItem('lucky_wheel_modal_open');
                             if (shouldOpen && !hasStoredOpen){
                                 this.openModal();
                             }
