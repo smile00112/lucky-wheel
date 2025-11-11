@@ -47,7 +47,7 @@
 
         .description {
             color: #666;
-            margin-bottom: 20px;
+            margin-bottom: 35px;
             font-size: 14px;
         }
 
@@ -452,6 +452,36 @@
             max-width: 290px;
         }
 
+        .win-notification-pdf-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .win-notification-pdf-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .win-notification-pdf-link svg {
+            width: 18px;
+            height: 18px;
+            fill: white;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -553,6 +583,14 @@
                 </svg>
             </button>
         </div>
+
+        <!-- Ссылка для скачивания PDF -->
+        <a href="#" id="winNotificationPdfLink" class="win-notification-pdf-link" style="display: none;" target="_blank">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+            <span>Скачать сертификат PDF</span>
+        </a>
 
         <!-- Форма для получения приза -->
         <div class="win-notification-form" id="winNotificationFormContainer" style="display: none;">
@@ -999,6 +1037,7 @@
             const codeContainer = document.getElementById('winNotificationCodeContainer');
             const formContainer = document.getElementById('winNotificationFormContainer');
             const sendContainer = document.getElementById('winNotificationSendContainer');
+            const pdfLink = document.getElementById('winNotificationPdfLink');
 
             if (!prize) {
                 return;
@@ -1026,6 +1065,43 @@
                 // Если код есть, устанавливаем его и убираем placeholder
                 codeInput.placeholder = '';
                 codeInput.value = prizeCode.toString().trim();
+            }
+
+            // Получаем spin_id из localStorage для PDF ссылки
+            const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
+            const winDataStr = localStorage.getItem(todayWinKey);
+            let spinId = null;
+
+            if (winDataStr) {
+                try {
+                    const winData = JSON.parse(winDataStr);
+                    spinId = winData.spin_id;
+                } catch (e) {
+                    console.warn('Could not parse win data for PDF:', e);
+                }
+            }
+
+            // Если spin_id не найден в localStorage, пытаемся получить из API
+            if (!spinId) {
+                try {
+                    const todayWinResponse = await fetch(`${API_URL}/wheel/${WHEEL_SLUG}/today-win?guest_id=${GUEST_ID}`);
+                    if (todayWinResponse.ok) {
+                        const todayWinData = await todayWinResponse.json();
+                        if (todayWinData.has_win && todayWinData.spin_id) {
+                            spinId = todayWinData.spin_id;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Could not get spin_id from API for PDF:', e);
+                }
+            }
+
+            // Устанавливаем ссылку на PDF, если есть spin_id
+            if (spinId && pdfLink) {
+                pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
+                pdfLink.style.display = 'flex';
+            } else if (pdfLink) {
+                pdfLink.style.display = 'none';
             }
 
             // Проверяем, заполнены ли данные гостя
@@ -1637,15 +1713,18 @@
                     ctx.restore(); // Восстанавливаем поворот
                     ctx.restore(); // Восстанавливаем клиппинг
                 } else {
+                    const midRadius = radius * 0.65; // Средняя точка сектора
+                    const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
+                    const sectorHeight = radius * 0.8; // Высота секции (80% радиуса)
                     // Рисуем текст (если нет изображения)
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.fillStyle = '#fff';
-                    ctx.font = `bold ${Math.max(30, (radius / 20) * 3)}px Arial`;
+                    ctx.font = `bold ${Math.max(10, (radius / 20) * 1)}px Arial`;
 
                     // Обрезка длинного текста
                     const maxWidth = radius * 0.7;
-                    let text = prize.name;
+                    let text = prize.name + ' ' + sectorWidth+ ' ' + sectorHeight;
                     let metrics = ctx.measureText(text);
                     if (metrics.width > maxWidth) {
                         while (metrics.width > maxWidth && text.length > 0) {

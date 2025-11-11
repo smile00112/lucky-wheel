@@ -39,5 +39,9 @@ Route::prefix('widget')->group(function () {
     // API для отправки приза на почту (без ввода данных, только по spin_id)
     Route::post('/spin/{spinId}/send-email', [WidgetController::class, 'sendPrizeEmail'])
         ->name('widget.spin.send-email');
+    
+    // API для скачивания PDF сертификата выигрыша
+    Route::get('/spin/{spinId}/download-pdf', [WidgetController::class, 'downloadWinPdf'])
+        ->name('widget.spin.download-pdf');
 });
 

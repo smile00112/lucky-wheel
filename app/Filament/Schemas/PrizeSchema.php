@@ -143,7 +143,7 @@ class PrizeSchema
     {
         $columns = [
             Tables\Columns\ImageColumn::make('image')
-                ->label(__('filament.prize.image'))
+                ->label('')
                 ->disk('public')  // Добавьте эту строку
                 ->visibility('public')
                 ->circular()

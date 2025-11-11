@@ -73,7 +73,15 @@
                             // Приоритет: config.open > localStorage
                             const shouldOpen = this.config.open === true || this.config.open === 'true';
                             const storedOpen = localStorage.getItem('lucky_wheel_modal_open') === 'true';
-                            if (shouldOpen || storedOpen) {
+                            const hasStoredOpen = localStorage.getItem('lucky_wheel_modal_open') !== undefined;
+                            if (shouldOpen && !hasStoredOpen){
+                                this.openModal();
+                            }
+                            if (shouldOpen && hasStoredOpen && !storedOpen){
+                                //не открываем
+                            }
+                            else
+                            if (shouldOpen && storedOpen) {
                                 this.openModal();
                             }
                         })
@@ -326,7 +334,7 @@
                         animation: lucky-wheel-slideUp 0.3s ease;
                         overflow: hidden;
                         height: 100%;
-                        max-height: 650px;
+                        max-height: 750px;
 
                     }
                     #lucky-wheel-modal-close {
@@ -397,6 +405,7 @@
                             max-height: 100%;
                             border-radius: 0;
                             height: 100%;
+
                         }
                         #lucky-wheel-modal-overlay {
                             padding: 0;
@@ -512,7 +521,7 @@
             this.config.modal.classList.add('open');
             this.config.isModalOpen = true;
             document.body.style.overflow = 'hidden'; // Блокируем скролл страницы
-            
+
             // Сохраняем состояние открытия в localStorage
             localStorage.setItem('lucky_wheel_modal_open', 'true');
         },
@@ -525,7 +534,7 @@
                 this.config.modal.classList.remove('open');
                 this.config.isModalOpen = false;
                 document.body.style.overflow = ''; // Восстанавливаем скролл
-                
+
                 // Сохраняем состояние закрытия в localStorage
                 localStorage.setItem('lucky_wheel_modal_open', 'false');
             }

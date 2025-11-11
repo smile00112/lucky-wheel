@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Сертификат выигрыша</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            background: #667eea;
+            padding: 40px;
+            color: #333;
+        }
+        .certificate {
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .certificate-header {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .certificate-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+        .prize-name {
+            font-size: 32px;
+            color: #764ba2;
+            font-weight: bold;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 10px;
+        }
+        .prize-code {
+            font-size: 24px;
+            color: #333;
+            margin: 30px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+        }
+        .prize-description {
+            font-size: 16px;
+            color: #666;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .certificate-footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 14px;
+            color: #999;
+        }
+        .date {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #999;
+        }
+        .wheel-name {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="certificate-header">ПОЗДРАВЛЯЕМ!</div>
+        <div class="certificate-title">Сертификат выигрыша</div>
+        
+        <div class="wheel-name">{{ $wheel->name ?? 'Колесо Фортуны' }}</div>
+        
+        <div class="prize-name">Название приза: {{ $prize->name }}</div>
+        
+        @if($prize->description)
+        <div class="prize-description">{{ $prize->description }}</div>
+        @endif
+        
+        @if($code)
+        <div class="prize-code">Код для получения приза: {{ $code }}</div>
+        @endif
+        
+        @if($prize->text_for_winner)
+        <div class="prize-description">{{ $prize->text_for_winner }}</div>
+        @endif
+        
+        <div class="certificate-footer">
+            <div class="date">Дата выигрыша: {{ $date }}</div>
+        </div>
+    </div>
+</body>
+</html>
+

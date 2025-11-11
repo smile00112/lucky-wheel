@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class WidgetController extends Controller
 {
@@ -69,7 +71,7 @@ class WidgetController extends Controller
         }
 
         $prizes = $wheel->activePrizes->map(function ($prize) {
-            $imageUrl = null;
+            $imageUrl =  $emailImageUrl = null;
             if ($prize->image) {
                 // Если изображение - это полный URL, используем как есть
                 if (filter_var($prize->image, FILTER_VALIDATE_URL)) {
@@ -88,16 +90,16 @@ class WidgetController extends Controller
             if ($prize->email_image) {
                 // Если изображение - это полный URL, используем как есть
                 if (filter_var($prize->email_image, FILTER_VALIDATE_URL)) {
-                    $imageUrl = $prize->email_image;
+                    $emailImageUrl = $prize->email_image;
                 } elseif (str_starts_with($prize->email_image, '/')) {
                     // Если путь начинается с /, это абсолютный путь
-                    $imageUrl = url($prize->email_image);
+                    $emailImageUrl = url($prize->email_image);
                 } elseif (Storage::disk('public')->exists($prize->email_image)) {
                     // Если файл в public storage
-                    $imageUrl = Storage::disk('public')->url($prize->email_image);
+                    $emailImageUrl = Storage::disk('public')->url($prize->email_image);
                 } else {
                     // По умолчанию используем asset для storage
-                    $imageUrl = asset('storage/' . ltrim($prize->email_image, '/'));
+                    $emailImageUrl = asset('storage/' . ltrim($prize->email_image, '/'));
                 }
 
             }
@@ -111,7 +113,7 @@ class WidgetController extends Controller
                 'type' => $prize->type,
                 'value' => $prize->value,
                 'image' => $imageUrl,
-                'email_image' => $imageUrl,
+                'email_image' => $emailImageUrl,
             ];
         });
 
@@ -324,7 +326,7 @@ class WidgetController extends Controller
                 'prize_id' => $prize ? $prize->id : null,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
-                'status' => $prize ? 'pending' : 'pending',
+                'status' => 'completed', //completed - начальный статус
                 'metadata' => [
                     'referer' => $request->header('Referer'),
                     'origin' => $request->header('Origin'),
@@ -942,6 +944,50 @@ class WidgetController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Скачать PDF сертификат выигрыша
+     */
+    public function downloadWinPdf(Request $request, int $spinId)
+    {
+        $spin = Spin::with(['prize', 'guest', 'wheel'])->find($spinId);
+
+        if (!$spin) {
+            abort(404, 'Spin not found');
+        }
+
+        if (!$spin->isWin()) {
+            abort(400, 'This spin is not a win');
+        }
+
+        if (!$spin->prize) {
+            abort(404, 'Prize not found');
+        }
+
+        // Настройки Dompdf
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new Dompdf($options);
+
+        // Генерируем HTML из Blade шаблона
+        $html = view('pdf.win-certificate', [
+            'prize' => $spin->prize,
+            'code' => $spin->code,
+            'wheel' => $spin->wheel,
+            'date' => $spin->created_at->format('d.m.Y H:i'),
+        ])->render();
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'win-certificate-' . $spinId . '.pdf';
+
+        return $dompdf->stream($filename, ['Attachment' => true]);
     }
 }
 

@@ -43,9 +43,9 @@ class WheelResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label(__('filament.wheel.name'))
                     ->required()
-                    ->maxLength(255)
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                    ->maxLength(255),
+                    //->live(onBlur: true)
+                    //->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
                 Forms\Components\TextInput::make('slug')
                     ->label(__('filament.wheel.slug'))
                     ->required()
