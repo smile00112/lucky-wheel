@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class ClaimedVsPendingChart extends ChartWidget
 {
-    protected ?string $heading = 'Отношение Полученных призов к Использованным';
+    protected ?string $heading = 'Отношение Полученных купонов к Использованным';
 
     protected static ?int $sort = 5;
 
@@ -17,23 +17,23 @@ class ClaimedVsPendingChart extends ChartWidget
         'xl' => 1,
     ];
 
-    public ?string $filter = '30days';
+    public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
 
-    protected $listeners = ['updateWidgets' => 'updateFilter'];
-
-    public function updateFilter($filter = null, $startDate = null, $endDate = null): void
+    //protected $listeners = ['updateWidgets'];
+    protected function getListeners(): array
     {
-        if (is_array($filter)) {
-            $this->filter = $filter['filter'] ?? $filter;
-            $this->customStartDate = $filter['startDate'] ?? null;
-            $this->customEndDate = $filter['endDate'] ?? null;
-        } else {
-            $this->filter = $filter;
-            $this->customStartDate = $startDate;
-            $this->customEndDate = $endDate;
-        }
+        return [
+            'updateWidgets',
+        ];
+    }
+
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    {
+        $this->filter = $filter ?? 'all';
+        $this->customStartDate = $startDate;
+        $this->customEndDate = $endDate;
     }
 
     protected function getFilters(): ?array
@@ -43,7 +43,7 @@ class ClaimedVsPendingChart extends ChartWidget
 
     protected function getData(): array
     {
-        $dateFilter = $this->filter ?? '30days';
+        $dateFilter = $this->filter ?? 'all';
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 

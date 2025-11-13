@@ -6,24 +6,26 @@ use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 
 class Dashboard extends BaseDashboard implements HasForms
 {
     use InteractsWithForms;
 
+    protected static ?string $title = 'Главная';
+    protected static ?string $navigationLabel = 'Главная';
+    protected static bool $shouldRegisterNavigation = true; // или false, чтобы скрыть
+
     public ?string $dateFilter = '30days';
 
     public function mount(): void
     {
-        $this->form->fill([
-            'dateFilter' => '30days',
-        ]);
+
     }
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
                 Select::make('dateFilter')
                     ->label('Период')
@@ -47,7 +49,7 @@ class Dashboard extends BaseDashboard implements HasForms
     protected function getHeaderWidgets(): array
     {
         return [
-            \App\Filament\Widgets\DateFilterWidget::class,
+           // \App\Filament\Widgets\DateFilterWidget::class,
         ];
     }
 

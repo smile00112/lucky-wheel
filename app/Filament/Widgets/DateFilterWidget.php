@@ -2,10 +2,12 @@
 
 namespace App\Filament\Widgets;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Schema;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Carbon;
@@ -16,7 +18,7 @@ class DateFilterWidget extends Widget implements HasForms
 
     protected string $view = 'filament.widgets.date-filter-widget';
 
-    public ?string $dateFilter = '30days';
+    public ?string $dateFilter = 'all';
     public ?string $startDate = null;
     public ?string $endDate = null;
 
@@ -24,13 +26,13 @@ class DateFilterWidget extends Widget implements HasForms
 
     public function mount(): void
     {
-        $this->dateFilter = '30days';
+        $this->dateFilter = 'all';
     }
 
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->components([
+            ->schema([
                 Select::make('dateFilter')
                     ->label('Период')
                     ->options([
@@ -41,16 +43,12 @@ class DateFilterWidget extends Widget implements HasForms
                         '90days' => 'Последние 90 дней',
                         'year' => 'Год',
                         'all' => 'Всё время',
-                        //'custom' => 'Свой диапазон',
+                        'custom' => 'Свой диапазон',
                     ])
                     ->default('30days')
                     ->live()
-                    ->reactive()
                     ->afterStateUpdated(function ($state) {
                         $this->dateFilter = $state;
-                        if ($state !== 'custom') {
-                            $this->dispatch('updateWidgets', filter: $state);
-                        }
                     })
                     ->columnSpanFull(),
 
@@ -80,15 +78,36 @@ class DateFilterWidget extends Widget implements HasForms
                         }
                     })
                     ->columnSpan(1),
+
+                    Actions::make([
+                        Action::make('apply')
+                            ->label('Применить')
+                            ->action('applyFilter')
+                            ->color('primary'),
+                    ])
             ])
             ->columns(2)
-            ->statePath('dateFilter');
+            //->statePath('dateFilter')
+        ;
     }
 
-    public function applyCustomDateRange(): void
+    public function applyFilter(): void
     {
-        if ($this->startDate && $this->endDate) {
-            $this->dispatch('updateWidgets', filter: 'custom', startDate: $this->startDate, endDate: $this->endDate);
+        $formData = $this->form->getState();
+        $dateFilter = $formData['dateFilter'] ?? $this->dateFilter;
+        $startDate = $formData['startDate'] ?? $this->startDate;
+        $endDate = $formData['endDate'] ?? $this->endDate;
+
+        if ($dateFilter === 'custom') {
+            if ($startDate && $endDate) {
+                $this->dispatch('updateWidgets',
+                    filter: 'custom',
+                    startDate: $startDate,
+                    endDate: $endDate
+                );
+            }
+        } else {
+            $this->dispatch('updateWidgets', filter: $dateFilter);
         }
     }
 }

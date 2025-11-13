@@ -111,6 +111,10 @@ return [
         'email_template' => 'Шаблон письма о призе',
         'email_template_hint' => 'HTML шаблон письма, которое будет отправлено клиенту при выигрыше. Доступные переменные: {company_name}, {prize_name}, {code}, {guest_name}',
     ],
+    'dashboard' => [
+        'title' => 'Статистика',
+        'navigation_label' => 'Статистика',
+    ],
     'all' => 'Все',
     'active' => 'Активные',
     'inactive' => 'Неактивные',

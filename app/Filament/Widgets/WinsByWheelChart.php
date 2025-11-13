@@ -19,23 +19,21 @@ class WinsByWheelChart extends ChartWidget
         'xl' => 1,
     ];
 
-    public ?string $filter = '30days';
+    public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
 
-    protected $listeners = ['updateWidgets' => 'updateFilter'];
-
-    public function updateFilter($filter = null, $startDate = null, $endDate = null): void
+    protected function getListeners(): array
     {
-        if (is_array($filter)) {
-            $this->filter = $filter['filter'] ?? $filter;
-            $this->customStartDate = $filter['startDate'] ?? null;
-            $this->customEndDate = $filter['endDate'] ?? null;
-        } else {
-            $this->filter = $filter;
-            $this->customStartDate = $startDate;
-            $this->customEndDate = $endDate;
-        }
+        return [
+            'updateWidgets',
+        ];
+    }
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    {
+        $this->filter = $filter ?? 'all';
+        $this->customStartDate = $startDate;
+        $this->customEndDate = $endDate;
     }
 
     protected function getFilters(): ?array
@@ -47,7 +45,7 @@ class WinsByWheelChart extends ChartWidget
     protected function getData(): array
     {
         // Получаем фильтр из свойства виджета
-        $dateFilter = $this->filter ?? '30days';
+        $dateFilter = $this->filter ?? 'all';
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 
@@ -85,12 +83,12 @@ class WinsByWheelChart extends ChartWidget
 
     protected function getStartDate(?string $filter = null): Carbon
     {
-        $filter = $filter ?? $this->filter ?? '30days';
-        
+        $filter = $filter ?? $this->filter ?? 'all';
+
         if ($filter === 'custom' && $this->customStartDate) {
             return Carbon::parse($this->customStartDate)->startOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->startOfDay(),
             'yesterday' => now()->subDay()->startOfDay(),
@@ -106,11 +104,11 @@ class WinsByWheelChart extends ChartWidget
     protected function getEndDate(?string $filter = null): Carbon
     {
         $filter = $filter ?? $this->filter ?? '30days';
-        
+
         if ($filter === 'custom' && $this->customEndDate) {
             return Carbon::parse($this->customEndDate)->endOfDay();
         }
-        
+
         return match ($filter) {
             'today' => now()->endOfDay(),
             'yesterday' => now()->subDay()->endOfDay(),

@@ -10,16 +10,14 @@
 
         {{ $this->form }}
 
-        @if($this->dateFilter === 'custom')
-            <div class="mt-4">
-                <x-filament::button 
-                    type="button" 
-                    wire:click="applyCustomDateRange"
-                    color="primary">
-                    Применить
-                </x-filament::button>
-            </div>
-        @endif
+{{--        <div class="mt-4">--}}
+{{--            <x-filament::button--}}
+{{--                type="button"--}}
+{{--                wire:click="applyFilter"--}}
+{{--                color="primary">--}}
+{{--                Применить--}}
+{{--            </x-filament::button>--}}
+{{--        </div>--}}
     </x-filament::section>
 </x-filament-widgets::widget>
 

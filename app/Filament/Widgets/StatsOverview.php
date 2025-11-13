@@ -15,23 +15,23 @@ class StatsOverview extends BaseWidget
 
     protected static ?int $sort = 1;
 
-    public ?string $filter = '30days';
+    public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
 
-    protected $listeners = ['updateWidgets' => 'updateFilter'];
-
-    public function updateFilter($filter = null, $startDate = null, $endDate = null): void
+    //protected $listeners = ['updateWidgets'];
+    protected function getListeners(): array
     {
-        if (is_array($filter)) {
-            $this->filter = $filter['filter'] ?? $filter;
-            $this->customStartDate = $filter['startDate'] ?? null;
-            $this->customEndDate = $filter['endDate'] ?? null;
-        } else {
-            $this->filter = $filter;
-            $this->customStartDate = $startDate;
-            $this->customEndDate = $endDate;
-        }
+        return [
+            'updateWidgets',
+        ];
+    }
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    {
+        //dd([$filter , $startDate , $endDate ]);
+        $this->filter = $filter ?? '30days';
+        $this->customStartDate = $startDate;
+        $this->customEndDate = $endDate;
     }
 
     protected function getFilters(): ?array
@@ -43,7 +43,7 @@ class StatsOverview extends BaseWidget
     protected function getStats(): array
     {
         // Получаем фильтр из свойства виджета
-        $dateFilter = $this->filter ?? '30days';
+        $dateFilter = $this->filter ?? 'all';
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 
@@ -55,12 +55,15 @@ class StatsOverview extends BaseWidget
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
-        $pendingWins = Spin::whereNotNull('spins.prize_id')
-            ->where('spins.status', 'pending')
+//        $pendingWins = Spin::whereNotNull('spins.prize_id')
+//            ->where('spins.status', 'pending')
+//            ->whereBetween('spins.created_at', [$startDate, $endDate])
+//            ->count();
+
+        $totalWins = Spin::whereNotNull('spins.prize_id')
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
-        $totalWins = $claimedWins + $pendingWins;
         $claimedRate = $totalWins > 0 ? round(($claimedWins / $totalWins) * 100, 2) : 0;
 
         $uniqueGuests = Spin::whereBetween('spins.created_at', [$startDate, $endDate])
@@ -68,16 +71,16 @@ class StatsOverview extends BaseWidget
             ->count('spins.guest_id');
 
         return [
-            Stat::make('Всего вращений', $totalSpins)
+            Stat::make('Получено купонов', $totalSpins)
                 ->description('За выбранный период')
                 ->descriptionIcon('heroicon-m-arrow-path')
                 ->color('info'),
-            Stat::make('Использовано выигрышей', $claimedWins)
+            Stat::make('Использовано купонов', $claimedWins)
                 ->description('За выбранный период')
                 ->descriptionIcon('heroicon-m-gift')
                 ->color('success'),
-            Stat::make('Процент использованных выигрышей', $claimedRate . '%')
-                ->description('От общего количества выигрышей')
+            Stat::make('Процент использованных купонов', $claimedRate . '%')
+                ->description('От общего количества купонов')
                 ->descriptionIcon('heroicon-m-chart-bar')
                 ->color($claimedRate > 50 ? 'success' : ($claimedRate > 25 ? 'warning' : 'danger')),
             Stat::make('Уникальных гостей', $uniqueGuests)
@@ -89,7 +92,7 @@ class StatsOverview extends BaseWidget
 
     protected function getStartDate(?string $filter = null): Carbon
     {
-        $filter = $filter ?? $this->filter ?? '30days';
+        $filter = $filter ?? $this->filter ?? 'all';
 
         if ($filter === 'custom' && $this->customStartDate) {
             return Carbon::parse($this->customStartDate)->startOfDay();
@@ -109,7 +112,7 @@ class StatsOverview extends BaseWidget
 
     protected function getEndDate(?string $filter = null): Carbon
     {
-        $filter = $filter ?? $this->filter ?? '30days';
+        $filter = $filter ?? $this->filter ?? 'all';
 
         if ($filter === 'custom' && $this->customEndDate) {
             return Carbon::parse($this->customEndDate)->endOfDay();
