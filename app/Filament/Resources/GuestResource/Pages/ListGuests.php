@@ -20,8 +20,20 @@ class ListGuests extends ListRecords
 
     protected function getTableQuery(): Builder
     {
-        return parent::getTableQuery()
-            ->withCount(['spins', 'wins']);
+        $query = parent::getTableQuery()->withCount(['spins', 'wins']);
+        $user = auth()->user();
+
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isOwner()) {
+            return $query;
+        }
+
+        return $query->whereHas('spins.wheel', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        });
     }
 }
 

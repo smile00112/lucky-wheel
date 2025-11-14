@@ -20,7 +20,7 @@ class ListWheels extends ListRecords
 
     protected function getTableQuery(): Builder
     {
-        return parent::getTableQuery()->where('user_id', auth()->id());
+        return parent::getTableQuery()->forUser();
     }
 }
 

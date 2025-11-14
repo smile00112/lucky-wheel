@@ -50,9 +50,17 @@ class WinsByGuestChart extends ChartWidget
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 
-        $wins = Spin::whereNotNull('spins.prize_id')
-            ->whereBetween('spins.created_at', [$startDate, $endDate])
-            ->with('guest')
+        $query = Spin::whereNotNull('spins.prize_id')
+            ->whereBetween('spins.created_at', [$startDate, $endDate]);
+
+        $user = auth()->user();
+        if ($user && $user->isManager()) {
+            $query->whereHas('wheel', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $wins = $query->with('guest')
             ->get()
             ->groupBy('guest_id')
             ->map(function ($spins) {

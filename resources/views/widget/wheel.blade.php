@@ -37,13 +37,13 @@
             max-height: 100%;
         }
 
-        .lucky-wheel-conteiner h1 {
+        .lucky-wheel-container h1 {
             color: #333;
             margin-bottom: 20px;
             font-size: 1.8em;
         }
 
-        .lucky-wheel-conteiner .description {
+        .lucky-wheel-container .description {
             color: #666;
             margin-bottom: 35px;
             font-size: 14px;

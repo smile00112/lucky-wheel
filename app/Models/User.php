@@ -15,6 +15,9 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_OWNER = 'owner';
+    public const ROLE_MANAGER = 'manager';
+
     public function canAccessPanel(Panel $panel): bool
     {
         return true;
@@ -28,6 +31,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -59,5 +63,21 @@ class User extends Authenticatable implements FilamentUser
     public function wheels(): HasMany
     {
         return $this->hasMany(Wheel::class);
+    }
+
+    /**
+     * Проверка, является ли пользователь владельцем
+     */
+    public function isOwner(): bool
+    {
+        return $this->role === self::ROLE_OWNER;
+    }
+
+    /**
+     * Проверка, является ли пользователь менеджером
+     */
+    public function isManager(): bool
+    {
+        return $this->role === self::ROLE_MANAGER;
     }
 }

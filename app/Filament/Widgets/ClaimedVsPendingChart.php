@@ -47,14 +47,22 @@ class ClaimedVsPendingChart extends ChartWidget
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 
-        $claimedWins = Spin::whereNotNull('spins.prize_id')
+        $baseQuery = Spin::whereNotNull('spins.prize_id')
+            ->whereBetween('spins.created_at', [$startDate, $endDate]);
+
+        $user = auth()->user();
+        if ($user && $user->isManager()) {
+            $baseQuery->whereHas('wheel', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $claimedWins = (clone $baseQuery)
             ->where('spins.status', 'claimed')
-            ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
-        $pendingWins = Spin::whereNotNull('spins.prize_id')
+        $pendingWins = (clone $baseQuery)
             //->where('spins.status', 'pending')
-            ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
         return [

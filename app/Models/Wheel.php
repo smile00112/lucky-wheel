@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -67,5 +68,24 @@ class Wheel extends Model
     public function wins(): HasMany
     {
         return $this->hasMany(Spin::class)->whereNotNull('prize_id');
+    }
+
+    /**
+     * Scope для фильтрации по ролям пользователя
+     * Владелец видит все колеса, менеджер - только свои
+     */
+    public function scopeForUser(Builder $query, ?User $user = null): Builder
+    {
+        $user = $user ?? auth()->user();
+
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isOwner()) {
+            return $query;
+        }
+
+        return $query->where('user_id', $user->id);
     }
 }

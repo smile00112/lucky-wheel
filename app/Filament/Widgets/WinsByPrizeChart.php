@@ -49,10 +49,17 @@ class WinsByPrizeChart extends ChartWidget
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 
-        $wins = Spin::whereNotNull('spins.prize_id')
+        $query = Spin::whereNotNull('spins.prize_id')
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->join('prizes', 'spins.prize_id', '=', 'prizes.id')
-            ->select('prizes.name', DB::raw('COUNT(*) as count'))
+            ->join('wheels', 'prizes.wheel_id', '=', 'wheels.id');
+
+        $user = auth()->user();
+        if ($user && $user->isManager()) {
+            $query->where('wheels.user_id', $user->id);
+        }
+
+        $wins = $query->select('prizes.name', DB::raw('COUNT(*) as count'))
             ->groupBy('prizes.id', 'prizes.name')
             ->orderBy('count', 'desc')
             ->limit(10)

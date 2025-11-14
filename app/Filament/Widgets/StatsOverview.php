@@ -47,10 +47,14 @@ class StatsOverview extends BaseWidget
         $startDate = $this->getStartDate($dateFilter);
         $endDate = $this->getEndDate($dateFilter);
 
-        $totalSpins = Spin::whereBetween('spins.created_at', [$startDate, $endDate])
+        $spinQuery = $this->getFilteredSpinQuery();
+
+        $totalSpins = (clone $spinQuery)
+            ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
-        $claimedWins = Spin::whereNotNull('spins.prize_id')
+        $claimedWins = (clone $spinQuery)
+            ->whereNotNull('spins.prize_id')
             ->where('spins.status', 'claimed')
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
@@ -60,13 +64,15 @@ class StatsOverview extends BaseWidget
 //            ->whereBetween('spins.created_at', [$startDate, $endDate])
 //            ->count();
 
-        $totalWins = Spin::whereNotNull('spins.prize_id')
+        $totalWins = (clone $spinQuery)
+            ->whereNotNull('spins.prize_id')
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->count();
 
         $claimedRate = $totalWins > 0 ? round(($claimedWins / $totalWins) * 100, 2) : 0;
 
-        $uniqueGuests = Spin::whereBetween('spins.created_at', [$startDate, $endDate])
+        $uniqueGuests = (clone $spinQuery)
+            ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->distinct()
             ->count('spins.guest_id');
 
@@ -123,5 +129,23 @@ class StatsOverview extends BaseWidget
             'yesterday' => now()->subDay()->endOfDay(),
             default => now()->endOfDay(),
         };
+    }
+
+    protected function getFilteredSpinQuery()
+    {
+        $query = Spin::query();
+        $user = auth()->user();
+
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->isOwner()) {
+            return $query;
+        }
+
+        return $query->whereHas('wheel', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        });
     }
 }

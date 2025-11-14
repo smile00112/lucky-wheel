@@ -549,6 +549,7 @@
 
             // Конфигурация
             const API_URL = '{{ url("/api/widget") }}';
+            const APP_URL = '{{ url('/') }}';
             const WHEEL_SLUG = '{{ $wheel->slug }}';
             let GUEST_ID = new URLSearchParams(window.location.search).get('guest_id') || window.luckyWheelGuestId;
 
@@ -1809,7 +1810,7 @@
                         if (imageUrl.startsWith('/')) {
                             imageUrl = imageUrl;
                         } else {
-                            imageUrl = `/storage/${prizeEmailImage}`;
+                            imageUrl = `${APP_URL}/storage/${prizeEmailImage}`;
                         }
                     }
 
