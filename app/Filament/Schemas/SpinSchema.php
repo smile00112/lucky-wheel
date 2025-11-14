@@ -247,6 +247,28 @@ class SpinSchema
         }
 
         $filters = array_merge($filters, [
+            Tables\Filters\Filter::make('created_at')
+                ->form([
+                    Forms\Components\DatePicker::make('created_from')
+                        ->label(__('filament.spin.created_from'))
+                        ->displayFormat('d.m.Y')
+                        ->native(false),
+                    Forms\Components\DatePicker::make('created_until')
+                        ->label(__('filament.spin.created_until'))
+                        ->displayFormat('d.m.Y')
+                        ->native(false),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['created_from'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                        )
+                        ->when(
+                            $data['created_until'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                        );
+                }),
 //            Tables\Filters\SelectFilter::make('status')
 //                ->label(__('filament.spin.status'))
 //                ->options([

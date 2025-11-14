@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GuestResource extends Resource
 {
@@ -125,6 +126,41 @@ class GuestResource extends Resource
                     ->label(__('filament.guest.has_name'))
                     ->query(fn ($query) => $query->whereNotNull('name'))
                     ->toggle(),
+                Tables\Filters\Filter::make('last_spin_date')
+                    ->label(__('filament.guest.last_spin_date'))
+                    ->form([
+                        Forms\Components\DatePicker::make('last_spin_from')
+                            ->label(__('filament.guest.last_spin_from'))
+                            ->displayFormat('d.m.Y')
+                            ->native(false),
+                        Forms\Components\DatePicker::make('last_spin_until')
+                            ->label(__('filament.guest.last_spin_until'))
+                            ->displayFormat('d.m.Y')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['last_spin_from'] ?? null,
+                            function (Builder $query, $date) {
+                                $query->whereIn('id', function ($subQuery) use ($date) {
+                                    $subQuery->select('guest_id')
+                                        ->from('spins')
+                                        ->groupBy('guest_id')
+                                        ->havingRaw('MAX(created_at) >= ?', [$date]);
+                                });
+                            }
+                        )->when(
+                            $data['last_spin_until'] ?? null,
+                            function (Builder $query, $date) {
+                                $query->whereIn('id', function ($subQuery) use ($date) {
+                                    $subQuery->select('guest_id')
+                                        ->from('spins')
+                                        ->groupBy('guest_id')
+                                        ->havingRaw('MAX(created_at) <= ?', [$date . ' 23:59:59']);
+                                });
+                            }
+                        );
+                    }),
             ])
             ->actions([
                 EditAction::make(),
