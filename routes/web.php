@@ -7,7 +7,7 @@ use App\Http\Controllers\WidgetController;
 Route::get('/', function () {
     return view('welcome');
 });
-if (app()->environment('local')){}
+//if (app()->environment('local')){}
 Route::get('/wheel', function () {
     // Получаем первое активное колесо или первое доступное
     $wheel = Wheel::where('is_active', true)

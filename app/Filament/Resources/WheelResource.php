@@ -70,6 +70,15 @@ class WheelResource extends Resource
                     ->helperText(__('filament.wheel.refresh_hour_hint'))
                     ->formatStateUsing(fn ($state) => $state ?: null)
                     ->dehydrateStateUsing(fn ($state) => $state ?: null),
+                Forms\Components\Select::make('probability_type')
+                    ->label(__('filament.wheel.probability_type'))
+                    ->options([
+                        'random' => __('filament.wheel.probability_type_random'),
+                        'weighted' => __('filament.wheel.probability_type_weighted'),
+                    ])
+                    ->default('random')
+                    ->required()
+                    ->helperText(__('filament.wheel.probability_type_hint')),
                 Forms\Components\DateTimePicker::make('starts_at')
                     ->label(__('filament.wheel.starts_at'))
                     ->native(false)
@@ -153,9 +162,25 @@ class WheelResource extends Resource
                 Tables\Columns\TextColumn::make('spins_limit')
                     ->label(__('filament.wheel.spins_limit'))
                     ->numeric()
+                    ->default('∞') // ♾
                     ->sortable(),
                 Tables\Columns\TextColumn::make('refresh_hour')
                     ->label(__('filament.wheel.refresh_hour'))
+                    ->default('00:00')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('probability_type')
+                    ->label(__('filament.wheel.probability_type'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match($state) {
+                        'random' => __('filament.wheel.probability_type_random'),
+                        'weighted' => __('filament.wheel.probability_type_weighted'),
+                        default => $state,
+                    })
+                    ->color(fn (string $state): string => match($state) {
+                        'random' => 'info',
+                        'weighted' => 'warning',
+                        default => 'gray',
+                    })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('prizes_count')
                     ->label(__('filament.wheel.prizes_count'))
@@ -201,7 +226,8 @@ class WheelResource extends Resource
             ])
             ->bulkActions([
                 DeleteBulkAction::make(),
-            ]);
+            ])
+            ;
     }
 
     public static function getRelations(): array

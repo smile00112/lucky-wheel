@@ -32,7 +32,13 @@ class SpinSchema
         if ($includeWheelId) {
             $components[] = Forms\Components\Select::make('wheel_id')
                 ->label(__('filament.spin.wheel_id'))
-                ->relationship('wheel', 'name')
+                ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if ($user && $user->isManager()) {
+                        $query->where('user_id', $user->id);
+                    }
+                    return $query;
+                })
                 ->required()
                 ->searchable()
                 ->preload();
@@ -51,7 +57,15 @@ class SpinSchema
         if ($includePrizeId) {
             $components[] = Forms\Components\Select::make('prize_id')
                 ->label(__('filament.spin.prize_id'))
-                ->relationship('prize', 'name')
+                ->relationship('prize', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if ($user && $user->isManager()) {
+                        $query->whereHas('wheel', function ($q) use ($user) {
+                            $q->where('user_id', $user->id);
+                        });
+                    }
+                    return $query;
+                })
                 ->searchable()
                 ->preload()
                 ->nullable();
@@ -221,7 +235,13 @@ class SpinSchema
         if ($includeWheelColumn) {
             $filters[] = Tables\Filters\SelectFilter::make('wheel_id')
                 ->label(__('filament.spin.wheel_id'))
-                ->relationship('wheel', 'name')
+                ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if ($user && $user->isManager()) {
+                        $query->where('user_id', $user->id);
+                    }
+                    return $query;
+                })
                 ->searchable()
                 ->preload();
         }

@@ -60,8 +60,45 @@
                 return;
             }
 
-            // Ждем, пока DOM будет готов
-            const initWidget = () => {
+            // Проверка активности колеса
+            const checkWheelActive = () => {
+                return fetch(`${this.config.apiUrl}/wheel/${this.config.slug}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Wheel is not active or not found');
+                        }
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                        }).catch(() => {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Колесо активно, продолжаем инициализацию
+                    return true;
+                })
+                .catch(error => {
+                    console.error('LuckyWheel: Wheel is not active', error);
+                    if (this.config.callbacks.onError) {
+                        this.config.callbacks.onError(error);
+                    }
+                    throw error;
+                });
+            };
+
+            // Проверяем активность колеса перед инициализацией
+            checkWheelActive()
+                .then(() => {
+                    // Ждем, пока DOM будет готов
+                    const initWidget = () => {
                 if (document.body && document.head) {
                     // Получение или создание гостя
                     this.getOrCreateGuest()
@@ -124,6 +161,12 @@
             };
 
             initWidget();
+                })
+                .catch((error) => {
+                    // Колесо неактивно, прерываем работу
+                    console.error('LuckyWheel: Initialization aborted - wheel is not active', error);
+                    return;
+                });
         },
 
         /**

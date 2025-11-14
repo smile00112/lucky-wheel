@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\GuestResource\Pages;
 use App\Models\Guest;
+use App\Models\Wheel;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -103,6 +104,15 @@ class GuestResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('wheel_id')
+                    ->label(__('filament.guest.wheel'))
+                    ->options(fn () => Wheel::query()->forUser()->pluck('name', 'id'))
+                    ->query(fn ($query, array $data) => $query->when(
+                        $data['value'] ?? null,
+                        fn ($q, $value) => $q->whereHas('spins', fn ($sq) => $sq->where('wheel_id', $value))
+                    ))
+                    ->searchable()
+                    ->preload(),
                 Tables\Filters\Filter::make('has_email')
                     ->label(__('filament.guest.has_email'))
                     ->query(fn ($query) => $query->whereNotNull('email'))

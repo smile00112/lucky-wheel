@@ -25,7 +25,13 @@ class PrizeSchema
         if ($includeWheelId) {
             $components[] = Forms\Components\Select::make('wheel_id')
                 ->label(__('filament.prize.wheel_id'))
-                ->relationship('wheel', 'name')
+                ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if ($user && $user->isManager()) {
+                        $query->where('user_id', $user->id);
+                    }
+                    return $query;
+                })
                 ->required()
                 ->searchable()
                 ->preload()
@@ -69,20 +75,9 @@ class PrizeSchema
                     'points' => __('filament.prize.type_points'),
                     'other' => __('filament.prize.type_other'),
                 ])
+                ->hidden()
                 ->default('other')
-                ->hidden(),
-
-            Forms\Components\TextInput::make('probability')
-                ->label(__('filament.prize.probability'))
-                ->numeric()
-                ->default(0)
-                ->minValue(0)
-                ->maxValue(100)
-                ->step(0.01)
-                ->suffix('%')
-                ->helperText(__('filament.prize.probability_hint'))
-                //->required()
-                ->hidden(),
+                ,
             Forms\Components\FileUpload::make('image')
                 ->label(__('filament.prize.image'))
                 ->image()
@@ -113,6 +108,34 @@ class PrizeSchema
                 ->minValue(1)
                 ->helperText(__('filament.prize.quantity_limit_hint'))
                 ,
+            Forms\Components\TextInput::make('probability')
+                ->label(__('filament.prize.probability'))
+                ->numeric()
+                ->default(0)
+                ->minValue(0)
+                ->maxValue(100)
+                ->step(0.01)
+                ->suffix('%')
+                ->helperText(__('filament.prize.probability_hint'))
+                ->visible(function ($get, $record) {
+
+                    // Получаем wheel_id из формы или из записи
+                    $wheelId = $get('wheel_id') ?? $record?->wheel_id;
+
+                    // Если wheel_id не выбран, показываем поле
+                    if (!$wheelId) {
+                        return true;
+                    }
+
+                    // Загружаем колесо и проверяем probability_type
+                    $wheel = \App\Models\Wheel::find($wheelId);
+
+                    // Скрываем поле, если probability_type === 'weighted'
+                    // Показываем поле, если probability_type === 'random' или не установлен
+                    return ($wheel && $wheel->probability_type === 'weighted');
+                })
+            //->required()
+            ,
             Forms\Components\TextInput::make('quantity_day_limit')
                 ->label(__('filament.prize.quantity_day_limit'))
                 ->numeric()
@@ -221,15 +244,15 @@ class PrizeSchema
         }
 
         $filters = [
-            Tables\Filters\SelectFilter::make('type')
-                ->label(__('filament.prize.type'))
-                ->options([
-                    'discount' => __('filament.prize.type_discount'),
-                    'free_item' => __('filament.prize.type_free_item'),
-                    'cash' => __('filament.prize.type_cash'),
-                    'points' => __('filament.prize.type_points'),
-                    'other' => __('filament.prize.type_other'),
-                ]),
+//            Tables\Filters\SelectFilter::make('type')
+//                ->label(__('filament.prize.type'))
+//                ->options([
+//                    'discount' => __('filament.prize.type_discount'),
+//                    'free_item' => __('filament.prize.type_free_item'),
+//                    'cash' => __('filament.prize.type_cash'),
+//                    'points' => __('filament.prize.type_points'),
+//                    'other' => __('filament.prize.type_other'),
+//                ]),
             Tables\Filters\TernaryFilter::make('is_active')
                 ->label(__('filament.prize.is_active'))
                 ->placeholder(__('filament.all'))
@@ -241,7 +264,13 @@ class PrizeSchema
         if ($includeWheelColumn) {
             $filters[] = Tables\Filters\SelectFilter::make('wheel_id')
                 ->label(__('filament.prize.wheel_id'))
-                ->relationship('wheel', 'name')
+                ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if ($user && $user->isManager()) {
+                        $query->where('user_id', $user->id);
+                    }
+                    return $query;
+                })
                 ->searchable()
                 ->preload();
         }

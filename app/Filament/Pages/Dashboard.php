@@ -12,8 +12,8 @@ class Dashboard extends BaseDashboard implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $title = 'Главная';
-    protected static ?string $navigationLabel = 'Главная';
+    protected static ?string $title = 'Статистика';
+    protected static ?string $navigationLabel = 'Статистика';
     protected static bool $shouldRegisterNavigation = true; // или false, чтобы скрыть
 
     public ?string $dateFilter = '30days';

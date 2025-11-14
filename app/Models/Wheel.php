@@ -18,6 +18,7 @@ class Wheel extends Model
         'settings',
         'spins_limit',
         'refresh_hour',
+        'probability_type',
         'starts_at',
         'ends_at',
     ];

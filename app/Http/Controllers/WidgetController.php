@@ -325,8 +325,11 @@ class WidgetController extends Controller
             DB::beginTransaction();
 
             // Выбор приза с учетом вероятностей и лимитов
-            $prize = $this->selectRandomPrize($wheel, $guest->id);
-            //$prize = $this->selectPrize($wheel, $guest->id);
+            if ($wheel->probability_type === 'weighted') {
+                $prize = $this->selectWeightedPrize($wheel, $guest->id);
+            } else {
+                $prize = $this->selectRandomPrize($wheel, $guest->id);
+            }
 
             // Создание записи о вращении
             $spinData = [
@@ -542,7 +545,7 @@ class WidgetController extends Controller
     /**
      * Выбрать приз на основе вероятностей и лимитов
      */
-    private function selectPrize(Wheel $wheel, int $guestId): ?Prize
+    private function selectWeightedPrize(Wheel $wheel, int $guestId): ?Prize
     {
         // Получаем все активные призы
         $allPrizes = $wheel->activePrizes()->get();
