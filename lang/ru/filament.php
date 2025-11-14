@@ -16,6 +16,7 @@ return [
         'ends_at' => 'Дата окончания',
         'prizes_count' => 'Количество призов',
         'spins_count' => 'Количество вращений',
+        'widget_embed_code' => 'Код для вставки виджета',
         'created_at' => 'Создано',
         'updated_at' => 'Обновлено',
     ],

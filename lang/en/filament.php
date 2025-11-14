@@ -16,6 +16,7 @@ return [
         'ends_at' => 'End Date',
         'prizes_count' => 'Prizes Count',
         'spins_count' => 'Spins Count',
+        'widget_embed_code' => 'Widget Embed Code',
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',
     ],

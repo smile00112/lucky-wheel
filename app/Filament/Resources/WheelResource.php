@@ -8,6 +8,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
+use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -43,7 +44,9 @@ class WheelResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label(__('filament.wheel.name'))
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->copyable()
+                ,
                     //->live(onBlur: true)
                     //->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
                 Forms\Components\TextInput::make('slug')
@@ -79,6 +82,52 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.settings'))
                     ->columnSpanFull()
                     ->hidden(),
+                Forms\Components\CodeEditor::make('widget_embed_code')
+                    ->label(__('filament.wheel.widget_embed_code'))
+                    ->language(Language::Html)
+                    //->disabled()
+                    ->dehydrated(false)
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record !== null)
+                    ->afterStateHydrated(function ($component, $state, $record) {
+                        if (!$record) {
+                            return;
+                        }
+
+                        $baseUrl = config('app.url');
+                        $widgetScriptUrl = $baseUrl . '/js/lucky-wheel-widget.js';
+                        $apiUrl = $baseUrl . '/api/widget';
+                        $slug = $record->slug ?? 'wheel-slug';
+
+                        $code = <<<HTML
+                            <script src="{$widgetScriptUrl}"></script>
+                            <script>
+                              LuckyWheel.init({
+                                slug: '{$slug}',
+                                apiUrl: '{$apiUrl}',
+                                open: true,
+                              });
+                            </script>
+                            HTML;
+
+/*
+                                onSpin: function(spinData) {
+                                  console.log('Вращение выполнено:', spinData);
+                                },
+                                onWin: function(prize) {
+                                  console.log('Выигрыш:', prize);
+                                  alert('Поздравляем! Вы выиграли: ' + prize.name);
+                                },
+                                onError: function(error) {
+                                  console.error('Ошибка:', error);
+                                },
+                                onLoad: function() {
+                                  console.log('Виджет загружен');
+                                }
+*/
+
+                        $component->state($code);
+                    }),
             ]);
     }
 
