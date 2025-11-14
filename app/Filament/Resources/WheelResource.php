@@ -70,11 +70,11 @@ class WheelResource extends Resource
                 Forms\Components\DateTimePicker::make('starts_at')
                     ->label(__('filament.wheel.starts_at'))
                     ->native(false)
-                    ->hidden(),
+                    ,
                 Forms\Components\DateTimePicker::make('ends_at')
                     ->label(__('filament.wheel.ends_at'))
                     ->native(false)
-                    ->hidden(),
+                    ,
                 Forms\Components\KeyValue::make('settings')
                     ->label(__('filament.wheel.settings'))
                     ->columnSpanFull()
