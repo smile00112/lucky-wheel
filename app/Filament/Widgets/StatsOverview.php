@@ -85,7 +85,7 @@ class StatsOverview extends BaseWidget
                 ->description('За выбранный период')
                 ->descriptionIcon('heroicon-m-gift')
                 ->color('success'),
-            Stat::make('Процент использованных купонов', $claimedRate . '%')
+            Stat::make("% использованных купонов", $claimedRate . '%')
                 ->description('От общего количества купонов')
                 ->descriptionIcon('heroicon-m-chart-bar')
                 ->color($claimedRate > 50 ? 'success' : ($claimedRate > 25 ? 'warning' : 'danger')),

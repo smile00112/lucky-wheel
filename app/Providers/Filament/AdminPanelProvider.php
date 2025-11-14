@@ -40,6 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Widgets\StatsOverview::class,
                 \App\Filament\Widgets\WinsByWheelChart::class,
+                \App\Filament\Widgets\SpinsByDayChart::class,
                 \App\Filament\Widgets\WinsByPrizeChart::class,
                 \App\Filament\Widgets\ClaimedVsPendingChart::class,
                 \App\Filament\Widgets\WinsByGuestChart::class,
