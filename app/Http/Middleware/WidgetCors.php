@@ -27,11 +27,7 @@ class WidgetCors
         $response->headers->set('Access-Control-Allow-Credentials', 'true');
         $response->headers->set('Access-Control-Max-Age', '3600');
 
-        // Разрешить встраивание в iframe
-        // Удаляем X-Frame-Options для разрешения встраивания
-        $response->headers->remove('X-Frame-Options');
-        // Используем Content-Security-Policy для разрешения встраивания на любых доменах
-        $response->headers->set('Content-Security-Policy', "frame-ancestors *;");
+        // Заголовки для iframe больше не нужны, так как контент загружается напрямую
 
         // Дополнительные заголовки безопасности для виджета
         $response->headers->set('X-Content-Type-Options', 'nosniff');

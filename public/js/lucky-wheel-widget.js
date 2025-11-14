@@ -30,7 +30,6 @@
             width: '600px',
             height: '700px',
             guestId: null,
-            iframe: null,
             modal: null,
             floatingIcon: null,
             isModalOpen: false,
@@ -125,9 +124,6 @@
             };
 
             initWidget();
-
-            // Обработка сообщений от iframe
-            window.addEventListener('message', this.handleMessage.bind(this), false);
         },
 
         /**
@@ -373,13 +369,8 @@
                         width: 100%;
                         height: 100%;
                         min-height: 600px;
-                        display: table;
-                    }
-                    #lucky-wheel-modal iframe {
-                        width: 100%;
-                        height: 100%;
-                        border: none;
-                        display: block;
+                        overflow-y: auto;
+                        overflow-x: hidden;
                     }
                     @keyframes lucky-wheel-fadeIn {
                         from {
@@ -488,34 +479,21 @@
                 return;
             }
 
-            // Создаем iframe, если его еще нет
             const content = document.getElementById('lucky-wheel-modal-content');
-            if (!this.config.iframe || !content.contains(this.config.iframe)) {
-                const embedUrl = this.config.apiUrl.replace('/api/widget', '/widget/embed');
-                const iframe = document.createElement('iframe');
-                iframe.id = 'lucky-wheel-iframe';
-                iframe.src = `${embedUrl}/${this.config.slug}?guest_id=${this.config.guestId}`;
-                iframe.style.width = '100%';
-                iframe.style.heigth = '100%';
-                //iframe.style.minHeight = '760px';
-                iframe.style.border = 'none';
-                iframe.allow = 'payment';
-                iframe.setAttribute('scrolling', 'no');
-                iframe.setAttribute('frameborder', '0');
-
-                // Очищаем контент и добавляем iframe
-                content.innerHTML = '';
-                content.appendChild(iframe);
-
-                this.config.iframe = iframe;
-
-                // Обработка загрузки iframe
-                iframe.onload = () => {
+            
+            // Загружаем контент колеса
+            this.loadWheelContent(content)
+                .then(() => {
                     if (this.config.callbacks.onLoad) {
                         this.config.callbacks.onLoad();
                     }
-                };
-            }
+                })
+                .catch((error) => {
+                    console.error('LuckyWheel: Failed to load wheel content', error);
+                    if (this.config.callbacks.onError) {
+                        this.config.callbacks.onError(error);
+                    }
+                });
 
             // Показываем модальное окно
             this.config.modal.classList.add('open');
@@ -527,6 +505,185 @@
         },
 
         /**
+         * Загрузить контент колеса
+         */
+        loadWheelContent: function (container) {
+            return new Promise((resolve, reject) => {
+                const embedUrl = this.config.apiUrl.replace('/api/widget', '/widget/embed');
+                const url = `${embedUrl}/${this.config.slug}?guest_id=${this.config.guestId}`;
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        // Очищаем контейнер
+                        container.innerHTML = '';
+
+                        // Создаем временный контейнер для парсинга HTML
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = html;
+
+                        // Извлекаем контент из div.lucky-wheel-content или body
+                        let wheelContent = tempDiv.querySelector('.lucky-wheel-content');
+                        if (!wheelContent) {
+                            wheelContent = tempDiv;
+                        }
+
+                        // Клонируем и добавляем контент
+                        const contentClone = wheelContent.cloneNode(true);
+                        container.appendChild(contentClone);
+
+                        // Выполняем скрипты из загруженного контента
+                        const scripts = Array.from(contentClone.querySelectorAll('script'));
+                        const scriptPromises = [];
+                        
+                        scripts.forEach((oldScript, index) => {
+                            // Удаляем старый скрипт
+                            oldScript.remove();
+                            
+                            if (oldScript.src) {
+                                // Для внешних скриптов - проверяем, не загружен ли уже
+                                const existingScript = document.querySelector(`script[src="${oldScript.src}"]`);
+                                if (!existingScript) {
+                                    const newScript = document.createElement('script');
+                                    newScript.src = oldScript.src;
+                                    newScript.async = oldScript.async || false;
+                                    newScript.defer = oldScript.defer || false;
+                                    
+                                    const scriptPromise = new Promise((resolveScript) => {
+                                        newScript.onload = resolveScript;
+                                        newScript.onerror = resolveScript; // Продолжаем даже при ошибке
+                                    });
+                                    
+                                    container.appendChild(newScript);
+                                    scriptPromises.push(scriptPromise);
+                                }
+                            } else {
+                                // Для inline скриптов - заменяем const/let на var, чтобы избежать ошибок повторного объявления
+                                const scriptContent = oldScript.textContent;
+                                if (scriptContent.trim()) {
+                                    try {
+                                        // Заменяем const и let на var для глобальных объявлений
+                                        // Это позволяет переопределять переменные без ошибок
+                                        let processedScript = scriptContent;
+                                        
+                                        // Заменяем const на var (только для объявлений в начале строки или после точки с запятой)
+                                        processedScript = processedScript.replace(/\bconst\s+(\w+)\s*=/g, 'var $1 =');
+                                        
+                                        // Заменяем let на var (только для объявлений в начале строки или после точки с запятой)
+                                        processedScript = processedScript.replace(/\blet\s+(\w+)\s*=/g, 'var $1 =');
+                                        
+                                        // Заменяем DOMContentLoaded на немедленный вызов
+                                        // Вариант 1: простая замена
+                                        processedScript = processedScript.replace(
+                                            /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*async\s+function\s*\(\)\s*\{/g,
+                                            '(async function() {'
+                                        );
+                                        // Вариант 2: если DOMContentLoaded уже произошел, вызываем функцию сразу
+                                        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                                            processedScript = processedScript.replace(
+                                                /document\.addEventListener\s*\(\s*['"]DOMContentLoaded['"]\s*,\s*function\s*\(\)\s*\{/g,
+                                                '(function() {'
+                                            );
+                                        }
+                                        
+                                        const scriptElement = document.createElement('script');
+                                        scriptElement.textContent = processedScript;
+                                        container.appendChild(scriptElement);
+                                        // Удаляем после выполнения
+                                        setTimeout(() => {
+                                            if (scriptElement.parentNode) {
+                                                scriptElement.remove();
+                                            }
+                                        }, 0);
+                                    } catch (e) {
+                                        console.warn('LuckyWheel: Failed to process script', e);
+                                    }
+                                }
+                            }
+                        });
+
+                        // Ждем загрузки внешних скриптов и выполнения inline скриптов
+                        Promise.all(scriptPromises).then(() => {
+                            // Даем время на выполнение всех скриптов
+                            setTimeout(() => {
+                                // Инициализируем колесо вручную, если DOMContentLoaded уже произошел
+                                if (typeof createOrGetGuest === 'function' && typeof loadWheelData === 'function') {
+                                    // Вызываем инициализацию
+                                    (async function() {
+                                        try {
+                                            // Устанавливаем GUEST_ID из конфига виджета
+                                            if (this.config.guestId && typeof window !== 'undefined') {
+                                                window.GUEST_ID = this.config.guestId.toString();
+                                            }
+                                            
+                                            // Проверяем guest_id из URL или используем из конфига
+                                            let guestId = new URLSearchParams(window.location.search).get('guest_id');
+                                            if (!guestId && this.config.guestId) {
+                                                guestId = this.config.guestId.toString();
+                                                // Устанавливаем в window для использования в скриптах
+                                                if (typeof window !== 'undefined') {
+                                                    window.GUEST_ID = guestId;
+                                                }
+                                            }
+                                            
+                                            if (!guestId && typeof createOrGetGuest === 'function') {
+                                                guestId = await createOrGetGuest();
+                                                if (guestId && typeof window !== 'undefined') {
+                                                    window.GUEST_ID = guestId;
+                                                }
+                                            }
+                                            
+                                            if (guestId) {
+                                                // Применяем маску для телефона, если есть
+                                                const phoneInput = container.querySelector('#winNotificationPhone');
+                                                if (phoneInput && typeof applyPhoneMask === 'function') {
+                                                    applyPhoneMask(phoneInput);
+                                                }
+                                                
+                                                // Проверяем выигрыш сегодня
+                                                if (typeof checkTodayWin === 'function') {
+                                                    checkTodayWin();
+                                                }
+                                                
+                                                // Загружаем данные колеса
+                                                if (typeof loadWheelData === 'function') {
+                                                    loadWheelData();
+                                                }
+                                            }
+                                        } catch (e) {
+                                            console.error('LuckyWheel: Initialization error', e);
+                                        }
+                                    }.bind(this))();
+                                } else if (typeof loadWheelData === 'function') {
+                                    // Если функции инициализации нет, просто вызываем loadWheelData
+                                    loadWheelData();
+                                }
+                                resolve();
+                            }, 200);
+                        }).catch(() => {
+                            // Продолжаем даже при ошибках
+                            setTimeout(() => {
+                                if (typeof loadWheelData === 'function') {
+                                    loadWheelData();
+                                }
+                                resolve();
+                            }, 200);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('LuckyWheel: Error loading wheel content', error);
+                        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Ошибка загрузки колеса</div>';
+                        reject(error);
+                    });
+            });
+        },
+
+        /**
          * Закрыть модальное окно
          */
         closeModal: function () {
@@ -535,46 +692,14 @@
                 this.config.isModalOpen = false;
                 document.body.style.overflow = ''; // Восстанавливаем скролл
 
+                // Очищаем контент при закрытии
+                const content = document.getElementById('lucky-wheel-modal-content');
+                if (content) {
+                    content.innerHTML = '';
+                }
+
                 // Сохраняем состояние закрытия в localStorage
                 localStorage.setItem('lucky_wheel_modal_open', 'false');
-            }
-        },
-
-
-        /**
-         * Обработка сообщений от iframe
-         */
-        handleMessage: function (event) {
-            // Проверка источника (опционально, для безопасности)
-            // if (event.origin !== this.config.apiUrl.replace('/api/widget', '')) {
-            //     return;
-            // }
-
-            const data = event.data;
-
-            if (!data || data.type !== 'lucky-wheel') {
-                return;
-            }
-
-            switch (data.action) {
-                case 'spin':
-                    this.handleSpin(data.data);
-                    break;
-                case 'win':
-                    this.handleWin(data.data);
-                    // Закрываем модальное окно после выигрыша (опционально)
-                    // Можно раскомментировать, если нужно автоматически закрывать
-                    // setTimeout(() => this.closeModal(), 3000);
-                    break;
-                case 'claim-prize':
-                    this.handleClaimPrize(data.data);
-                    break;
-                case 'error':
-                    this.handleError(data.data);
-                    break;
-                case 'ready':
-                    // Виджет готов
-                    break;
             }
         },
 
@@ -617,23 +742,10 @@
         },
 
         /**
-         * Отправить сообщение в iframe
-         */
-        sendMessage: function (action, data) {
-            if (this.config.iframe && this.config.iframe.contentWindow) {
-                this.config.iframe.contentWindow.postMessage({
-                    type: 'lucky-wheel',
-                    action: action,
-                    data: data,
-                }, '*');
-            }
-        },
-
-        /**
          * Выполнить вращение (можно вызвать извне)
          */
         spin: function () {
-            this.sendMessage('spin', {});
+            // Реализация вращения без iframe
         },
 
         /**
@@ -653,11 +765,6 @@
                 this.config.modal.parentNode.removeChild(this.config.modal);
             }
 
-            // Удаляем iframe
-            if (this.config.iframe && this.config.iframe.parentNode) {
-                this.config.iframe.parentNode.removeChild(this.config.iframe);
-            }
-
             // Удаляем стили
             const iconStyles = document.getElementById('lucky-wheel-icon-styles');
             if (iconStyles) {
@@ -668,12 +775,10 @@
                 modalStyles.remove();
             }
 
-            this.config.iframe = null;
             this.config.modal = null;
             this.config.floatingIcon = null;
             this.config.isModalOpen = false;
             document.body.style.overflow = '';
-            window.removeEventListener('message', this.handleMessage.bind(this));
         }
     };
 

@@ -44,6 +44,15 @@ class WidgetController extends Controller
             abort(404, 'Wheel has expired');
         }
 
+        // Проверяем, нужен ли только контент (без HTML структуры)
+        $contentOnly = request()->query('content_only', false);
+
+//        if ($contentOnly) {
+//            return view('widget.wheel-content', compact('wheel'));
+//        }
+//
+//        return view('widget.wheel', compact('wheel'));
+
         return view('widget.wheel', compact('wheel'));
     }
 

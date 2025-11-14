@@ -1,23 +1,19 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $wheel->name ?? 'Колесо Фортуны' }}</title>
+<div class="lucky-wheel-content">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /** {*/
+        /*    margin: 0;*/
+        /*    padding: 0;*/
+        /*    box-sizing: border-box;*/
+        /*}*/
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
+        /*html, body {*/
+        /*    width: 100%;*/
+        /*    height: 100%;*/
+        /*    overflow: hidden;*/
+        /*}*/
 
-        body {
+        .lucky-wheel-content {
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
@@ -26,9 +22,11 @@
             /*justify-content: flex-start;*/
             align-items: center;
             padding: 10px;
+            width: 100%;
+            height: 100%;
         }
 
-        .container {
+        .lucky-wheel-container {
             background: white;
             border-radius: 20px;
             padding: 30px 20px;
@@ -39,13 +37,13 @@
             max-height: 100%;
         }
 
-        h1 {
+        .lucky-wheel-conteiner h1 {
             color: #333;
             margin-bottom: 20px;
             font-size: 1.8em;
         }
 
-        .description {
+        .lucky-wheel-conteiner .description {
             color: #666;
             margin-bottom: 35px;
             font-size: 14px;
@@ -125,7 +123,7 @@
         }
 
         @media (max-width: 768px) {
-            body{
+            .lucky-wheel-content{
                 justify-content: flex-start;
             }
             .won-prize-block {
@@ -253,7 +251,7 @@
 
         /* Всплывающее уведомление о выигрыше */
         .win-notification {
-            position: fixed;
+            position: absolute;
             bottom: -200px;
             left: 50%;
             transform: translateX(-50%);
@@ -355,8 +353,8 @@
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -365,10 +363,12 @@
             font-size: 18px;
             line-height: 1;
             transition: all 0.3s ease;
+            padding: 0;
         }
 
-        .win-notification-close:hover {
+       .win-notification-close:hover {
             background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
         }
 
         .win-notification-form {
@@ -508,11 +508,11 @@
         }
 
         @media (max-width: 480px) {
-            .container {
+            .lucky-wheel-conteiner {
                 padding: 20px 15px;
             }
 
-            h1 {
+            .lucky-wheel-conteiner h1 {
                 font-size: 1.5em;
             }
 
@@ -539,9 +539,9 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="container">
+
+
+    <div class="lucky-wheel-container">
         <h1>🎡 {{ $wheel->name ?? 'Колесо Фортуны' }}</h1>
         @if($wheel->description)
         <div class="description">{{ $wheel->description }}</div>
@@ -627,7 +627,7 @@
         </div>
     </div>
 
-    <script>
+ <script>
         // Конфигурация
         const API_URL = '{{ url("/api/widget") }}';
         const WHEEL_SLUG = '{{ $wheel->slug }}';
@@ -2262,6 +2262,5 @@
             }
         });
     </script>
-</body>
-</html>
 
+</div>
