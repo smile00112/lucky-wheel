@@ -147,3 +147,6 @@ class SpinsByDayChart extends ChartWidget
     }
 }
 
+
+
+

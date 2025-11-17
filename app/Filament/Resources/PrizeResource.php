@@ -12,6 +12,7 @@ use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 
 class PrizeResource extends Resource
@@ -47,6 +48,20 @@ class PrizeResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ]
         )
+            ->filters([
+                Filter::make('spins_date')
+                    ->form([
+                        \Filament\Forms\Components\DatePicker::make('spins_created_from')
+                            ->label('Дата начала'),
+                        \Filament\Forms\Components\DatePicker::make('spins_created_until')
+                            ->label('Дата окончания'),
+                    ])
+                    ->query(function ($query, array $data) {
+                        // Фильтр применяется к запросу призов, но не влияет напрямую на вычисляемые поля
+                        // Реальная фильтрация будет в getStateUsing колонок
+                        return $query;
+                    }),
+            ])
             ->actions([
                 EditAction::make()->iconButton(),
                 DeleteAction::make()->iconButton(),

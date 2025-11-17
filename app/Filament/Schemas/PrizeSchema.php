@@ -203,10 +203,62 @@ class PrizeSchema
                 ->sortable(),
             Tables\Columns\TextColumn::make('wins')
                 ->label(__('filament.prize.quantity_wins'))
-                ->numeric(),
+                ->numeric()
+                ->getStateUsing(function ($record, $livewire) {
+                    $user = auth()->user();
+                    $query = $record->spins();
+
+                    // Фильтрация по ролям (как в виджетах)
+                    if ($user && $user->isManager()) {
+                        $query->whereHas('wheel', function ($q) use ($user) {
+                            $q->where('user_id', $user->id);
+                        });
+                    }
+
+                    // Фильтрация по датам из фильтра таблицы
+                    $filters = $livewire->tableFilters ?? [];
+                    $dateFilter = $filters['spins_date'] ?? null;
+
+                    if ($dateFilter) {
+                        if (isset($dateFilter['spins_created_from'])) {
+                            $query->whereDate('created_at', '>=', $dateFilter['spins_created_from']);
+                        }
+                        if (isset($dateFilter['spins_created_until'])) {
+                            $query->whereDate('created_at', '<=', $dateFilter['spins_created_until']);
+                        }
+                    }
+
+                    return $query->count();
+                }),
             Tables\Columns\TextColumn::make('used')
                 ->label(__('filament.prize.quantity_used'))
-                ->numeric(),
+                ->numeric()
+                ->getStateUsing(function ($record, $livewire) {
+                    $user = auth()->user();
+                    $query = $record->spins()->where('status', 'claimed');
+
+                    // Фильтрация по ролям (как в виджетах)
+                    if ($user && $user->isManager()) {
+                        $query->whereHas('wheel', function ($q) use ($user) {
+                            $q->where('user_id', $user->id);
+                        });
+                    }
+
+                    // Фильтрация по датам из фильтра таблицы
+                    $filters = $livewire->tableFilters ?? [];
+                    $dateFilter = $filters['spins_date'] ?? null;
+
+                    if ($dateFilter) {
+                        if (isset($dateFilter['spins_created_from'])) {
+                            $query->whereDate('created_at', '>=', $dateFilter['spins_created_from']);
+                        }
+                        if (isset($dateFilter['spins_created_until'])) {
+                            $query->whereDate('created_at', '<=', $dateFilter['spins_created_until']);
+                        }
+                    }
+
+                    return $query->count();
+                }),
             Tables\Columns\TextColumn::make('quantity_limit')
                 ->label(__('filament.prize.quantity_limit'))
                 ->numeric()
