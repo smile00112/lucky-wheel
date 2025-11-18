@@ -6,6 +6,7 @@ use App\Filament\Resources\PrizeResource\Pages;
 use App\Filament\Schemas\PrizeSchema;
 use App\Models\Prize;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -14,6 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 
 class PrizeResource extends Resource
 {
@@ -36,6 +38,64 @@ class PrizeResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $headerActions = [
+            Action::make('filter_today')
+                ->label('Сегодня')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'spins_date' => [
+                            'spins_created_from' => Carbon::today()->format('Y-m-d'),
+                            'spins_created_until' => Carbon::today()->format('Y-m-d'),
+                        ],
+                    ]);
+                }),
+
+            Action::make('filter_yesterday')
+                ->label('Вчера')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'spins_date' => [
+                            'spins_created_from' => Carbon::yesterday()->format('Y-m-d'),
+                            'spins_created_until' => Carbon::yesterday()->format('Y-m-d'),
+                        ],
+                    ]);
+                }),
+
+            Action::make('filter_week')
+                ->label('За неделю')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'spins_date' => [
+                            'spins_created_from' => Carbon::now()->subWeek()->startOfDay()->format('Y-m-d'),
+                            'spins_created_until' => Carbon::now()->format('Y-m-d'),
+                        ],
+                    ]);
+                }),
+
+            Action::make('filter_month')
+                ->label('За месяц')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'spins_date' => [
+                            'spins_created_from' => Carbon::now()->subMonth()->startOfDay()->format('Y-m-d'),
+                            'spins_created_until' => Carbon::now()->format('Y-m-d'),
+                        ],
+                    ]);
+                }),
+        ];
+
         return PrizeSchema::table(
             $table,
             includeWheelColumn: true,
@@ -62,6 +122,7 @@ class PrizeResource extends Resource
                         return $query;
                     }),
             ])
+            ->headerActions($headerActions)
             ->actions([
                 EditAction::make()->iconButton(),
                 DeleteAction::make()->iconButton(),
