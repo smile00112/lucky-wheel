@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\GuestResource\Pages;
 use App\Models\Guest;
 use App\Models\Wheel;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -15,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 class GuestResource extends Resource
 {
@@ -60,7 +62,67 @@ class GuestResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $headerActions = [
+            Action::make('filter_today')
+                ->label('Сегодня')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => true],
+                        'date_yesterday' =>  ["isActive" => false],
+                        'date_week' => ["isActive" => false],
+                        'date_month' => ["isActive" => false],
+                    ]);
+                }),
+
+            Action::make('filter_yesterday')
+                ->label('Вчера')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => false],
+                        'date_yesterday' => ["isActive" => true],
+                        'date_week' => ["isActive" => false],
+                        'date_month' => ["isActive" => false],
+                    ]);
+                }),
+
+            Action::make('filter_week')
+                ->label('За неделю')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => false],
+                        'date_yesterday' => ["isActive" => false],
+                        'date_week' => ["isActive" => true],
+                        'date_month' => ["isActive" => false],
+                    ]);
+                }),
+
+            Action::make('filter_month')
+                ->label('За месяц')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => false],
+                        'date_yesterday' => ["isActive" => false],
+                        'date_week' => ["isActive" => false],
+                        'date_month' => ["isActive" => true],
+                    ]);
+                }),
+        ];
+
+
         return $table
+
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label(__('filament.guest.id'))
@@ -126,6 +188,39 @@ class GuestResource extends Resource
                     ->label(__('filament.guest.has_name'))
                     ->query(fn ($query) => $query->whereNotNull('name'))
                     ->toggle(),
+
+                Tables\Filters\Filter::make('date_today')
+                    ->label('Сегодня')
+                    ->query(fn (Builder $query): Builder => $query->whereHas('spins', function ($q) {
+                        $q->whereDate('created_at', Carbon::today());
+                    }))
+                    ->toggle()
+                    ->default([]),
+
+                Tables\Filters\Filter::make('date_yesterday')
+                    ->label('Вчера')
+                    ->query(fn (Builder $query): Builder => $query->whereHas('spins', function ($q) {
+                        $q->whereDate('created_at', Carbon::yesterday());
+                    }))
+                    ->toggle()
+                    ->default([]),
+
+                Tables\Filters\Filter::make('date_week')
+                    ->label('За неделю')
+                    ->query(fn (Builder $query): Builder => $query->whereHas('spins', function ($q) {
+                        $q->whereDate('created_at', '>=', Carbon::now()->subWeek()->startOfDay());
+                    }))
+                    ->toggle()
+                    ->default([]),
+
+                Tables\Filters\Filter::make('date_month')
+                    ->label('За месяц')
+                    ->query(fn (Builder $query): Builder => $query->whereHas('spins', function ($q) {
+                        $q->whereDate('created_at', '>=', Carbon::now()->subMonth()->startOfDay());
+                    }))
+                    ->toggle()
+                    ->default([]),
+
                 Tables\Filters\Filter::make('last_spin_date')
                     ->label(__('filament.guest.last_spin_date'))
                     ->form([
@@ -162,6 +257,7 @@ class GuestResource extends Resource
                         );
                     }),
             ])
+            ->headerActions($headerActions)
             ->actions([
                 EditAction::make(),
                 DeleteAction::make(),

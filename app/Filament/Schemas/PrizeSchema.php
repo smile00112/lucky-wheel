@@ -182,18 +182,18 @@ class PrizeSchema
 //                        'points' => 'primary',
 //                        default => 'gray',
 //                    }),
-                Tables\Columns\TextColumn::make('value')
-                    ->label(__('filament.prize.value'))
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('probability')
-                    ->label(__('filament.prize.probability'))
-                    ->numeric(decimalPlaces: 2)
-                    ->suffix('%')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('sort')
-                    ->label(__('filament.prize.sort'))
-                    ->numeric()
-                    ->sortable(),
+//                Tables\Columns\TextColumn::make('value')
+//                    ->label(__('filament.prize.value'))
+//                    ->searchable(),
+//                Tables\Columns\TextColumn::make('probability')
+//                    ->label(__('filament.prize.probability'))
+//                    ->numeric(decimalPlaces: 2)
+//                    ->suffix('%')
+//                    ->sortable(),
+//                Tables\Columns\TextColumn::make('sort')
+//                    ->label(__('filament.prize.sort'))
+//                    ->numeric()
+//                    ->sortable(),
             ]);
         }
 
@@ -260,12 +260,26 @@ class PrizeSchema
 
                     return $query->count();
                 }),
+
             Tables\Columns\TextColumn::make('quantity_limit')
                 ->label(__('filament.prize.quantity_limit'))
                 ->numeric()
                 ->default('-')
                 ->sortable()
                 ->formatStateUsing(fn ($state) => $state ?? __('filament.prize.unlimited')),
+
+            Tables\Columns\TextColumn::make('probability')
+                ->label(__('filament.prize.probability_short'))
+                ->numeric()
+                ->default('-')
+                ->sortable()
+                ->formatStateUsing(function ($state, $record) {
+                    if ($record->wheel && $record->wheel->probability_type === 'weighted') {
+                        return $state;
+                    }
+                    return '-';
+                })
+            ,
         ]);
 
         // Добавляем дополнительные колонки, если они переданы

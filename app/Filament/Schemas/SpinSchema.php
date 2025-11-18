@@ -9,6 +9,8 @@ use Filament\Tables\Table;
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+use Filament\Tables\Enums\FiltersLayout;
 
 class SpinSchema
 {
@@ -247,6 +249,30 @@ class SpinSchema
         }
 
         $filters = array_merge($filters, [
+            Tables\Filters\Filter::make('date_today')
+                ->label('Сегодня')
+                ->query(fn (Builder $query): Builder => $query->whereDate('created_at', Carbon::today()))
+                ->toggle()
+                ->default([]),
+
+            Tables\Filters\Filter::make('date_yesterday')
+                ->label('Вчера')
+                ->query(fn (Builder $query): Builder => $query->whereDate('created_at', Carbon::yesterday()))
+                ->toggle()
+                ->default([]),
+
+            Tables\Filters\Filter::make('date_week')
+                ->label('За неделю')
+                ->query(fn (Builder $query): Builder => $query->whereDate('created_at', '>=', Carbon::now()->subWeek()->startOfDay()))
+                ->toggle()
+                ->default([]),
+
+            Tables\Filters\Filter::make('date_month')
+                ->label('За месяц')
+                ->query(fn (Builder $query): Builder => $query->whereDate('created_at', '>=', Carbon::now()->subMonth()->startOfDay()))
+                ->toggle()
+                ->default([]),
+
             Tables\Filters\Filter::make('created_at')
                 ->form([
                     Forms\Components\DatePicker::make('created_from')
@@ -320,9 +346,69 @@ class SpinSchema
             \Filament\Actions\DeleteAction::make()->iconButton(),
         ];
 
+        $headerActions = [
+            Action::make('filter_today')
+                ->label('Сегодня')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => true],
+                        'date_yesterday' =>  ["isActive" => false],
+                        'date_week' => ["isActive" => false],
+                        'date_month' => ["isActive" => false],
+                    ]);
+                }),
+
+            Action::make('filter_yesterday')
+                ->label('Вчера')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => false],
+                        'date_yesterday' => ["isActive" => true],
+                        'date_week' => ["isActive" => false],
+                        'date_month' => ["isActive" => false],
+                    ]);
+                }),
+
+            Action::make('filter_week')
+                ->label('За неделю')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => false],
+                        'date_yesterday' => ["isActive" => false],
+                        'date_week' => ["isActive" => true],
+                        'date_month' => ["isActive" => false],
+                    ]);
+                }),
+
+            Action::make('filter_month')
+                ->label('За месяц')
+                ->icon(Heroicon::OutlinedCalendar)
+                ->color('gray')
+                ->outlined()
+                ->action(function ($livewire) {
+                    $livewire->tableFilters = array_merge($livewire->tableFilters ?? [], [
+                        'date_today' => ["isActive" => false],
+                        'date_yesterday' => ["isActive" => false],
+                        'date_week' => ["isActive" => false],
+                        'date_month' => ["isActive" => true],
+                    ]);
+                }),
+        ];
+
         return $table
             ->columns($columns)
             ->filters($filters)
+            ->headerActions($headerActions)
+            //->filtersLayout(FiltersLayout::AboveContent)
             ->actions($actions)
             ->defaultSort('created_at', 'desc');
     }
