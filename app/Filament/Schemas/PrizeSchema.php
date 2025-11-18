@@ -82,7 +82,8 @@ class PrizeSchema
                 ->suffix('%')
                 ->helperText(__('filament.prize.probability_hint'))
                 //->required()
-                ->hidden(),
+                ->columnSpanFull()
+                ,
             Forms\Components\FileUpload::make('image')
                 ->label(__('filament.prize.image'))
                 ->image()
