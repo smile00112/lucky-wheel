@@ -639,8 +639,10 @@
             }
         }
     </style>
+</head>
+<body>
 
-
+    <div class="lucky-wheel-content">
     <div class="lucky-wheel-container">
         <h1>🎡 {{ $wheel->name ?? 'Колесо Фортуны' }}</h1>
         @if($wheel->description)
@@ -1144,6 +1146,8 @@
 
         // Показать уведомление о выигрыше
         async function showWinNotification(prize, code, guestHasDataParam = null) {
+            console.log('showWinNotification called with:', { prize, code, guestHasDataParam });
+            
             const notification = document.getElementById('winNotification');
             const message = document.getElementById('winNotificationMessage');
             const codeInput = document.getElementById('winNotificationCode');
@@ -1153,8 +1157,21 @@
             const pdfLink = document.getElementById('winNotificationPdfLink');
 
             if (!prize) {
+                console.warn('showWinNotification: prize is not provided');
                 return;
             }
+
+            if (!notification) {
+                console.error('showWinNotification: winNotification element not found');
+                return;
+            }
+
+            if (!message) {
+                console.error('showWinNotification: winNotificationMessage element not found');
+                return;
+            }
+
+            console.log('showWinNotification: all required elements found');
 
             // Формируем сообщение
             let messageText = `<strong>Вы выиграли: ${prize.name}</strong>`;
@@ -1168,16 +1185,24 @@
             let prizeCode = code;
 
             // Всегда показываем поле с кодом
-            codeContainer.style.display = 'flex';
+            if (codeContainer) {
+                codeContainer.style.display = 'flex';
+            } else {
+                console.warn('showWinNotification: winNotificationCodeContainer element not found');
+            }
 
             // Если кода нет, показываем placeholder и очищаем поле
-            if (!prizeCode || !prizeCode.toString().trim()) {
-                codeInput.placeholder = 'Код не указан';
-                codeInput.value = '';
+            if (codeInput) {
+                if (!prizeCode || !prizeCode.toString().trim()) {
+                    codeInput.placeholder = 'Код не указан';
+                    codeInput.value = '';
+                } else {
+                    // Если код есть, устанавливаем его и убираем placeholder
+                    codeInput.placeholder = '';
+                    codeInput.value = prizeCode.toString().trim();
+                }
             } else {
-                // Если код есть, устанавливаем его и убираем placeholder
-                codeInput.placeholder = '';
-                codeInput.value = prizeCode.toString().trim();
+                console.warn('showWinNotification: winNotificationCode element not found');
             }
 
             // Получаем spin_id из localStorage для PDF ссылки
@@ -1253,12 +1278,20 @@
             // Показываем форму или кнопку в зависимости от наличия данных
             if (guestHasData === true) {
                 // Данные уже заполнены - показываем только кнопку отправки
-                formContainer.style.display = 'none';
-                sendContainer.style.display = 'block';
+                if (formContainer) {
+                    formContainer.style.display = 'none';
+                }
+                if (sendContainer) {
+                    sendContainer.style.display = 'block';
+                }
             } else {
                 // Данные не заполнены - показываем форму
-                formContainer.style.display = 'block';
-                sendContainer.style.display = 'none';
+                if (formContainer) {
+                    formContainer.style.display = 'block';
+                }
+                if (sendContainer) {
+                    sendContainer.style.display = 'none';
+                }
                 // Применяем маску для поля телефона, если форма показывается
                 const phoneInput = document.getElementById('winNotificationPhone');
                 if (phoneInput && !phoneInput.hasAttribute('data-mask-applied')) {
@@ -1267,9 +1300,12 @@
                 }
             }
 
+            // Показываем уведомление
+            console.log('showWinNotification: showing notification');
             notification.style.display = 'block';
             setTimeout(() => {
                 notification.classList.add('show');
+                console.log('showWinNotification: notification shown with class "show"');
             }, 100);
         }
 
@@ -2139,6 +2175,7 @@
 
                 // Показ результата
                 if (data.prize) {
+                    console.log('Spin result - prize won:', data.prize);
                     showResult(data.prize, data.code);
                     notifyParent('win', data.prize);
 
@@ -2150,10 +2187,23 @@
 
                     // Показываем уведомление с задержкой после анимации
                     // Передаем код явно, если он есть
+                    // Увеличиваем задержку, чтобы убедиться, что DOM готов
                     setTimeout(() => {
-                        showWinNotification(data.prize, prizeCode);
-                        // Показываем блок выигранного приза под стрелкой
-                        showWonPrizeBlock(data.prize, prizeCode);
+                        console.log('Calling showWinNotification with:', { prize: data.prize, code: prizeCode });
+                        // Проверяем, что элементы доступны перед вызовом
+                        const notification = document.getElementById('winNotification');
+                        if (notification) {
+                            showWinNotification(data.prize, prizeCode);
+                            // Показываем блок выигранного приза под стрелкой
+                            showWonPrizeBlock(data.prize, prizeCode);
+                        } else {
+                            console.error('winNotification element not found, retrying...');
+                            // Повторная попытка через 100ms
+                            setTimeout(() => {
+                                showWinNotification(data.prize, prizeCode);
+                                showWonPrizeBlock(data.prize, prizeCode);
+                            }, 100);
+                        }
                     }, 500);
 
                     // Блокируем дальнейшие вращения сегодня
