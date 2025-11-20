@@ -26,6 +26,38 @@ class WidgetController extends Controller
     }
 
     /**
+     * Отобразить первое доступное колесо
+     */
+    public function show()
+    {
+        // Получаем первое активное колесо
+        $wheel = Wheel::where('is_active', true)
+            ->with('activePrizes')
+            ->first();
+
+        // Если нет активного колеса, берем первое доступное
+        if (!$wheel) {
+            $wheel = Wheel::with('activePrizes')->first();
+        }
+
+        // Если нет колеса вообще, возвращаем ошибку
+        if (!$wheel) {
+            abort(404, 'No wheel found');
+        }
+
+        // Проверка временных ограничений
+        $now = now();
+        if ($wheel->starts_at && $wheel->starts_at->isFuture()) {
+            abort(404, 'Wheel not available yet');
+        }
+        if ($wheel->ends_at && $wheel->ends_at->isPast()) {
+            abort(404, 'Wheel has expired');
+        }
+
+        return view('widget.wheel', compact('wheel'));
+    }
+
+    /**
      * Отобразить виджет для iframe
      */
     public function embed(string $slug)

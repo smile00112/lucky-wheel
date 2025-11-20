@@ -45,7 +45,7 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.name'))
                     ->required()
                     ->maxLength(255)
-                    ->copyable()
+                    //->copyable()
                 ,
                     //->live(onBlur: true)
                     //->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
@@ -137,6 +137,21 @@ class WheelResource extends Resource
 
                         $component->state($code);
                     }),
+                Forms\Components\TextInput::make('public_url')
+                    ->label(__('filament.wheel.public_url'))
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record !== null)
+                    ->afterStateHydrated(function ($component, $state, $record) {
+                        if (!$record) {
+                            return;
+                        }
+                        $url = route('widget.embed.web', $record->slug);
+                        $component->state($url);
+                    })
+                    ->copyable()
+                    ->helperText(fn ($record) => $record ? __('filament.wheel.public_url_hint') : null),
             ]);
     }
 
@@ -190,6 +205,16 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.spins_count'))
                     ->counts('spins')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('slug')
+                    ->label(__('filament.wheel.public_url'))
+                    ->formatStateUsing(fn ($record) => route('widget.embed.web', $record->slug))
+                    ->url(fn ($record) => route('widget.embed.web', $record->slug))
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->copyable()
+                    ->copyMessage(__('filament.wheel.public_url_copied'))
+                    ->limit(30)
+                    ->sortable(false),
                 Tables\Columns\TextColumn::make('starts_at')
                     ->label(__('filament.wheel.starts_at'))
                     ->dateTime()

@@ -1,6 +1,21 @@
-<div class="lucky-wheel-content">
-
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>Колесо Фортуны</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
         /** {*/
         /*    margin: 0;*/
         /*    padding: 0;*/
@@ -18,12 +33,11 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             flex-direction: column;
-            /*justify-content: center;*/
-            /*justify-content: flex-start;*/
             align-items: center;
-            padding: 10px;
             width: 100%;
-            height: 100%;
+            min-height: 100vh;
+            padding: 30px 0px;
+            overflow-x: hidden;
         }
 
         .lucky-wheel-container {
@@ -35,6 +49,8 @@
             max-width: 450px;
             width: 100%;
             max-height: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         .lucky-wheel-container h1 {
@@ -123,9 +139,22 @@
         }
 
         @media (max-width: 768px) {
-            .lucky-wheel-content{
+            .lucky-wheel-content {
                 justify-content: flex-start;
+                padding: 10px 0px;
             }
+
+            .lucky-wheel-container {
+                padding: 20px 15px;
+                max-width: 100%;
+                margin: 0 10px;
+            }
+
+            .wheel-container {
+                max-width: 100%;
+                margin: 0 auto 15px;
+            }
+
             .won-prize-block {
                 top: 15px;
                 padding: 8px 15px;
@@ -138,6 +167,11 @@
 
             .won-prize-name {
                 font-size: 12px;
+            }
+
+            .spin-button {
+                padding: 12px 30px;
+                font-size: 14px;
             }
         }
 
@@ -257,7 +291,7 @@
             transform: translateX(-50%);
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px 30px;
+            padding: 20px 20px;
             border-radius: 15px 15px 0 0;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             z-index: 10000;
@@ -508,11 +542,17 @@
         }
 
         @media (max-width: 480px) {
-            .lucky-wheel-conteiner {
-                padding: 20px 15px;
+            .lucky-wheel-content {
+                padding: 10px 0px;
             }
 
-            .lucky-wheel-conteiner h1 {
+            .lucky-wheel-container {
+                padding: 20px 15px;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .lucky-wheel-container h1 {
                 font-size: 1.5em;
             }
 
@@ -970,10 +1010,18 @@
                         // Сохраняем в localStorage (включая информацию о заполненных данных и spin_id)
                         const prizeCode = data.code || null;
                         const spinId = data.spin_id || null;
+                        const prizeEmailImage = data?.prize?.email_image || null;
+
                         saveWin(data.prize, prizeCode, data.guest_has_data || false, spinId);
 
                         // Показываем уведомление (передаем информацию о заполненных данных)
                         showWinNotification(data.prize, prizeCode, data.guest_has_data);
+
+                        if(prizeEmailImage) {
+                            set_prize_image(prizeEmailImage);
+                        }
+                        show_prize_image();
+
                         // Показываем блок выигранного приза под стрелкой
                         showWonPrizeBlock(data.prize, prizeCode);
                         // Применяем поворот колеса для выигранного приза
@@ -1395,12 +1443,14 @@
                     if(prizeEmailImage)
                         set_prize_image(prizeEmailImage);
 
-
                     // Показываем сообщение об успехе
                     const message = document.getElementById('winNotificationMessage');
                     if (message) {
                         message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Данные сохранены! Приз будет отправлен на указанную почту.</strong>';
                     }
+
+                    //показываем фото qr кода
+                    show_prize_image();
 
                     // Отправляем guest_id в родительское окно, если он есть в ответе
                     if (data.guest_id && typeof data.guest_id === 'number') {
@@ -2228,28 +2278,28 @@
         }
 
         function set_prize_image(prizeEmailImage){
-            // Показываем изображение приза, если оно есть
             const imageContainer = document.getElementById('winNotificationImageContainer');
             const imageElement = document.getElementById('winNotificationImage');
 
             if (prizeEmailImage && imageContainer && imageElement) {
-                // Формируем URL изображения (аналогично email шаблону)
                 let imageUrl = prizeEmailImage;
-                // Проверяем, является ли это полным URL
                 if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
-                    // Если путь начинается с /, используем как есть
                     if (imageUrl.startsWith('/')) {
                         imageUrl = imageUrl;
                     } else {
-                        // Иначе добавляем /storage/
                         imageUrl = `${APP_URL}/storage/${prizeEmailImage}`;
                     }
                 }
 
                 imageElement.src = imageUrl;
                 imageElement.alt = 'Приз';
-                imageContainer.style.display = 'block';
+                //imageContainer.style.display = 'block';
             }
+        }
+
+        function show_prize_image(){
+            const imageContainer = document.getElementById('winNotificationImageContainer');
+            imageContainer.style.display = 'block';
         }
 
         // Обработчик кнопки
@@ -2264,5 +2314,6 @@
             }
         });
     </script>
-
 </div>
+</body>
+</html>

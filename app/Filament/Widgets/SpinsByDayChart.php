@@ -151,3 +151,4 @@ class SpinsByDayChart extends ChartWidget
 
 
 
+
