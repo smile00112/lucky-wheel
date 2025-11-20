@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    
+
     @php
-        $metaDescription = $wheel->description 
-            ? \Illuminate\Support\Str::limit(strip_tags($wheel->description), 160) 
+        $metaDescription = $wheel->description
+            ? \Illuminate\Support\Str::limit(strip_tags($wheel->description), 160)
             : 'Крутите колесо фортуны и выигрывайте призы! Участвуйте в акции и получите шанс выиграть ценные подарки.';
-        $ogDescription = $wheel->description 
-            ? \Illuminate\Support\Str::limit(strip_tags($wheel->description), 200) 
+        $ogDescription = $wheel->description
+            ? \Illuminate\Support\Str::limit(strip_tags($wheel->description), 200)
             : 'Крутите колесо фортуны и выигрывайте призы! Участвуйте в акции и получите шанс выиграть ценные подарки.';
         $pageTitle = ($wheel->name ?? 'Колесо Фортуны') . ' - Крутите колесо и выигрывайте призы!';
         $currentUrl = url()->current();
     @endphp
-    
+
     {{-- SEO Meta Tags --}}
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
     <meta name="keywords" content="колесо фортуны, розыгрыш, призы, акция, выигрыш, лотерея, конкурс">
     <meta name="author" content="LuckyWheel">
     <link rel="canonical" href="{{ $currentUrl }}">
-    
+
     {{-- Open Graph / Facebook --}}
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ $currentUrl }}">
@@ -30,18 +30,18 @@
     <meta property="og:image" content="{{ asset('images/wheel-og-image.jpg') }}">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:site_name" content="Колесо Фортуны">
-    
+
     {{-- Twitter Card --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="{{ $currentUrl }}">
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $ogDescription }}">
     <meta name="twitter:image" content="{{ asset('images/wheel-og-image.jpg') }}">
-    
+
     {{-- Additional Meta Tags --}}
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#667eea">
-    
+
     {{-- JSON-LD Structured Data --}}
     @php
         $jsonLd = [
@@ -1147,7 +1147,7 @@
         // Показать уведомление о выигрыше
         async function showWinNotification(prize, code, guestHasDataParam = null) {
             console.log('showWinNotification called with:', { prize, code, guestHasDataParam });
-            
+
             const notification = document.getElementById('winNotification');
             const message = document.getElementById('winNotificationMessage');
             const codeInput = document.getElementById('winNotificationCode');
@@ -1875,12 +1875,12 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const normalizedPrizes = normalizeProbabilities(prizes);
             const totalAngle = 2 * Math.PI;
+            const equalAngle = totalAngle / prizes.length; // Равномерное распределение
             let currentAngle = -Math.PI / 2 + rotation;
 
-            normalizedPrizes.forEach((prize, index) => {
-                const angle = (prize.probability / 100) * totalAngle;
+            prizes.forEach((prize, index) => {
+                const angle = equalAngle;
 
                 // Рисуем сектор
                 ctx.beginPath();
@@ -2033,14 +2033,15 @@
 
         // Вычислить угол для выбранного приза
         function getPrizeAngle(prizeIndex) {
-            const normalizedPrizes = normalizeProbabilities(prizes);
+            const totalAngle = 2 * Math.PI;
+            const equalAngle = totalAngle / prizes.length;
             let cumulativeAngle = -Math.PI / 2;
 
-            for (let i = 0; i < normalizedPrizes.length; i++) {
+            for (let i = 0; i < prizes.length; i++) {
                 if (i === prizeIndex) {
-                    return cumulativeAngle + (normalizedPrizes[i].probability / 100) * Math.PI;
+                    return cumulativeAngle + equalAngle / 2;
                 }
-                cumulativeAngle += (normalizedPrizes[i].probability / 100) * 2 * Math.PI;
+                cumulativeAngle += equalAngle;
             }
 
             return cumulativeAngle;
@@ -2048,16 +2049,16 @@
 
         // Вычислить угол центра приза (середина сектора)
         function getPrizeCenterAngle(prizeIndex) {
-            const normalizedPrizes = normalizeProbabilities(prizes);
+            const totalAngle = 2 * Math.PI;
+            const equalAngle = totalAngle / prizes.length;
             let cumulativeAngle = -Math.PI / 2;
 
-            for (let i = 0; i < normalizedPrizes.length; i++) {
-                const prizeAngle = (normalizedPrizes[i].probability / 100) * 2 * Math.PI;
+            for (let i = 0; i < prizes.length; i++) {
                 if (i === prizeIndex) {
                     // Возвращаем центр сектора (начало + половина угла)
-                    return cumulativeAngle + prizeAngle / 2;
+                    return cumulativeAngle + equalAngle / 2;
                 }
-                cumulativeAngle += prizeAngle;
+                cumulativeAngle += equalAngle;
             }
 
             return cumulativeAngle;
@@ -2209,6 +2210,7 @@
                     // Блокируем дальнейшие вращения сегодня
                     blockSpinning();
                 } else {
+                    alert('При розыгрыше произошла ошибка! Обратитесть в поддержку сервиса.')
                     showResult(null);
                 }
 
@@ -2234,11 +2236,9 @@
         // Анимация вращения
         function animateSpin(prizeIndex, spinData) {
             return new Promise((resolve) => {
-                const normalizedPrizes = normalizeProbabilities(prizes);
-
                 // Если приз не выигран, останавливаемся в случайном месте
                 let finalAngle = 0;
-                if (prizeIndex >= 0 && prizeIndex < normalizedPrizes.length) {
+                if (prizeIndex >= 0 && prizeIndex < prizes.length) {
                     // Используем центр сектора приза, чтобы стрелка указывала точно на приз
                     finalAngle = getPrizeCenterAngle(prizeIndex);
                     console.log('Animation: prizeIndex=', prizeIndex, 'finalAngle (center)=', finalAngle, 'degrees=', (finalAngle * 180 / Math.PI).toFixed(2));
