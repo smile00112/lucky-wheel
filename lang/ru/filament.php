@@ -23,6 +23,8 @@ return [
         'widget_embed_code' => 'Код для вставки виджета',
         'created_at' => 'Создано',
         'updated_at' => 'Обновлено',
+        'public_url' => 'Ссылка на отдельную страницу с колесом',
+        'public_url_hint' => ''
     ],
     'prize' => [
         'wheel_id' => 'Колесо',
