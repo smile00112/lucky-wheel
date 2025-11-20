@@ -47,12 +47,12 @@
     {
         "@context": "https://schema.org",
         "@type": "Game",
-        "name": "{{ $wheel->name ?? 'Колесо Фортуны' }}",
-        "description": "{{ $wheel->description ? addslashes(strip_tags($wheel->description)) : 'Крутите колесо фортуны и выигрывайте призы!' }}",
-        "url": "{{ url()->current() }}",
+        "name": {!! json_encode($wheel->name ?? 'Колесо Фортуны', JSON_UNESCAPED_UNICODE) !!},
+        "description": {!! json_encode($wheel->description ? strip_tags($wheel->description) : 'Крутите колесо фортуны и выигрывайте призы!', JSON_UNESCAPED_UNICODE) !!},
+        "url": {!! json_encode($currentUrl, JSON_UNESCAPED_UNICODE) !!},
         "gameLocation": {
             "@type": "WebPage",
-            "url": "{{ url()->current() }}"
+            "url": {!! json_encode($currentUrl, JSON_UNESCAPED_UNICODE) !!}
         },
         "offers": {
             "@type": "Offer",
