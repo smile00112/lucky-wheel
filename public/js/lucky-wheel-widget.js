@@ -414,6 +414,7 @@
                         min-height: 600px;
                         overflow-y: auto;
                         overflow-x: hidden;
+                        overflow: hidden;
                     }
                     @keyframes lucky-wheel-fadeIn {
                         from {
@@ -523,7 +524,7 @@
             }
 
             const content = document.getElementById('lucky-wheel-modal-content');
-            
+
             // Загружаем контент колеса
             this.loadWheelContent(content)
                 .then(() => {
@@ -583,11 +584,11 @@
                         // Выполняем скрипты из загруженного контента
                         const scripts = Array.from(contentClone.querySelectorAll('script'));
                         const scriptPromises = [];
-                        
+
                         scripts.forEach((oldScript, index) => {
                             // Удаляем старый скрипт
                             oldScript.remove();
-                            
+
                             if (oldScript.src) {
                                 // Для внешних скриптов - проверяем, не загружен ли уже
                                 const existingScript = document.querySelector(`script[src="${oldScript.src}"]`);
@@ -596,12 +597,12 @@
                                     newScript.src = oldScript.src;
                                     newScript.async = oldScript.async || false;
                                     newScript.defer = oldScript.defer || false;
-                                    
+
                                     const scriptPromise = new Promise((resolveScript) => {
                                         newScript.onload = resolveScript;
                                         newScript.onerror = resolveScript; // Продолжаем даже при ошибке
                                     });
-                                    
+
                                     container.appendChild(newScript);
                                     scriptPromises.push(scriptPromise);
                                 }
@@ -613,13 +614,13 @@
                                         // Заменяем const и let на var для глобальных объявлений
                                         // Это позволяет переопределять переменные без ошибок
                                         let processedScript = scriptContent;
-                                        
+
                                         // Заменяем const на var (только для объявлений в начале строки или после точки с запятой)
                                         processedScript = processedScript.replace(/\bconst\s+(\w+)\s*=/g, 'var $1 =');
-                                        
+
                                         // Заменяем let на var (только для объявлений в начале строки или после точки с запятой)
                                         processedScript = processedScript.replace(/\blet\s+(\w+)\s*=/g, 'var $1 =');
-                                        
+
                                         // Заменяем DOMContentLoaded на немедленный вызов
                                         // Вариант 1: простая замена
                                         processedScript = processedScript.replace(
@@ -633,7 +634,7 @@
                                                 '(function() {'
                                             );
                                         }
-                                        
+
                                         const scriptElement = document.createElement('script');
                                         scriptElement.textContent = processedScript;
                                         container.appendChild(scriptElement);
@@ -663,7 +664,7 @@
                                             if (this.config.guestId && typeof window !== 'undefined') {
                                                 window.GUEST_ID = this.config.guestId.toString();
                                             }
-                                            
+
                                             // Проверяем guest_id из URL или используем из конфига
                                             let guestId = new URLSearchParams(window.location.search).get('guest_id');
                                             if (!guestId && this.config.guestId) {
@@ -673,26 +674,26 @@
                                                     window.GUEST_ID = guestId;
                                                 }
                                             }
-                                            
+
                                             if (!guestId && typeof createOrGetGuest === 'function') {
                                                 guestId = await createOrGetGuest();
                                                 if (guestId && typeof window !== 'undefined') {
                                                     window.GUEST_ID = guestId;
                                                 }
                                             }
-                                            
+
                                             if (guestId) {
                                                 // Применяем маску для телефона, если есть
                                                 const phoneInput = container.querySelector('#winNotificationPhone');
                                                 if (phoneInput && typeof applyPhoneMask === 'function') {
                                                     applyPhoneMask(phoneInput);
                                                 }
-                                                
+
                                                 // Проверяем выигрыш сегодня
                                                 if (typeof checkTodayWin === 'function') {
                                                     checkTodayWin();
                                                 }
-                                                
+
                                                 // Загружаем данные колеса
                                                 if (typeof loadWheelData === 'function') {
                                                     loadWheelData();

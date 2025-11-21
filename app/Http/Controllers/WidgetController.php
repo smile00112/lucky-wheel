@@ -85,7 +85,7 @@ class WidgetController extends Controller
 //
 //        return view('widget.wheel', compact('wheel'));
 
-        return view('widget.wheel', compact('wheel'));
+        return view('widget.wheel-page', compact('wheel'));
     }
 
     /**
@@ -1040,6 +1040,7 @@ class WidgetController extends Controller
             'prize' => $spin->prize,
             'code' => $spin->code,
             'wheel' => $spin->wheel,
+            'guest' => $spin->guest,
             'date' => $spin->created_at->format('d.m.Y H:i'),
             'emailImageUrl' => $emailImageUrl,
         ])->render();

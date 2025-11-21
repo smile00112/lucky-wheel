@@ -1,649 +1,558 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-
-    @php
-        $metaDescription = $wheel->description
-            ? \Illuminate\Support\Str::limit(strip_tags($wheel->description), 160)
-            : 'Крутите колесо фортуны и выигрывайте призы! Участвуйте в акции и получите шанс выиграть ценные подарки.';
-        $ogDescription = $wheel->description
-            ? \Illuminate\Support\Str::limit(strip_tags($wheel->description), 200)
-            : 'Крутите колесо фортуны и выигрывайте призы! Участвуйте в акции и получите шанс выиграть ценные подарки.';
-        $pageTitle = ($wheel->name ?? 'Колесо Фортуны') . ' - Крутите колесо и выигрывайте призы!';
-        $currentUrl = url()->current();
-    @endphp
-
-    {{-- SEO Meta Tags --}}
-    <title>{{ $pageTitle }}</title>
-    <meta name="description" content="{{ $metaDescription }}">
-    <meta name="keywords" content="колесо фортуны, розыгрыш, призы, акция, выигрыш, лотерея, конкурс">
-    <meta name="author" content="LuckyWheel">
-    <link rel="canonical" href="{{ $currentUrl }}">
-
-    {{-- Open Graph / Facebook --}}
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ $currentUrl }}">
-    <meta property="og:title" content="{{ $pageTitle }}">
-    <meta property="og:description" content="{{ $ogDescription }}">
-    <meta property="og:image" content="{{ asset('images/wheel-og-image.jpg') }}">
-    <meta property="og:locale" content="ru_RU">
-    <meta property="og:site_name" content="Колесо Фортуны">
-
-    {{-- Twitter Card --}}
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="{{ $currentUrl }}">
-    <meta name="twitter:title" content="{{ $pageTitle }}">
-    <meta name="twitter:description" content="{{ $ogDescription }}">
-    <meta name="twitter:image" content="{{ asset('images/wheel-og-image.jpg') }}">
-
-    {{-- Additional Meta Tags --}}
-    <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#667eea">
-
-    {{-- JSON-LD Structured Data --}}
-    @php
-        $jsonLd = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Game',
-            'name' => $wheel->name ?? 'Колесо Фортуны',
-            'description' => $wheel->description ? strip_tags($wheel->description) : 'Крутите колесо фортуны и выигрывайте призы!',
-            'url' => $currentUrl,
-            'gameLocation' => [
-                '@type' => 'WebPage',
-                'url' => $currentUrl
-            ],
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => '0',
-                'priceCurrency' => 'RUB'
-            ]
-        ];
-    @endphp
-    <script type="application/ld+json">
-    {!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
-    </script>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
-        }
-        /** {*/
-        /*    margin: 0;*/
-        /*    padding: 0;*/
-        /*    box-sizing: border-box;*/
-        /*}*/
-
-        /*html, body {*/
-        /*    width: 100%;*/
-        /*    height: 100%;*/
-        /*    overflow: hidden;*/
-        /*}*/
-
-        .lucky-wheel-content {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            min-height: 100vh;
-            padding: 30px 0px;
-            overflow-x: hidden;
-        }
-
-        .lucky-wheel-container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 450px;
-            width: 100%;
-            max-height: 100%;
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
-
-        .lucky-wheel-container h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-
-        .lucky-wheel-container .description {
-            color: #666;
-            margin-bottom: 35px;
-            font-size: 14px;
-        }
-
-        .wheel-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto 20px;
-            aspect-ratio: 1;
-        }
-
-        .wheel {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            border: 10px solid #fff;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .pointer {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 30px solid #ff4444;
-            z-index: 10;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-        }
-
-        .won-prize-block {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            z-index: 11;
-            text-align: center;
-            min-width: 150px;
-            animation: slideDownPrize 0.5s ease;
-        }
-
-        .won-prize-label {
-            font-size: 11px;
-            opacity: 0.9;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .won-prize-name {
-            font-size: 14px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        @keyframes slideDownPrize {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
+    <div class="lucky-wheel-container">
+        <style>
             .lucky-wheel-content {
-                justify-content: flex-start;
-                padding: 10px 0px;
+                font-family: 'Arial', sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+                min-height: 100vh;
+                padding: 30px 0px;
+                overflow-x: hidden;
             }
 
             .lucky-wheel-container {
-                padding: 20px 15px;
-                max-width: 100%;
-                margin: 0 10px;
-            }
-
-            .wheel-container {
-                max-width: 100%;
-                margin: 0 auto 15px;
-            }
-
-            .won-prize-block {
-                top: 15px;
-                padding: 8px 15px;
-                min-width: 120px;
-            }
-
-            .won-prize-label {
-                font-size: 10px;
-            }
-
-            .won-prize-name {
-                font-size: 12px;
-            }
-
-            .spin-button {
-                padding: 12px 30px;
-                font-size: 14px;
-            }
-        }
-
-        .spin-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .spin-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .spin-button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        .spin-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .result.show {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .result h2 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.3em;
-        }
-
-        .result p {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .error {
-            margin-top: 20px;
-            padding: 15px;
-            background: #fee;
-            border: 1px solid #fcc;
-            border-radius: 10px;
-            color: #c33;
-            display: none;
-            position: relative;
-            z-index: 1;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        /* Ошибка поверх секции выигрыша */
-        .error.show.error-overlay {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10001; /* Выше секции выигрыша (z-index: 10000) */
-            max-width: 500px;
-            width: calc(100% - 40px);
-            margin-top: 0;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            animation: slideDownError 0.3s ease forwards;
-        }
-
-        @keyframes slideDownError {
-            from {
-                top: -100px;
-                opacity: 0;
-            }
-            to {
-                top: 20px;
-                opacity: 1;
-            }
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .spins-info {
-            margin-top: 10px;
-            font-size: 12px;
-            color: #999;
-        }
-
-        /* Всплывающее уведомление о выигрыше */
-        .win-notification {
-            position: absolute;
-            bottom: -200px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 20px;
-            border-radius: 15px 15px 0 0;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            z-index: 10000;
-            max-width: 451px;
-            width: calc(100% - 40px);
-            min-height: 44%;
-            transition: bottom 0.5s ease;
-            animation: slideUpNotification 0.5s ease forwards;
-        }
-
-        .win-notification.show {
-            bottom: 20px;
-        }
-
-        .win-notification h3 {
-            margin: 0 0 15px 0;
-            font-size: 1.3em;
-            text-align: center;
-        }
-
-        .win-notification-message {
-            margin-bottom: 15px;
-            text-align: center;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .win-notification-code {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            flex-direction: row;
-        }
-
-        .win-notification-code input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            color: #333;
-            font-family: 'Courier New', monospace;
-        }
-
-        .win-notification-code input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-        }
-
-        .win-notification-code input::placeholder {
-            color: #999;
-            font-weight: normal;
-        }
-
-        .win-notification-code button {
-            background: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .win-notification-code button:hover {
-            background: #f0f0f0;
-            transform: scale(1.05);
-        }
-
-        .win-notification-code button:active {
-            transform: scale(0.95);
-        }
-
-        .win-notification-code button svg {
-            width: 20px;
-            height: 20px;
-            fill: #667eea;
-        }
-
-        .win-notification-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            line-height: 1;
-            transition: all 0.3s ease;
-            padding: 0;
-        }
-
-       .win-notification-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        .win-notification-form {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .win-notification-form-text {
-            margin-bottom: 15px;
-            font-size: 14px;
-            text-align: center;
-            opacity: 0.9;
-        }
-
-        .win-notification-form-group {
-            margin-bottom: 12px;
-        }
-
-        .win-notification-form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .win-notification-form-group input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: white;
-        }
-
-        .win-notification-form-group input::placeholder {
-            color: #999;
-        }
-
-        .win-notification-submit-btn {
-            width: 100%;
-            padding: 14px;
-            background: white;
-            color: #667eea;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .win-notification-submit-btn:hover:not(:disabled) {
-            background: #f0f0f0;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .win-notification-submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .win-notification-send-container {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .win-notification-image-container {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-            width: 100%;
-        }
-
-        .win-notification-image-container img {
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            max-height: 300px;
-            max-width: 290px;
-        }
-
-        .win-notification-pdf-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 15px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .win-notification-pdf-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-2px);
-        }
-
-        .win-notification-pdf-link svg {
-            width: 18px;
-            height: 18px;
-            fill: white;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideUpNotification {
-            from {
-                bottom: -200px;
-                opacity: 0;
-            }
-            to {
-                bottom: 0px;
-                opacity: 1;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .lucky-wheel-content {
-                padding: 10px 0px;
-            }
-
-            .lucky-wheel-container {
-                padding: 20px 15px;
-                max-width: 100%;
-                margin: 0;
+                background: white;
+                border-radius: 20px;
+                padding: 30px 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                text-align: center;
+                max-width: 450px;
+                width: 100%;
+                max-height: 100%;
+                margin: 0 auto;
+                box-sizing: border-box;
             }
 
             .lucky-wheel-container h1 {
-                font-size: 1.5em;
+                color: #333;
+                margin-bottom: 20px;
+                font-size: 1.8em;
+            }
+
+            .lucky-wheel-container .description {
+                color: #666;
+                margin-bottom: 35px;
+                font-size: 14px;
             }
 
             .wheel-container {
+                position: relative;
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto 20px;
+                aspect-ratio: 1;
+            }
+
+            .wheel {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                position: relative;
+                overflow: hidden;
+                border: 10px solid #fff;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .pointer {
+                position: absolute;
+                top: -15px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 15px solid transparent;
+                border-right: 15px solid transparent;
+                border-top: 30px solid #ff4444;
+                z-index: 10;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            }
+
+            .won-prize-block {
+                position: absolute;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                z-index: 11;
+                text-align: center;
+                min-width: 150px;
+                animation: slideDownPrize 0.5s ease;
+            }
+
+            .won-prize-label {
+                font-size: 11px;
+                opacity: 0.9;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .won-prize-name {
+                font-size: 14px;
+                font-weight: bold;
+                white-space: nowrap;
+            }
+
+            @keyframes slideDownPrize {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .lucky-wheel-content {
+                    justify-content: flex-start;
+                    padding: 10px 0px;
+                }
+
+                .lucky-wheel-container {
+                    padding: 20px 15px;
+                    max-width: 100%;
+                    margin: 0 10px;
+                }
+
+                .wheel-container {
+                    max-width: 100%;
+                    margin: 0 auto 15px;
+                }
+
+                .won-prize-block {
+                    top: 15px;
+                    padding: 8px 15px;
+                    min-width: 120px;
+                }
+
+                .won-prize-label {
+                    font-size: 10px;
+                }
+
+                .won-prize-name {
+                    font-size: 12px;
+                }
+
+                .spin-button {
+                    padding: 12px 30px;
+                    font-size: 14px;
+                }
+            }
+
+            .spin-button {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 50px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                width: 100%;
                 max-width: 300px;
             }
 
+            .spin-button:hover:not(:disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            }
+
+            .spin-button:active:not(:disabled) {
+                transform: translateY(0);
+            }
+
+            .spin-button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .result {
+                margin-top: 20px;
+                padding: 20px;
+                background: #f0f0f0;
+                border-radius: 10px;
+                display: none;
+            }
+
+            .result.show {
+                display: block;
+                animation: fadeIn 0.5s ease;
+            }
+
+            .result h2 {
+                color: #667eea;
+                margin-bottom: 10px;
+                font-size: 1.3em;
+            }
+
+            .result p {
+                color: #666;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .error {
+                margin-top: 20px;
+                padding: 15px;
+                background: #fee;
+                border: 1px solid #fcc;
+                border-radius: 10px;
+                color: #c33;
+                display: none;
+                position: relative;
+                z-index: 1;
+            }
+
+            .error.show {
+                display: block;
+            }
+
+            /* Ошибка поверх секции выигрыша */
+            .error.show.error-overlay {
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10001; /* Выше секции выигрыша (z-index: 10000) */
+                max-width: 500px;
+                width: calc(100% - 40px);
+                margin-top: 0;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                animation: slideDownError 0.3s ease forwards;
+            }
+
+            @keyframes slideDownError {
+                from {
+                    top: -100px;
+                    opacity: 0;
+                }
+                to {
+                    top: 20px;
+                    opacity: 1;
+                }
+            }
+
+            .loading {
+                text-align: center;
+                padding: 20px;
+                color: #666;
+            }
+
+            .spins-info {
+                margin-top: 10px;
+                font-size: 12px;
+                color: #999;
+            }
+
+            /* Всплывающее уведомление о выигрыше */
             .win-notification {
-                width: calc(100% - 20px);
-                padding: 15px 20px;
-                bottom: 10px;
+                position: absolute;
+                bottom: -200px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px 20px;
+                border-radius: 15px 15px 0 0;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                z-index: 10000;
+                max-width: 451px;
+                width: calc(100% - 40px);
+                min-height: 44%;
+                transition: bottom 0.5s ease;
+                animation: slideUpNotification 0.5s ease forwards;
+            }
+
+            .win-notification.show {
+                bottom: 20px;
             }
 
             .win-notification h3 {
-                font-size: 1.1em;
+                margin: 0 0 15px 0;
+                font-size: 1.3em;
+                text-align: center;
+            }
+
+            .win-notification-message {
+                margin-bottom: 15px;
+                text-align: center;
+                font-size: 14px;
+                line-height: 1.5;
             }
 
             .win-notification-code {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 15px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 8px;
+                padding: 12px;
                 flex-direction: row;
             }
 
-            .win-notification-code button {
-                /*width: 100%;*/
+            .win-notification-code input {
+                flex: 1;
+                background: rgba(255, 255, 255, 0.9);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                padding: 12px;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: bold;
+                text-align: center;
+                color: #333;
+                font-family: 'Courier New', monospace;
             }
-        }
-    </style>
-</head>
-<body>
 
-    <div class="lucky-wheel-content">
-    <div class="lucky-wheel-container">
+            .win-notification-code input:focus {
+                outline: none;
+                border-color: rgba(255, 255, 255, 0.6);
+            }
+
+            .win-notification-code input::placeholder {
+                color: #999;
+                font-weight: normal;
+            }
+
+            .win-notification-code button {
+                background: white;
+                border: none;
+                padding: 10px 15px;
+                border-radius: 6px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+            }
+
+            .win-notification-code button:hover {
+                background: #f0f0f0;
+                transform: scale(1.05);
+            }
+
+            .win-notification-code button:active {
+                transform: scale(0.95);
+            }
+
+            .win-notification-code button svg {
+                width: 20px;
+                height: 20px;
+                fill: #667eea;
+            }
+
+            .win-notification-close {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                line-height: 1;
+                transition: all 0.3s ease;
+                padding: 0;
+            }
+
+            .win-notification-close:hover {
+                background: rgba(255, 255, 255, 0.3);
+                transform: rotate(90deg);
+            }
+
+            .win-notification-form {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.3);
+            }
+
+            .win-notification-form-text {
+                margin-bottom: 15px;
+                font-size: 14px;
+                text-align: center;
+                opacity: 0.9;
+            }
+
+            .win-notification-form-group {
+                margin-bottom: 12px;
+            }
+
+            .win-notification-form-group input {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.9);
+                color: #333;
+                font-size: 14px;
+                transition: all 0.3s ease;
+            }
+
+            .win-notification-form-group input:focus {
+                outline: none;
+                border-color: rgba(255, 255, 255, 0.6);
+                background: white;
+            }
+
+            .win-notification-form-group input::placeholder {
+                color: #999;
+            }
+
+            .win-notification-submit-btn {
+                width: 100%;
+                padding: 14px;
+                background: white;
+                color: #667eea;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 10px;
+            }
+
+            .win-notification-submit-btn:hover:not(:disabled) {
+                background: #f0f0f0;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .win-notification-submit-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            .win-notification-send-container {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.3);
+            }
+
+            .win-notification-image-container {
+                display: none;
+                text-align: center;
+                margin: 20px 0;
+                width: 100%;
+            }
+
+            .win-notification-image-container img {
+                height: auto;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                max-height: 300px;
+                max-width: 290px;
+            }
+
+            .win-notification-pdf-link {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-top: 15px;
+                padding: 12px 20px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                border-radius: 8px;
+                color: white;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .win-notification-pdf-link:hover {
+                background: rgba(255, 255, 255, 0.3);
+                border-color: rgba(255, 255, 255, 0.5);
+                transform: translateY(-2px);
+            }
+
+            .win-notification-pdf-link svg {
+                width: 18px;
+                height: 18px;
+                fill: white;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes slideUpNotification {
+                from {
+                    bottom: -200px;
+                    opacity: 0;
+                }
+                to {
+                    bottom: 0px;
+                    opacity: 1;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .lucky-wheel-content {
+                    padding: 10px 0px;
+                }
+
+                .lucky-wheel-container {
+                    padding: 20px 15px;
+                    max-width: 100%;
+                    margin: 0;
+                }
+
+                .lucky-wheel-container h1 {
+                    font-size: 1.5em;
+                }
+
+                .wheel-container {
+                    max-width: 300px;
+                }
+
+                .win-notification {
+                    width: calc(100% - 20px);
+                    padding: 15px 20px;
+                    bottom: 10px;
+                }
+
+                .win-notification h3 {
+                    font-size: 1.1em;
+                }
+
+                .win-notification-code {
+                    flex-direction: row;
+                }
+
+                .win-notification-code button {
+                    /*width: 100%;*/
+                }
+            }
+        </style>
+
+
         <h1>🎡 {{ $wheel->name ?? 'Колесо Фортуны' }}</h1>
         @if($wheel->description)
         <div class="description">{{ $wheel->description }}</div>
@@ -1235,12 +1144,12 @@
             }
 
             // Устанавливаем ссылку на PDF, если есть spin_id
-            if (spinId && pdfLink) {
-                pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
-                pdfLink.style.display = 'flex';
-            } else if (pdfLink) {
-                pdfLink.style.display = 'none';
-            }
+            // if (spinId && pdfLink) {
+            //     pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
+            //     pdfLink.style.display = 'flex';
+            // } else if (pdfLink) {
+            //     pdfLink.style.display = 'none';
+            // }
 
             // Проверяем, заполнены ли данные гостя
             let guestHasData = guestHasDataParam; // Используем переданный параметр, если есть
@@ -1280,6 +1189,12 @@
                 // Данные уже заполнены - показываем только кнопку отправки
                 if (formContainer) {
                     formContainer.style.display = 'none';
+
+                    //показываем кнопку скачавания pdf
+                    if (spinId && pdfLink) {
+                        pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
+                        pdfLink.style.display = 'flex';
+                    }
                 }
                 if (sendContainer) {
                     sendContainer.style.display = 'block';
@@ -1291,6 +1206,12 @@
                 }
                 if (sendContainer) {
                     sendContainer.style.display = 'none';
+
+                    //показываем кнопку скачавания pdf
+                    if (spinId && pdfLink) {
+                        pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
+                        pdfLink.style.display = 'flex';
+                    }
                 }
                 // Применяем маску для поля телефона, если форма показывается
                 const phoneInput = document.getElementById('winNotificationPhone');
@@ -2424,6 +2345,3 @@
             }
         });
     </script>
-</div>
-</body>
-</html>

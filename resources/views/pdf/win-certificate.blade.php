@@ -44,15 +44,32 @@
             background: #f5f7fa;
             border-radius: 10px;
         }
+        .guest-name {
+            font-size: 22px;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: 600;
+        }
         .prize-code {
-            font-size: 24px;
-            color: #333;
+            font-size: 28px;
+            color: #667eea;
             margin: 30px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 3px solid #667eea;
+            border-radius: 12px;
             font-family: 'DejaVu Sans', Arial, sans-serif;
-            letter-spacing: 3px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .prize-code-label {
+            font-size: 14px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 600;
         }
         .prize-description {
             font-size: 16px;
@@ -92,6 +109,10 @@
         <div class="certificate-header">ПОЗДРАВЛЯЕМ!</div>
         <div class="certificate-title">Сертификат выигрыша</div>
 
+        @if(isset($guest) && $guest && $guest->name)
+        <div class="guest-name">Уважаемый {{ $guest->name }}!</div>
+        @endif
+
         <div class="wheel-name">{{ $wheel->name ?? 'Колесо Фортуны' }}</div>
 
         <div class="prize-name">Название приза: {{ $prize->name }}</div>
@@ -105,7 +126,10 @@
         @endif
 
         @if($code)
-        <div class="prize-code">Код для получения приза: {{ $code }}</div>
+        <div style="margin: 30px 0;">
+            <div class="prize-code-label">Идентификационный номер</div>
+            <div class="prize-code">{{ $code }}</div>
+        </div>
         @endif
 
         @if($prize->text_for_winner)
