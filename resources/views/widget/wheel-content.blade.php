@@ -1,3 +1,4 @@
+<!--OLD-->
 <div class="lucky-wheel-content">
     <style>
         .lucky-wheel-content {
