@@ -106,7 +106,7 @@ class TelegramWebhookController extends Controller
         }
 
         // Обработка команды /history или текста "Посмотреть историю"
-        if ($text === '/history' || $text === 'Посмотреть историю' || $text === '📜 Посмотреть историю') {
+        if ($text === '/history' || $text === 'Посмотреть историю' || $text === '📜 Посмотреть историю' || $text === '📜 История призов') {
             $this->handleHistoryCommand($chatId, $message, $integration, $bot);
             return;
         }
@@ -346,6 +346,7 @@ class TelegramWebhookController extends Controller
 
         if ($hasPhone) {
             $buttons[0][] = ['text' => '🎡 Крутить колесо'];
+            $buttons[] = [['text' => '📜 История призов']];
         }
 
         return new ReplyKeyboardMarkup($buttons, true, true);
