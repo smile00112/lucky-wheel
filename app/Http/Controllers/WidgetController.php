@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PrizeWon;
 use App\Models\Wheel;
 use App\Models\Guest;
 use App\Models\GuestIpAddress;
@@ -390,6 +391,11 @@ class WidgetController extends Controller
             }
 
             DB::commit();
+
+            // Отправка события о выигрыше приза
+            if ($prize) {
+                event(new PrizeWon($spin));
+            }
 
             return response()->json([
                 'spin_id' => $spin->id,
