@@ -273,6 +273,7 @@ class GuestResource extends Resource
         return [
             GuestResource\RelationManagers\WinsRelationManager::class,
             GuestResource\RelationManagers\GuestIpAddressesRelationManager::class,
+            GuestResource\RelationManagers\TelegramUserRelationManager::class,
         ];
     }
 

@@ -70,7 +70,6 @@ class PlatformIntegrationResource extends Resource
                     ->helperText('Выберите колесо для интеграции'),
                 Forms\Components\TextInput::make('bot_token')
                     ->label('Токен бота')
-                    ->password()
                     ->maxLength(255)
                     ->helperText('Токен бота от BotFather (для Telegram)'),
                 Forms\Components\TextInput::make('bot_username')

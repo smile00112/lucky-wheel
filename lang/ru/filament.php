@@ -119,6 +119,16 @@ return [
         'created_at' => 'Создано',
         'updated_at' => 'Обновлено',
     ],
+    'telegram_user' => [
+        'telegram_id' => 'Telegram ID',
+        'username' => 'Имя пользователя',
+        'first_name' => 'Имя',
+        'last_name' => 'Фамилия',
+        'phone' => 'Телефон',
+        'metadata' => 'Метаданные',
+        'created_at' => 'Создано',
+        'updated_at' => 'Обновлено',
+    ],
     'setting' => [
         'company_name' => 'Название компании',
         'logo' => 'Логотип',
