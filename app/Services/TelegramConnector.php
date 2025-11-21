@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\PlatformConnector;
 use App\Models\PlatformIntegration;
 use App\Models\Spin;
+use App\Models\TelegramUser;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -50,11 +51,32 @@ class TelegramConnector implements PlatformConnector
 
         $message = $this->formatSpinMessage($spin);
 
+        // Получаем telegramUser для проверки наличия телефона
+        $telegramUser = TelegramUser::findByTelegramId((int)$userId);
+        $hasPhone = $telegramUser && !empty($telegramUser->phone);
+
+        // Формируем постоянную клавиатуру
+        $buttons = [
+            [['text' => '📱 Отправить номер', 'request_contact' => true]]
+        ];
+
+        if ($hasPhone) {
+            $buttons[0][] = ['text' => '🎡 Крутить колесо'];
+            $buttons[] = [['text' => '📜 История призов']];
+        }
+
+        $replyMarkup = [
+            'keyboard' => $buttons,
+            'resize_keyboard' => true,
+            'persistent' => true,
+        ];
+
         try {
             $response = Http::post(self::API_BASE_URL . $integration->bot_token . '/sendMessage', [
                 'chat_id' => $userId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
+                'reply_markup' => $replyMarkup,
             ]);
 
             return $response->successful() && $response->json('ok');
@@ -70,7 +92,7 @@ class TelegramConnector implements PlatformConnector
     public function buildLaunchUrl(PlatformIntegration $integration, string $wheelSlug, array $params = []): string
     {
         $baseUrl = config('app.url');
-        $url = $baseUrl . '/telegram/app?wheel=' . $wheelSlug;
+        $url = $baseUrl . '/telegram/app?wheel=' . $wheelSlug . '&v=' . random_int(1, 100);
 
         if (!empty($params)) {
             $url .= '&' . http_build_query($params);
