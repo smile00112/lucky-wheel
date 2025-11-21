@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Guest extends Model
 {
@@ -42,6 +43,14 @@ class Guest extends Model
     public function ipAddresses(): HasMany
     {
         return $this->hasMany(GuestIpAddress::class);
+    }
+
+    /**
+     * Telegram пользователь
+     */
+    public function telegramUser(): HasOne
+    {
+        return $this->hasOne(TelegramUser::class);
     }
 
     /**

@@ -13,9 +13,11 @@
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "opcodesio/log-viewer": "^3.21",
         "predis/predis": "^3.2",
         "rap2hpoutre/laravel-log-viewer": "^2.5",
-        "spatie/laravel-activitylog": "^4.10"
+        "spatie/laravel-activitylog": "^4.10",
+        "telegram-bot/api": "^2.5"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.16",

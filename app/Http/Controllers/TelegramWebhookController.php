@@ -1,0 +1,409 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Models\PlatformIntegration;
+use App\Services\TelegramConnector;
+use App\Services\UserService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use TelegramBot\Api\BotApi;
+use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
+use TelegramBot\Api\Types\ReplyKeyboardMarkup;
+use TelegramBot\Api\Types\ReplyKeyboardRemove;
+use TelegramBot\Api\Types\BotCommand;
+
+class TelegramWebhookController extends Controller
+{
+    private UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
+    public function handle(PlatformIntegration $integration, Request $request)
+    {
+        if (!$integration || !$integration->is_active || !$integration->bot_token) {
+            Log::warning('Telegram webhook received but integration is not active', [
+                'has_integration' => $integration !== null,
+                'is_active' => $integration?->is_active,
+            ]);
+            return response()->json(['ok' => false], 503);
+        }
+
+        $data = $request->all();
+
+        Log::info('Telegram webhook received', ['data' => $data]);
+
+        if (!isset($data['message']) && !isset($data['callback_query'])) {
+            return response()->json(['ok' => true]);
+        }
+
+        $bot = new BotApi($integration->bot_token);
+        $connector = new TelegramConnector();
+
+        try {
+            if (isset($data['message'])) {
+                $this->handleMessage($data['message'], $integration, $connector, $bot);
+            }
+
+            if (isset($data['callback_query'])) {
+                $this->handleCallbackQuery($data['callback_query'], $integration, $connector, $bot);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error handling Telegram webhook', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    private function handleMessage(
+        array $message,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $chatId = $message['chat']['id'] ?? null;
+        $text = $message['text'] ?? '';
+        $contact = $message['contact'] ?? null;
+
+        if (!$chatId) {
+            return;
+        }
+
+        // Обработка расшаренного контакта
+        if ($contact) {
+            $this->handleContact($message, $integration, $connector, $bot);
+            return;
+        }
+
+        // Обработка команды /start
+        if ($text === '/start') {
+            $this->handleStartCommand($chatId, $integration, $bot);
+            return;
+        }
+
+        // Обработка команды /spin или текста "Крутить колесо"
+        if ($text === '/spin' || $text === 'Крутить колесо' || $text === '🎡 Крутить колесо') {
+            $this->handleSpinCommand($chatId, $integration, $connector, $bot);
+            return;
+        }
+
+        // Обработка команды /history или текста "Посмотреть историю"
+        if ($text === '/history' || $text === 'Посмотреть историю' || $text === '📜 Посмотреть историю') {
+            $this->handleHistoryCommand($chatId, $message, $integration, $bot);
+            return;
+        }
+
+        // Обработка кнопки "Отправить номер"
+        if ($text === 'Отправить номер' || $text === '📱 Отправить номер') {
+            $this->handleRequestContact($chatId, $integration, $bot);
+            return;
+        }
+
+        // Обработка других сообщений
+        $this->sendMessage($bot, $chatId, 'Используйте команду /start для начала работы.');
+    }
+
+    private function handleStartCommand(
+        int|string $chatId,
+        PlatformIntegration $integration,
+        BotApi $bot
+    ): void {
+        // Устанавливаем меню команд
+        $this->setBotCommands($bot);
+
+        $message = '👋 Добро пожаловать! Для продолжения работы поделитесь своим контактом.';
+        
+        $keyboard = new ReplyKeyboardMarkup(
+            [
+                [
+                    ['text' => '📱 Отправить номер', 'request_contact' => true],
+                    ['text' => '🎡 Крутить колесо']
+                ]
+            ],
+            true,
+            true
+        );
+
+        try {
+            $bot->sendMessage($chatId, $message, null, false, null, $keyboard);
+        } catch (\Exception $e) {
+            Log::error('Failed to send start message', [
+                'error' => $e->getMessage(),
+                'chat_id' => $chatId,
+            ]);
+        }
+    }
+
+    private function handleContact(
+        array $message,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $chatId = $message['chat']['id'] ?? null;
+        $contact = $message['contact'] ?? null;
+        $from = $message['from'] ?? null;
+
+        if (!$chatId || !$contact || !$from) {
+            return;
+        }
+
+        $telegramId = $from['id'] ?? null;
+        $phoneNumber = $contact['phone_number'] ?? null;
+
+        if (!$telegramId || !$phoneNumber) {
+            $this->sendMessage($bot, $chatId, '❌ Не удалось получить контакт. Попробуйте еще раз.');
+            return;
+        }
+
+        try {
+            // Проверяем, что контакт принадлежит пользователю
+            $contactUserId = $contact['user_id'] ?? null;
+            if ($contactUserId && (int)$contactUserId !== (int)$telegramId) {
+                $this->sendMessage($bot, $chatId, '❌ Пожалуйста, поделитесь своим контактом.');
+                return;
+            }
+
+            // Обрабатываем контакт через сервис
+            $telegramUser = $this->userService->processTelegramContact($telegramId, [
+                'phone_number' => $phoneNumber,
+                'first_name' => $from['first_name'] ?? null,
+                'last_name' => $from['last_name'] ?? null,
+                'username' => $from['username'] ?? null,
+            ]);
+
+            // Отправляем сообщение об успешной регистрации и показываем постоянную клавиатуру
+            $wheelSlug = $integration->settings['default_wheel_slug'] ?? null;
+
+            if (!$wheelSlug) {
+                $keyboard = $this->getMainKeyboard();
+                $this->sendMessage($bot, $chatId, '✅ Контакт сохранен! Колесо не настроено. Обратитесь к администратору.', $keyboard);
+                return;
+            }
+
+            $keyboard = $this->getMainKeyboard();
+            $this->sendMessage($bot, $chatId, '✅ Контакт сохранен! Теперь вы можете крутить колесо.', $keyboard);
+
+        } catch (\Exception $e) {
+            Log::error('Error processing contact', [
+                'error' => $e->getMessage(),
+                'telegram_id' => $telegramId,
+                'phone' => $phoneNumber,
+            ]);
+
+            $this->sendMessage($bot, $chatId, '❌ Произошла ошибка при обработке контакта. Попробуйте еще раз.');
+        }
+    }
+
+    private function handleSpinCommand(
+        int|string $chatId,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $wheelSlug = $integration->settings['default_wheel_slug'] ?? null;
+
+        if (!$wheelSlug) {
+            $keyboard = $this->getMainKeyboard();
+            $this->sendMessage($bot, $chatId, 'Колесо не настроено. Обратитесь к администратору.', $keyboard);
+            return;
+        }
+
+        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug);
+        $this->sendWebAppButton($bot, $chatId, '🎡 Добро пожаловать! Нажмите кнопку, чтобы крутить колесо.', $webAppUrl);
+    }
+
+    private function handleHistoryCommand(
+        int|string $chatId,
+        array $message,
+        PlatformIntegration $integration,
+        BotApi $bot
+    ): void {
+        $from = $message['from'] ?? null;
+        $telegramId = $from['id'] ?? null;
+
+        if (!$telegramId) {
+            $keyboard = $this->getMainKeyboard();
+            $this->sendMessage($bot, $chatId, '❌ Не удалось определить пользователя.', $keyboard);
+            return;
+        }
+
+        $telegramUser = \App\Models\TelegramUser::findByTelegramId($telegramId);
+
+        if (!$telegramUser || !$telegramUser->guest_id) {
+            $keyboard = $this->getMainKeyboard();
+            $this->sendMessage($bot, $chatId, '❌ Пользователь не найден. Пожалуйста, отправьте контакт через /start.', $keyboard);
+            return;
+        }
+
+        $guest = $telegramUser->guest;
+        $wins = $guest->wins()->with('prize')->orderBy('created_at', 'desc')->get();
+
+        if ($wins->isEmpty()) {
+            $keyboard = $this->getMainKeyboard();
+            $this->sendMessage($bot, $chatId, '📜 У вас пока нет выигрышей.', $keyboard);
+            return;
+        }
+
+        $messageText = "📜 <b>История ваших призов:</b>\n\n";
+        
+        foreach ($wins as $win) {
+            $date = $win->created_at->format('d.m.Y H:i');
+            $prizeName = $win->prize ? $win->prize->name : 'Неизвестный приз';
+            $messageText .= "📅 {$date}\n🎁 {$prizeName}\n\n";
+        }
+
+        $keyboard = $this->getMainKeyboard();
+        $this->sendMessage($bot, $chatId, $messageText, $keyboard);
+    }
+
+    private function handleRequestContact(
+        int|string $chatId,
+        PlatformIntegration $integration,
+        BotApi $bot
+    ): void {
+        $message = 'Пожалуйста, поделитесь своим контактом.';
+        
+        $keyboard = new ReplyKeyboardMarkup(
+            [
+                [
+                    ['text' => '📱 Отправить номер', 'request_contact' => true],
+                    ['text' => '🎡 Крутить колесо']
+                ]
+            ],
+            true,
+            true
+        );
+
+        try {
+            $bot->sendMessage($chatId, $message, null, false, null, $keyboard);
+        } catch (\Exception $e) {
+            Log::error('Failed to send contact request message', [
+                'error' => $e->getMessage(),
+                'chat_id' => $chatId,
+            ]);
+        }
+    }
+
+    private function getMainKeyboard(): ReplyKeyboardMarkup
+    {
+        return new ReplyKeyboardMarkup(
+            [
+                [
+                    ['text' => '📱 Отправить номер', 'request_contact' => true],
+                    ['text' => '🎡 Крутить колесо']
+                ]
+            ],
+            true,
+            true
+        );
+    }
+
+    private function setBotCommands(BotApi $bot): void
+    {
+        try {
+            $commands = [
+                new BotCommand('start', 'Начать работу с ботом'),
+                new BotCommand('spin', 'Крутить колесо'),
+                new BotCommand('history', 'Посмотреть историю призов'),
+            ];
+
+            $bot->setMyCommands($commands);
+        } catch (\Exception $e) {
+            Log::error('Failed to set bot commands', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function handleCallbackQuery(
+        array $callbackQuery,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $chatId = $callbackQuery['message']['chat']['id'] ?? null;
+        $data = $callbackQuery['data'] ?? '';
+        $queryId = $callbackQuery['id'] ?? null;
+
+        if (!$chatId) {
+            return;
+        }
+
+        try {
+            // Отвечаем на callback query
+            if ($queryId) {
+                $bot->answerCallbackQuery($queryId);
+            }
+
+            $wheelSlug = $integration->settings['default_wheel_slug'] ?? null;
+
+            if (!$wheelSlug) {
+                return;
+            }
+
+            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug);
+
+            if ($data === 'spin') {
+                $this->sendWebAppButton($bot, $chatId, '🎡 Крутить колесо!', $webAppUrl);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error handling callback query', [
+                'error' => $e->getMessage(),
+                'callback_query' => $callbackQuery,
+            ]);
+        }
+    }
+
+    private function sendWebAppButton(
+        BotApi $bot,
+        int|string $chatId,
+        string $text,
+        string $url,
+        $replyMarkup = null
+    ): void {
+        try {
+            $inlineKeyboard = new InlineKeyboardMarkup([
+                [
+                    [
+                        'text' => '🎡 Крутить колесо!',
+                        'web_app' => ['url' => $url],
+                    ],
+                ],
+            ]);
+
+            // Отправляем сообщение с inline кнопкой web app
+            // Постоянная клавиатура остается видимой, если она была установлена ранее
+            $bot->sendMessage($chatId, $text, 'HTML', false, null, $inlineKeyboard);
+        } catch (\Exception $e) {
+            Log::error('Failed to send Telegram message with web app button', [
+                'error' => $e->getMessage(),
+                'chat_id' => $chatId,
+            ]);
+        }
+    }
+
+    private function sendMessage(
+        BotApi $bot,
+        int|string $chatId,
+        string $text,
+        $replyMarkup = null
+    ): void {
+        try {
+            $bot->sendMessage($chatId, $text, 'HTML', false, null, $replyMarkup);
+        } catch (\Exception $e) {
+            Log::error('Failed to send Telegram message', [
+                'error' => $e->getMessage(),
+                'chat_id' => $chatId,
+            ]);
+        }
+    }
+}

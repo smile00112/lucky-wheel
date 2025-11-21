@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Wheel extends Model
 {
@@ -69,6 +70,14 @@ class Wheel extends Model
     public function wins(): HasMany
     {
         return $this->hasMany(Spin::class)->whereNotNull('prize_id');
+    }
+
+    /**
+     * Интеграция платформы
+     */
+    public function platformIntegration(): HasOne
+    {
+        return $this->hasOne(PlatformIntegration::class);
     }
 
     /**

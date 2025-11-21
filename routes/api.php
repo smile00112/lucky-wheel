@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WidgetController;
+use App\Http\Controllers\TelegramController;
 
 Route::prefix('widget')->group(function () {
     // OPTIONS для CORS preflight
@@ -43,5 +44,14 @@ Route::prefix('widget')->group(function () {
     // API для скачивания PDF сертификата выигрыша
     Route::get('/spin/{spinId}/download-pdf', [WidgetController::class, 'downloadWinPdf'])
         ->name('widget.spin.download-pdf');
+});
+
+// Telegram API
+Route::prefix('telegram')->group(function () {
+    Route::post('/auth', [TelegramController::class, 'auth'])
+        ->name('telegram.auth');
+    
+    Route::post('/spin', [TelegramController::class, 'spin'])
+        ->name('telegram.spin');
 });
 
