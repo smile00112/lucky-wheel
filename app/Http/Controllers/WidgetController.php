@@ -90,6 +90,28 @@ class WidgetController extends Controller
     }
 
     /**
+     * Отобразить виджет для iframe (новая версия v2)
+     */
+    public function embedV2(string $slug)
+    {
+        $wheel = Wheel::where('slug', $slug)
+            ->where('is_active', true)
+            ->with('activePrizes')
+            ->firstOrFail();
+
+        // Проверка временных ограничений
+        $now = now();
+        if ($wheel->starts_at && $wheel->starts_at->isFuture()) {
+            abort(404, 'Wheel not available yet');
+        }
+        if ($wheel->ends_at && $wheel->ends_at->isPast()) {
+            abort(404, 'Wheel has expired');
+        }
+
+        return view('widget.wheel-v2', compact('wheel'));
+    }
+
+    /**
      * Получить данные колеса (JSON API)
      */
     public function getWheel(string $slug)

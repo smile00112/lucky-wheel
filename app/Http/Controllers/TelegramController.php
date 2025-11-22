@@ -16,7 +16,7 @@ class TelegramController extends Controller
     public function webapp(Request $request)
     {
         $wheelSlug = $request->query('wheel');
-        
+
         if (!$wheelSlug) {
             abort(404, 'Wheel not specified');
         }
@@ -52,7 +52,7 @@ class TelegramController extends Controller
         }
 
         $integration = PlatformIntegration::getByPlatform(PlatformIntegration::PLATFORM_TELEGRAM);
-        
+
         if (!$integration || !$integration->is_active || !$integration->bot_token) {
             return response()->json([
                 'error' => 'Telegram integration not configured',
@@ -60,7 +60,7 @@ class TelegramController extends Controller
         }
 
         $connector = new TelegramConnector();
-        
+
         // Валидация initData
         if (!$connector->validateInitData($request->initData, $integration->bot_token)) {
             return response()->json([
@@ -69,7 +69,7 @@ class TelegramController extends Controller
         }
 
         $authData = $connector->validateAuthData(['initData' => $request->initData]);
-        
+
         if (!$authData) {
             return response()->json([
                 'error' => 'Failed to parse auth data',
@@ -78,7 +78,7 @@ class TelegramController extends Controller
 
         // Найти или создать Telegram пользователя
         $telegramUser = TelegramUser::findByTelegramId($authData['telegram_id']);
-        
+
         if (!$telegramUser) {
             // Создаем гостя
             $guest = Guest::create([
@@ -169,17 +169,18 @@ class TelegramController extends Controller
         // Если вращение успешно, отправляем результат в Telegram
         if ($spinResponse->getStatusCode() === 200) {
             $spinData = json_decode($spinResponse->getContent(), true);
-            
+
             if (isset($spinData['spin_id'])) {
                 $integration = PlatformIntegration::getByPlatform(PlatformIntegration::PLATFORM_TELEGRAM);
-                
+
                 if ($integration && $integration->is_active) {
                     $spin = \App\Models\Spin::find($spinData['spin_id']);
-                    
-                    if ($spin) {
-                        $connector = new TelegramConnector();
-                        $connector->sendSpinResult($integration, $spin, (string)$request->telegram_id);
-                    }
+
+                    //используется слушатель события вместо прямой отправки
+//                    if ($spin) {
+//                        $connector = new TelegramConnector();
+//                        $connector->sendSpinResult($integration, $spin, (string)$request->telegram_id);
+//                    }
                 }
             }
         }
