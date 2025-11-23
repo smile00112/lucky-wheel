@@ -6,23 +6,32 @@ namespace App\Http\Controllers;
 
 use App\Models\PlatformIntegration;
 use App\Models\TelegramUser;
+use App\Services\TelegramBotService;
 use App\Services\TelegramConnector;
+use App\Services\TelegramKeyboardService;
+use App\Services\TelegramMessageService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use TelegramBot\Api\BotApi;
-use TelegramBot\Api\Types\Inline\InlineKeyboardMarkup;
-use TelegramBot\Api\Types\ReplyKeyboardMarkup;
-use TelegramBot\Api\Types\ReplyKeyboardRemove;
-use TelegramBot\Api\Types\BotCommand;
 
 class TelegramWebhookController extends Controller
 {
     private UserService $userService;
+    private TelegramBotService $botService;
+    private TelegramKeyboardService $keyboardService;
+    private TelegramMessageService $messageService;
 
-    public function __construct(UserService $userService)
-    {
+    public function __construct(
+        UserService $userService,
+        TelegramBotService $botService,
+        TelegramKeyboardService $keyboardService,
+        TelegramMessageService $messageService
+    ) {
         $this->userService = $userService;
+        $this->botService = $botService;
+        $this->keyboardService = $keyboardService;
+        $this->messageService = $messageService;
     }
 
     public function handle(PlatformIntegration $integration, Request $request)
@@ -43,11 +52,11 @@ class TelegramWebhookController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        $bot = new BotApi($integration->bot_token);
+        $bot = $this->botService->createBot($integration);
         $connector = new TelegramConnector();
 
         // Устанавливаем меню команд при каждом запросе (если еще не установлено)
-        $this->setBotCommands($bot);
+        $this->botService->setBotCommands($bot);
 
         try {
             if (isset($data['message'])) {
@@ -118,8 +127,8 @@ class TelegramWebhookController extends Controller
         }
 
         // Обработка других сообщений
-        $keyboard = $this->getKeyboardForUser($telegramId);
-        $this->sendMessage($bot, $chatId, 'Используйте команду /start для начала работы.', $keyboard);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+        $this->botService->sendMessage($bot, $chatId, $this->messageService->getUseStartCommand($integration), $keyboard);
     }
 
     private function handleStartCommand(
@@ -129,20 +138,12 @@ class TelegramWebhookController extends Controller
         ?int $telegramId = null
     ): void {
         // Устанавливаем меню команд
-        $this->setBotCommands($bot);
+        $this->botService->setBotCommands($bot);
 
-        $message = '👋 Добро пожаловать! Для продолжения работы поделитесь своим контактом.';
+        $message = $this->messageService->getWelcomeMessage($integration);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
 
-        $keyboard = $this->getKeyboardForUser($telegramId);
-
-        try {
-            $bot->sendMessage($chatId, $message, null, false, null, $keyboard);
-        } catch (\Exception $e) {
-            Log::error('Failed to send start message', [
-                'error' => $e->getMessage(),
-                'chat_id' => $chatId,
-            ]);
-        }
+        $this->botService->sendMessage($bot, $chatId, $message, $keyboard);
     }
 
     private function handleContact(
@@ -166,12 +167,13 @@ class TelegramWebhookController extends Controller
         $telegramId = $from['id'] ?? null;
         $phoneNumber = $contact['phone_number'] ?? null;
 
-        if (!$telegramId || !$phoneNumber) {
+        $wheel = $integration->wheel;
 
+        if (!$telegramId || !$phoneNumber) {
             Log::error('handleContact error 1', [
                 'message' => $message
             ]);
-            $this->sendMessage($bot, $chatId, '❌ Не удалось получить контакт. Попробуйте еще раз.');
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactError($integration));
             return;
         }
 
@@ -184,7 +186,7 @@ class TelegramWebhookController extends Controller
             ]);
 
             if ($contactUserId && (int)$contactUserId !== (int)$telegramId) {
-                $this->sendMessage($bot, $chatId, '❌ Пожалуйста, поделитесь своим контактом.');
+                $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactNotOwned($integration));
 
                 Log::error('handleContact error 2', [
                     'contactUserId' => $contactUserId,
@@ -203,23 +205,22 @@ class TelegramWebhookController extends Controller
             ]);
 
             // Отправляем сообщение об успешной регистрации и показываем постоянную клавиатуру
-            $wheelSlug = $integration->wheel->slug ?? null;
+            $wheelSlug = $wheel->slug ?? null;
             Log::info('handleContact 3', [
-                'wheel' => $integration->wheel,
-                'wheelSlug' => $integration->wheel->slug,
+                'wheel' => $wheel,
+                'wheelSlug' => $wheelSlug,
             ]);
             if (!$wheelSlug) {
-
                 Log::error('handleContact error 3', [
                     'wheelSlug' => $wheelSlug,
                 ]);
-                $keyboard = $this->getKeyboardForUser($telegramId);
-                $this->sendMessage($bot, $chatId, '✅ Контакт сохранен! Колесо не настроено. Обратитесь к администратору.', $keyboard);
+                $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactSavedButWheelNotConfigured($integration), $keyboard);
                 return;
             }
 
-            $keyboard = $this->getKeyboardForUser($telegramId);
-            $this->sendMessage($bot, $chatId, '✅ Контакт сохранен! Теперь вы можете крутить колесо.', $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactSavedMessage($integration), $keyboard);
 
         } catch (\Exception $e) {
             Log::error('Error processing contact', [
@@ -228,7 +229,7 @@ class TelegramWebhookController extends Controller
                 'phone' => $phoneNumber,
             ]);
 
-            $this->sendMessage($bot, $chatId, '❌ Произошла ошибка при обработке контакта. Попробуйте еще раз.');
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactProcessingError($integration));
         }
     }
 
@@ -244,17 +245,19 @@ class TelegramWebhookController extends Controller
             $telegramId = is_int($chatId) && $chatId > 0 ? $chatId : null;
         }
 
-        if (!$telegramId || !$this->hasPhoneNumber($telegramId)) {
-            $keyboard = $this->getKeyboardForUser($telegramId);
-            $this->sendMessage($bot, $chatId, '❌ Для использования колеса необходимо поделиться контактом. Используйте команду /start.', $keyboard);
+        $wheel = $integration->wheel;
+
+        if (!$telegramId || !$this->keyboardService->hasPhoneNumber($telegramId)) {
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
             return;
         }
 
-        $wheelSlug = $integration->wheel->slug ?? null;
+        $wheelSlug = $wheel->slug ?? null;
 
         if (!$wheelSlug) {
-            $keyboard = $this->getKeyboardForUser($telegramId);
-            $this->sendMessage($bot, $chatId, 'Колесо не настроено. Обратитесь к администратору.', $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getWheelNotConfigured($integration), $keyboard);
             return;
         }
 
@@ -264,7 +267,7 @@ class TelegramWebhookController extends Controller
             'webAppUrl' => $webAppUrl,
         ]);
 
-        $this->sendWebAppButton($bot, $chatId, '🎡 Добро пожаловать! Нажмите кнопку, чтобы крутить колесо.', $webAppUrl);
+        $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinWelcomeMessage($integration), $webAppUrl, $this->keyboardService, $integration);
     }
 
     private function handleHistoryCommand(
@@ -277,16 +280,16 @@ class TelegramWebhookController extends Controller
         $telegramId = $from['id'] ?? null;
 
         if (!$telegramId) {
-            $keyboard = $this->getMainKeyboard();
-            $this->sendMessage($bot, $chatId, '❌ Не удалось определить пользователя.', $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser(null, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getUserNotDetermined($integration), $keyboard);
             return;
         }
 
         $telegramUser = TelegramUser::findByTelegramId($telegramId);
 
         if (!$telegramUser || !$telegramUser->guest_id) {
-            $keyboard = $this->getKeyboardForUser($telegramId);
-            $this->sendMessage($bot, $chatId, '❌ Пользователь не найден. Пожалуйста, отправьте контакт через /start.', $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getUserNotFound($integration), $keyboard);
             return;
         }
 
@@ -294,21 +297,14 @@ class TelegramWebhookController extends Controller
         $wins = $guest->wins()->with('prize')->orderBy('created_at', 'desc')->get();
 
         if ($wins->isEmpty()) {
-            $keyboard = $this->getKeyboardForUser($telegramId);
-            $this->sendMessage($bot, $chatId, '📜 У вас пока нет выигрышей.', $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getHistoryEmpty($integration), $keyboard);
             return;
         }
 
-        $messageText = "📜 <b>История ваших призов:</b>\n\n";
-
-        foreach ($wins as $win) {
-            $date = $win->created_at->format('d.m.Y H:i');
-            $prizeName = $win->prize ? $win->prize->name : 'Неизвестный приз';
-            $messageText .= "📅 {$date}\n🎁 {$prizeName}\n\n";
-        }
-
-        $keyboard = $this->getKeyboardForUser($telegramId);
-        $this->sendMessage($bot, $chatId, $messageText, $keyboard);
+        $messageText = $this->messageService->getHistoryMessage($wins, $integration);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+        $this->botService->sendMessage($bot, $chatId, $messageText, $keyboard);
     }
 
     private function handleRequestContact(
@@ -317,62 +313,10 @@ class TelegramWebhookController extends Controller
         BotApi $bot,
         ?int $telegramId = null
     ): void {
-        $message = 'Пожалуйста, поделитесь своим контактом.';
+        $message = $this->messageService->getRequestContactMessage($integration);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
 
-        $keyboard = $this->getKeyboardForUser($telegramId);
-
-        try {
-            $bot->sendMessage($chatId, $message, null, false, null, $keyboard);
-        } catch (\Exception $e) {
-            Log::error('Failed to send contact request message', [
-                'error' => $e->getMessage(),
-                'chat_id' => $chatId,
-            ]);
-        }
-    }
-
-    private function getKeyboardForUser(?int $telegramId): ReplyKeyboardMarkup
-    {
-        $hasPhone = $telegramId ? $this->hasPhoneNumber($telegramId) : false;
-
-        Log::info('getKeyboardForUser', [
-            'telegramId' => $telegramId,
-            'hasPhone' => $hasPhone,
-        ]);
-
-        $buttons = [
-            [['text' => '📱 Отправить номер', 'request_contact' => true]]
-        ];
-
-        if ($hasPhone) {
-            $buttons[0][] = ['text' => '🎡 Крутить колесо'];
-            $buttons[] = [['text' => '📜 История призов']];
-        }
-
-        return new ReplyKeyboardMarkup($buttons, true, true);
-    }
-
-    private function hasPhoneNumber(int $telegramId): bool
-    {
-        $telegramUser = TelegramUser::findByTelegramId($telegramId);
-        return $telegramUser && !empty($telegramUser->phone);
-    }
-
-    private function setBotCommands(BotApi $bot): void
-    {
-        try {
-            $commands = [
-                new BotCommand('start', 'Начать работу с ботом'),
-                new BotCommand('spin', 'Крутить колесо'),
-                new BotCommand('history', 'Посмотреть историю призов'),
-            ];
-
-            $bot->setMyCommands($commands);
-        } catch (\Exception $e) {
-            Log::error('Failed to set bot commands', [
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->botService->sendMessage($bot, $chatId, $message, $keyboard);
     }
 
     private function handleCallbackQuery(
@@ -394,27 +338,29 @@ class TelegramWebhookController extends Controller
         try {
             // Отвечаем на callback query
             if ($queryId) {
-                $bot->answerCallbackQuery($queryId);
+                $this->botService->answerCallbackQuery($bot, $queryId);
             }
 
             if ($data === 'spin') {
+                $wheel = $integration->wheel;
+
                 // Проверяем наличие телефона перед показом кнопки
-                if (!$telegramId || !$this->hasPhoneNumber($telegramId)) {
-                    $keyboard = $this->getKeyboardForUser($telegramId);
-                    $this->sendMessage($bot, $chatId, '❌ Для использования колеса необходимо поделиться контактом. Используйте команду /start.', $keyboard);
+                if (!$telegramId || !$this->keyboardService->hasPhoneNumber($telegramId)) {
+                    $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                    $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
                     return;
                 }
 
-                $wheelSlug = $integration->wheel->slug ?? null;
+                $wheelSlug = $wheel->slug ?? null;
 
                 if (!$wheelSlug) {
-                    $keyboard = $this->getKeyboardForUser($telegramId);
-                    $this->sendMessage($bot, $chatId, 'Колесо не настроено. Обратитесь к администратору.', $keyboard);
+                    $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                    $this->botService->sendMessage($bot, $chatId, $this->messageService->getWheelNotConfigured($integration), $keyboard);
                     return;
                 }
 
                 $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug);
-                $this->sendWebAppButton($bot, $chatId, '🎡 Крутить колесо!', $webAppUrl);
+                $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinButtonMessage($integration), $webAppUrl, $this->keyboardService, $integration);
             }
         } catch (\Exception $e) {
             Log::error('Error handling callback query', [
@@ -424,49 +370,4 @@ class TelegramWebhookController extends Controller
         }
     }
 
-    private function sendWebAppButton(
-        BotApi $bot,
-        int|string $chatId,
-        string $text,
-        string $url,
-        $replyMarkup = null
-    ): void {
-        try {
-            $inlineKeyboard = new InlineKeyboardMarkup([
-                [
-                    [
-                        'text' => '🎡 Крутить колесо!',
-                        'web_app' => [
-                            'url' => $url,
-                        ],
-                    ],
-                ],
-            ]);
-
-            // Отправляем сообщение с inline кнопкой
-            // Постоянная клавиатура (replyMarkup) остается видимой автоматически
-            $bot->sendMessage($chatId, $text, 'HTML', false, null, $inlineKeyboard);
-        } catch (\Exception $e) {
-            Log::error('Failed to send Telegram message with web app button', [
-                'error' => $e->getMessage(),
-                'chat_id' => $chatId,
-            ]);
-        }
-    }
-
-    private function sendMessage(
-        BotApi $bot,
-        int|string $chatId,
-        string $text,
-        $replyMarkup = null
-    ): void {
-        try {
-            $bot->sendMessage($chatId, $text, 'HTML', false, null, $replyMarkup);
-        } catch (\Exception $e) {
-            Log::error('Failed to send Telegram message', [
-                'error' => $e->getMessage(),
-                'chat_id' => $chatId,
-            ]);
-        }
-    }
 }

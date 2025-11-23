@@ -236,14 +236,26 @@
                         [
                             '{company_name}',
                             '{prize_name}',
+                            '{prize_description}',
+                            '{prize_text_for_winner}',
+                            '{prize_type}',
+                            '{prize_value}',
                             '{code}',
-                            '{guest_name}'
+                            '{guest_name}',
+                            '{guest_email}',
+                            '{guest_phone}'
                         ],
                         [
                             $settings->company_name ?: 'Колесо фортуны',
-                            $spin->prize->name,
+                            $spin->prize->name ?? '',
+                            $spin->prize->description ?? '',
+                            $spin->prize->text_for_winner ?? '',
+                            $spin->prize->type ?? '',
+                            $spin->prize->value ?? '',
                             $spin->code ?: 'не указан',
-                            $spin->guest->name ?: $spin->guest->email ?: $spin->guest->phone ?: 'Уважаемый гость'
+                            $spin->guest->name ?? '',
+                            $spin->guest->email ?? '',
+                            $spin->guest->phone ?? ''
                         ],
                         $settings->email_template
                     ) !!}

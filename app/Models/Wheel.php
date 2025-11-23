@@ -98,4 +98,5 @@ class Wheel extends Model
 
         return $query->where('user_id', $user->id);
     }
+
 }

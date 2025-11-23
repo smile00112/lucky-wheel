@@ -19,11 +19,13 @@ class PlatformIntegration extends Model
         'webhook_url',
         'is_active',
         'settings',
+        'words_settings',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'settings' => 'array',
+        'words_settings' => 'array',
     ];
 
     public static function getByPlatform(string $platform): ?self
@@ -37,5 +39,35 @@ class PlatformIntegration extends Model
     public function wheel(): BelongsTo
     {
         return $this->belongsTo(Wheel::class);
+    }
+
+    /**
+     * Получить настройки по умолчанию для Telegram
+     */
+    public static function getDefaultTelegramSettings(): array
+    {
+        $locale = app()->getLocale();
+
+        return [
+            'telegram.welcome' => __('telegram.welcome', [], $locale),
+            'telegram.contact_saved' => __('telegram.contact_saved', [], $locale),
+            'telegram.contact_saved_wheel_not_configured' => __('telegram.contact_saved_wheel_not_configured', [], $locale),
+            'telegram.contact_error' => __('telegram.contact_error', [], $locale),
+            'telegram.contact_not_owned' => __('telegram.contact_not_owned', [], $locale),
+            'telegram.contact_processing_error' => __('telegram.contact_processing_error', [], $locale),
+            'telegram.wheel_not_configured' => __('telegram.wheel_not_configured', [], $locale),
+            'telegram.phone_required' => __('telegram.phone_required', [], $locale),
+            'telegram.user_not_found' => __('telegram.user_not_found', [], $locale),
+            'telegram.user_not_determined' => __('telegram.user_not_determined', [], $locale),
+            'telegram.history_empty' => __('telegram.history_empty', [], $locale),
+            'telegram.history_title' => __('telegram.history_title', [], $locale),
+            'telegram.use_start_command' => __('telegram.use_start_command', [], $locale),
+            'telegram.request_contact' => __('telegram.request_contact', [], $locale),
+            'telegram.spin_welcome' => __('telegram.spin_welcome', [], $locale),
+            'telegram.spin_button' => __('telegram.spin_button', [], $locale),
+            'telegram.button_send_phone' => __('telegram.button_send_phone', [], $locale),
+            'telegram.button_spin' => __('telegram.button_spin', [], $locale),
+            'telegram.button_history' => __('telegram.button_history', [], $locale),
+        ];
     }
 }

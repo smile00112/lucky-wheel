@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SettingResource\Pages;
 use App\Models\Setting;
 use Filament\Forms;
+use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -39,18 +40,11 @@ class SettingResource extends Resource
                     ->directory('settings')
                     ->visibility('public')
                     ->columnSpanFull(),
-                Forms\Components\RichEditor::make('email_template')
+                Forms\Components\CodeEditor::make('email_template')
                     ->label(__('filament.setting.email_template'))
                     ->helperText(__('filament.setting.email_template_hint'))
-                    ->columnSpanFull()
-                    ->toolbarButtons([
-                        'bold',
-                        'italic',
-                        'underline',
-                        'link',
-                        'bulletList',
-                        'orderedList',
-                    ]),
+                    ->language(Language::Html)
+                    ->columnSpanFull(),
             ]);
     }
 

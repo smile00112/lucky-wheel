@@ -1,5 +1,6 @@
-<link rel="stylesheet" href="{{ asset('css/widget/wheel.css') }}">
+<link rel="stylesheet" href="{{ url('css/widget/wheel.css') }}">
 
+<div class="lucky-wheel-content">
 <div class="lucky-wheel-container">
     <h1>🎡 {{ $wheel->name ?? 'Колесо Фортуны' }}</h1>
     @if($wheel->description)
@@ -73,6 +74,7 @@
         <img id="winNotificationImage" src="" alt="Приз">
     </div>
 </div>
+</div>
 
 <script>
     window.API_URL = '{{ url("/api/widget") }}';
@@ -80,5 +82,5 @@
     window.WHEEL_SLUG = '{{ $wheel->slug }}';
 </script>
 
-<script type="module" src="{{ asset('js/widget/app.js') }}"></script>
+<script type="module" src="{{ url('js/widget/app.js') }}"></script>
 

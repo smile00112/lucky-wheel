@@ -8,6 +8,7 @@ return [
         'slug' => 'URL (slug)',
         'is_active' => 'Активно',
         'settings' => 'Настройки',
+        'settings_hint' => 'Настройки для Telegram бота. Ключи должны начинаться с "telegram." (например: telegram.welcome). При создании нового колеса автоматически заполняются значения по умолчанию.',
         'spins_limit' => 'Лимит вращений',
         'spins_limit_hint' => 'Максимальное количество вращений на одного гостя. Оставьте пустым для неограниченного количества.',
         'refresh_hour' => 'Время обновления',
@@ -133,7 +134,7 @@ return [
         'company_name' => 'Название компании',
         'logo' => 'Логотип',
         'email_template' => 'Шаблон письма о призе',
-        'email_template_hint' => 'HTML шаблон письма, которое будет отправлено клиенту при выигрыше. Доступные переменные: {company_name}, {prize_name}, {code}, {guest_name}',
+        'email_template_hint' => 'HTML шаблон письма, которое будет отправлено клиенту при выигрыше. Доступные переменные: {company_name}, {prize_name}, {prize_description}, {prize_text_for_winner}, {prize_type}, {prize_value}, {code}, {guest_name}, {guest_email}, {guest_phone}',
     ],
     'dashboard' => [
         'title' => 'Статистика',

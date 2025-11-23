@@ -118,7 +118,7 @@ return [
         'company_name' => 'Company Name',
         'logo' => 'Logo',
         'email_template' => 'Prize Email Template',
-        'email_template_hint' => 'HTML template for the email that will be sent to the client when they win. Available variables: {company_name}, {prize_name}, {code}, {guest_name}',
+        'email_template_hint' => 'HTML template for the email that will be sent to the client when they win. Available variables: {company_name}, {prize_name}, {prize_description}, {prize_text_for_winner}, {prize_type}, {prize_value}, {code}, {guest_name}, {guest_email}, {guest_phone}',
     ],
     'all' => 'All',
     'active' => 'Active',

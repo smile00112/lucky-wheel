@@ -10,6 +10,11 @@ class Setting extends Model
         'company_name',
         'logo',
         'email_template',
+        'settings',
+    ];
+
+    protected $casts = [
+        'settings' => 'array',
     ];
 
     /**
@@ -20,3 +25,4 @@ class Setting extends Model
         return static::firstOrCreate(['id' => 1]);
     }
 }
+

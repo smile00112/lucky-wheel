@@ -118,7 +118,26 @@ class PlatformIntegrationResource extends Resource
                     ->defaultItems(0)
                     ->collapsible()
                     ->itemLabel(fn (array $state): ?string => $state['key'] === 'custom' ? ($state['custom_key'] ?? null) : ($state['key'] ?? null))
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->hidden(),
+
+                Section::make('Настройки фраз бота')
+                    ->description('')
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\KeyValue::make('words_settings')
+                            ->label('Тексты сообщений и кнопок')
+                            ->columnSpanFull()
+                            ->helperText('Настройки текстов сообщений и кнопок для Telegram')
+                            ->visible(fn ($record) => !$record || $record->platform === PlatformIntegration::PLATFORM_TELEGRAM)
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                if ($record === null && (empty($state) || !is_array($state))) {
+                                    $component->state(PlatformIntegration::getDefaultTelegramSettings());
+                                }
+                            }),
+                ]),
 
                 Section::make('Webhook')
                     ->schema([

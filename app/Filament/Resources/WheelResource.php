@@ -90,7 +90,7 @@ class WheelResource extends Resource
                 Forms\Components\KeyValue::make('settings')
                     ->label(__('filament.wheel.settings'))
                     ->columnSpanFull()
-                    ->hidden(),
+                    ,
                 Forms\Components\CodeEditor::make('widget_embed_code')
                     ->label(__('filament.wheel.widget_embed_code'))
                     ->language(Language::Html)
