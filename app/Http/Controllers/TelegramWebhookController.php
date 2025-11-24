@@ -261,7 +261,9 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug);
+        //к url вызова колеса добавляем id гостя
+        $telegramUser = TelegramUser::findByTelegramId($telegramId);
+        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
 
         Log::info('handleSpinCommand', [
             'webAppUrl' => $webAppUrl,
@@ -359,7 +361,9 @@ class TelegramWebhookController extends Controller
                     return;
                 }
 
-                $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug);
+                //к url вызова колеса добавляем id гостя
+                $telegramUser = TelegramUser::findByTelegramId($telegramId);
+                $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
                 $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinButtonMessage($integration), $webAppUrl, $this->keyboardService, $integration);
             }
         } catch (\Exception $e) {
