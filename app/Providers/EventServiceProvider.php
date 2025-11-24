@@ -16,6 +16,11 @@ class EventServiceProvider extends ServiceProvider
         ],
     ];
 
+    public function shouldDiscoverEvents(): bool
+    {
+        return false;
+    }
+
     public function boot(): void
     {
         parent::boot();
