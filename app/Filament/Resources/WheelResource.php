@@ -129,6 +129,102 @@ class WheelResource extends Resource
                         }
                     })
                     ,
+                Forms\Components\KeyValue::make('style_settings')
+                    ->label(__('filament.wheel.style_settings'))
+                    ->columnSpanFull()
+                    ->afterStateHydrated(function ($component, $state, $record) {
+                        if (!$record && (empty($state) || !is_array($state))) {
+                            $defaultStyleSettings = [
+                                'content' => [
+                                    'font_family' => 'Arial, sans-serif',
+                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                ],
+                                'container' => [
+                                    'background' => '#ffffff',
+                                    'border_radius' => '20px',
+                                    'padding' => '30px 20px',
+                                    'max_width' => '450px',
+                                ],
+                                'title' => [
+                                    'color' => '#333333',
+                                    'font_size' => '1.8em',
+                                    'margin_bottom' => '20px',
+                                ],
+                                'description' => [
+                                    'color' => '#666666',
+                                    'font_size' => '14px',
+                                    'margin_bottom' => '35px',
+                                ],
+                                'pointer' => [
+                                    'color' => '#ff4444',
+                                ],
+                                'spin_button' => [
+                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    'color' => '#ffffff',
+                                    'font_size' => '16px',
+                                    'font_weight' => 'bold',
+                                    'padding' => '15px 40px',
+                                    'border_radius' => '50px',
+                                    'max_width' => '300px',
+                                ],
+                                'won_prize_block' => [
+                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    'color' => '#ffffff',
+                                    'padding' => '10px 20px',
+                                    'border_radius' => '10px',
+                                ],
+                                'won_prize_label' => [
+                                    'font_size' => '11px',
+                                    'opacity' => '0.9',
+                                ],
+                                'won_prize_name' => [
+                                    'font_size' => '14px',
+                                    'font_weight' => 'bold',
+                                ],
+                                'win_notification' => [
+                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                    'color' => '#ffffff',
+                                    'padding' => '20px',
+                                    'border_radius' => '15px 15px 0 0',
+                                ],
+                                'win_notification_title' => [
+                                    'font_size' => '1.3em',
+                                ],
+                                'win_notification_message' => [
+                                    'font_size' => '14px',
+                                ],
+                                'win_notification_code_input' => [
+                                    'background' => 'rgba(255, 255, 255, 0.9)',
+                                    'color' => '#333333',
+                                    'font_size' => '16px',
+                                    'font_weight' => 'bold',
+                                    'border_radius' => '6px',
+                                    'padding' => '12px',
+                                ],
+                                'win_notification_submit_button' => [
+                                    'background' => '#ffffff',
+                                    'color' => '#667eea',
+                                    'font_size' => '16px',
+                                    'font_weight' => 'bold',
+                                    'border_radius' => '8px',
+                                    'padding' => '14px',
+                                ],
+                                'spins_info' => [
+                                    'font_size' => '12px',
+                                    'color' => '#999999',
+                                ],
+                                'error' => [
+                                    'background' => '#ffeeee',
+                                    'border_color' => '#ffcccc',
+                                    'color' => '#cc3333',
+                                    'padding' => '15px',
+                                    'border_radius' => '10px',
+                                ],
+                            ];
+                            $component->state($defaultStyleSettings);
+                        }
+                    })
+                    ,
                 Forms\Components\CodeEditor::make('widget_embed_code')
                     ->label(__('filament.wheel.widget_embed_code'))
                     ->language(Language::Html)

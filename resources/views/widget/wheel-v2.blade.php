@@ -37,6 +37,10 @@
 
 <link rel="stylesheet" href="{{ url('css/widget/wheel.css') }}">
 
+<style>
+{!! $wheel->generateStyleCss() !!}
+</style>
+
 <div class="lucky-wheel-content">
 <div class="lucky-wheel-container">
     <h1>🎡 {{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>

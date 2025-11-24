@@ -18,7 +18,7 @@ class PrizeWinMail extends Mailable
 
     public Spin $spin;
     public Setting $settings;
-    public string $html;
+    public $html;
 
     /**
      * Create a new message instance.

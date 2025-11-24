@@ -37,13 +37,13 @@ class TelegramBotService
         BotApi $bot,
         int|string $chatId,
         string $text,
-        string $url,
+        string|null $url,
         TelegramKeyboardService $keyboardService,
         ?PlatformIntegration $integration = null,
         ?string $buttonText = null
     ): void {
         try {
-            $inlineKeyboard = $keyboardService->getWebAppInlineKeyboard($url, $integration, $buttonText);
+            $inlineKeyboard = $url ? $keyboardService->getWebAppInlineKeyboard($url, $integration, $buttonText) : null;
 
             $bot->sendMessage($chatId, $text, 'HTML', false, null, $inlineKeyboard);
         } catch (\Exception $e) {
@@ -60,7 +60,7 @@ class TelegramBotService
             $commands = [
                 new BotCommand('start', 'Начать работу с ботом'),
                 // Убираем команду /spin - она доступна через кнопку после расшаривания номера
-                // new BotCommand('spin', 'Крутить колесо'),
+                new BotCommand('spin', 'Крутить колесо'),
                 new BotCommand('history', 'Посмотреть историю призов'),
             ];
 

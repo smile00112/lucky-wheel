@@ -48,15 +48,22 @@ class TelegramKeyboardService
         if ($buttonText === null) {
             $buttonText = $this->textService->get($integration, 'spin_button');
         }
+        if($url){
+            $data = [
+                'text' => $buttonText,
+                'web_app' => [
+                    'url' => $url,
+                ],
+            ];
+        }else{
+            $data = [
+                'text' => $buttonText,
+            ];
+        }
 
         return new InlineKeyboardMarkup([
             [
-                [
-                    'text' => $buttonText,
-                    'web_app' => [
-                        'url' => $url,
-                    ],
-                ],
+                $data
             ],
         ]);
     }

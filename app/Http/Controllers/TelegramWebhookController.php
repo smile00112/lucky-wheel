@@ -147,6 +147,13 @@ class TelegramWebhookController extends Controller
         $message = $this->messageService->getWelcomeMessage($integration);
         $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
 
+        Log::info('handleStartCommand', [
+            'bot' => $bot,
+            'chatId' => $chatId,
+            'message' => $message,
+            'keyboard' => $keyboard,
+        ]);
+
         $this->botService->sendMessage($bot, $chatId, $message, $keyboard);
     }
 
@@ -267,12 +274,14 @@ class TelegramWebhookController extends Controller
 
         //к url вызова колеса добавляем id гостя
         $telegramUser = TelegramUser::findByTelegramId($telegramId);
+        
+        if (!$telegramUser || !$telegramUser->guest_id) {
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
+            return;
+        }
+
         $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
-
-        Log::info('handleSpinCommand', [
-            'webAppUrl' => $webAppUrl,
-        ]);
-
         $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinWelcomeMessage($integration), $webAppUrl, $this->keyboardService, $integration);
     }
 
@@ -367,6 +376,13 @@ class TelegramWebhookController extends Controller
 
                 //к url вызова колеса добавляем id гостя
                 $telegramUser = TelegramUser::findByTelegramId($telegramId);
+                
+                if (!$telegramUser || !$telegramUser->guest_id) {
+                    $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                    $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
+                    return;
+                }
+
                 $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
                 $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinButtonMessage($integration), $webAppUrl, $this->keyboardService, $integration);
             }
