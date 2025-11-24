@@ -44,6 +44,13 @@ class SendTelegramPrizeNotification
             return;
         }
 
+        // Защита от дублирования
+        $cacheKey = "telegram_notification_sent_{$spin->id}";
+        if (cache()->has($cacheKey)) {
+            Log::warning('Telegram notification already sent for spin', ['spin_id' => $spin->id]);
+            return;
+        }
+
         try {
             $this->telegramConnector->sendSpinResult(
                 $integration,
