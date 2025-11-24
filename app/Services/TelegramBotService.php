@@ -59,7 +59,8 @@ class TelegramBotService
         try {
             $commands = [
                 new BotCommand('start', 'Начать работу с ботом'),
-                new BotCommand('spin', 'Крутить колесо'),
+                // Убираем команду /spin - она доступна через кнопку после расшаривания номера
+                // new BotCommand('spin', 'Крутить колесо'),
                 new BotCommand('history', 'Посмотреть историю призов'),
             ];
 

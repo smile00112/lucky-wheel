@@ -11,15 +11,10 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 class EventServiceProvider extends ServiceProvider
 {
     protected $listen = [
-        PrizeWon::class => [
-            SendTelegramPrizeNotification::class,
-        ],
+//        PrizeWon::class => [
+//            SendTelegramPrizeNotification::class,
+//        ],
     ];
-
-    public function shouldDiscoverEvents(): bool
-    {
-        return false;
-    }
 
     public function boot(): void
     {

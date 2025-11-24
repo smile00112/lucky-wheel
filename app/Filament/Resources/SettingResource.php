@@ -7,6 +7,7 @@ use App\Models\Setting;
 use Filament\Forms;
 use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -40,11 +41,34 @@ class SettingResource extends Resource
                     ->directory('settings')
                     ->visibility('public')
                     ->columnSpanFull(),
-                Forms\Components\CodeEditor::make('email_template')
-                    ->label(__('filament.setting.email_template'))
-                    ->helperText(__('filament.setting.email_template_hint'))
-                    ->language(Language::Html)
-                    ->columnSpanFull(),
+                Section::make(__('filament.setting.email_template'))
+                    ->description('')
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\CodeEditor::make('email_template')
+                            ->label('Код шаблона email')
+                            ->helperText(__('filament.setting.email_template_hint'))
+                            ->language(Language::Html)
+                            ->columnSpanFull(),
+                    ])
+                    ,
+                Section::make(__('filament.setting.pdf_template'))
+                    ->description('')
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\CodeEditor::make('pdf_template')
+                            ->label('Код шаблона PDF')
+                            ->helperText(__('filament.setting.pdf_template_hint'))
+                            ->language(Language::Html)
+                            ->columnSpanFull(),
+                    ])
+
+                    ,
+
             ]);
     }
 

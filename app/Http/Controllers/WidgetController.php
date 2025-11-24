@@ -8,6 +8,7 @@ use App\Models\Guest;
 use App\Models\GuestIpAddress;
 use App\Models\Spin;
 use App\Models\Prize;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -55,7 +56,7 @@ class WidgetController extends Controller
             abort(404, 'Wheel has expired');
         }
 
-        return view('widget.wheel', compact('wheel'));
+        return view('widget.wheel-v2', compact('wheel'));
     }
 
     /**
@@ -181,6 +182,43 @@ class WidgetController extends Controller
             ];
         });
 
+        // Получаем тексты из settings с fallback на значения по умолчанию
+        $defaultTexts = [
+            'loading_text' => 'Загрузка...',
+            'spin_button_text' => 'Крутить колесо!',
+            'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
+            'won_prize_label' => 'Выиграно сегодня:',
+            'win_notification_title' => '🎉 Поздравляем с выигрышем!',
+            'win_notification_win_text' => 'Вы выиграли:',
+            'copy_code_button_title' => 'Копировать код',
+            'code_not_specified' => 'Код не указан',
+            'download_pdf_text' => 'Скачать сертификат PDF',
+            'form_description' => 'Для получения приза на почту заполните данные:',
+            'form_name_placeholder' => 'Ваше имя',
+            'form_email_placeholder' => 'Email',
+            'form_phone_placeholder' => '+7 (XXX) XXX-XX-XX',
+            'form_submit_text' => 'Отправить приз',
+            'form_submit_loading' => 'Отправка...',
+            'form_submit_success' => '✓ Приз отправлен!',
+            'form_submit_error' => 'Приз уже получен',
+            'form_success_message' => '✓ Данные сохранены! Приз будет отправлен на указанную почту.',
+            'prize_image_alt' => 'Приз',
+            'spins_info_format' => 'Вращений: {count} / {limit}',
+            'spins_limit_format' => 'Лимит вращений: {limit}',
+            'error_init_guest' => 'Ошибка инициализации: не удалось создать гостя',
+            'error_init' => 'Ошибка инициализации:',
+            'error_no_prizes' => 'Нет доступных призов',
+            'error_load_data' => 'Ошибка загрузки данных:',
+            'error_spin' => 'При розыгрыше произошла ошибка! Обратитесь в поддержку сервиса.',
+            'error_general' => 'Ошибка:',
+            'error_send' => 'Ошибка при отправке',
+            'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
+            'wheel_default_name' => 'Колесо Фортуны',
+        ];
+
+        $settings = $wheel->settings ?? [];
+        $texts = array_merge($defaultTexts, $settings);
+
         return response()->json([
             'id' => $wheel->id,
             'name' => $wheel->name,
@@ -188,6 +226,7 @@ class WidgetController extends Controller
             'slug' => $wheel->slug,
             'spins_limit' => $wheel->spins_limit,
             'prizes' => $prizes,
+            'texts' => $texts,
         ]);
     }
 
@@ -1037,24 +1076,6 @@ class WidgetController extends Controller
             abort(404, 'Prize not found');
         }
 
-        // Получаем URL изображения для email
-        $emailImageUrl = null;
-        if ($spin->prize->email_image) {
-            // Если изображение - это полный URL, используем как есть
-            if (filter_var($spin->prize->email_image, FILTER_VALIDATE_URL)) {
-                $emailImageUrl = $spin->prize->email_image;
-            } elseif (str_starts_with($spin->prize->email_image, '/')) {
-                // Если путь начинается с /, это абсолютный путь
-                $emailImageUrl = url($spin->prize->email_image);
-            } elseif (Storage::disk('public')->exists($spin->prize->email_image)) {
-                // Если файл в public storage
-                $emailImageUrl = Storage::disk('public')->url($spin->prize->email_image);
-            } else {
-                // По умолчанию используем asset для storage
-                $emailImageUrl = asset('storage/' . ltrim($spin->prize->email_image, '/'));
-            }
-        }
-
         // Настройки Dompdf
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
@@ -1063,15 +1084,8 @@ class WidgetController extends Controller
 
         $dompdf = new Dompdf($options);
 
-        // Генерируем HTML из Blade шаблона
-        $html = view('pdf.win-certificate', [
-            'prize' => $spin->prize,
-            'code' => $spin->code,
-            'wheel' => $spin->wheel,
-            'guest' => $spin->guest,
-            'date' => $spin->created_at->format('d.m.Y H:i'),
-            'emailImageUrl' => $emailImageUrl,
-        ])->render();
+        // Генерируем HTML из шаблона настроек
+        $html = $this->buildPdfHtml($spin);
 
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
@@ -1080,6 +1094,264 @@ class WidgetController extends Controller
         $filename = 'win-certificate-' . $spinId . '.pdf';
 
         return $dompdf->stream($filename, ['Attachment' => true]);
+    }
+
+    /**
+     * Построить HTML PDF из шаблона настроек
+     */
+    protected function buildPdfHtml(Spin $spin): string
+    {
+        $settings = Setting::getInstance();
+        $template = $settings->pdf_template;
+        
+        // Если шаблона нет, используем шаблон по умолчанию
+        if (empty($template)) {
+            $template = $this->getDefaultPdfTemplate();
+        }
+
+        // Подготовка данных для замены
+        $replacements = $this->preparePdfReplacements($spin, $settings);
+
+        // Замена переменных в шаблоне
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $template
+        );
+    }
+
+    /**
+     * Подготовить массив замен для переменных PDF
+     */
+    protected function preparePdfReplacements(Spin $spin, Setting $settings): array
+    {
+        $prize = $spin->prize;
+        $guest = $spin->guest;
+        $wheel = $spin->wheel;
+
+        // Имя гостя
+        $guestNameHtml = '';
+        $guestName = '';
+        if ($guest && $guest->name) {
+            $guestNameHtml = "<div class=\"guest-name\">Уважаемый {$guest->name}!</div>";
+            $guestName = $guest->name;
+        }
+
+        // Изображение приза
+        $prizeImageHtml = '';
+        $prizeImageUrl = '';
+        if ($prize && $prize->email_image) {
+            $prizeImageUrl = $this->getFileUrl($prize->email_image);
+            $prizeImageAlt = $prize->name ?? '';
+            $prizeImageHtml = "<img src=\"{$prizeImageUrl}\" alt=\"{$prizeImageAlt}\" class=\"prize-image\">";
+        }
+
+        // Описание приза
+        $prizeDescriptionHtml = '';
+        if ($prize && $prize->description) {
+            $prizeDescriptionHtml = "<div class=\"prize-description\">{$prize->description}</div>";
+        }
+
+        // Текст для победителя
+        $prizeTextForWinnerHtml = '';
+        if ($prize && $prize->text_for_winner) {
+            $prizeTextForWinnerHtml = "<div class=\"prize-description\">{$prize->text_for_winner}</div>";
+        }
+
+        // Код
+        $codeHtml = '';
+        if ($spin->code) {
+            $codeHtml = "<div style=\"margin: 30px 0;\">
+                <div class=\"prize-code-label\">Идентификационный номер</div>
+                <div class=\"prize-code\">{$spin->code}</div>
+            </div>";
+        }
+
+        // Дата
+        $date = $spin->created_at->format('d.m.Y H:i');
+
+        return [
+            '{company_name}' => $settings->company_name ?: 'Колесо фортуны',
+            '{wheel_name}' => ($wheel && $wheel->name) ? $wheel->name : 'Колесо Фортуны',
+            '{guest_name_html}' => $guestNameHtml,
+            '{guest_name}' => $guestName,
+            '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
+            '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
+            '{prize_name}' => ($prize && $prize->name) ? $prize->name : '',
+            '{prize_description_html}' => $prizeDescriptionHtml,
+            '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
+            '{prize_text_for_winner_html}' => $prizeTextForWinnerHtml,
+            '{prize_text_for_winner}' => ($prize && $prize->text_for_winner) ? $prize->text_for_winner : '',
+            '{prize_type}' => ($prize && $prize->type) ? $prize->type : '',
+            '{prize_value}' => ($prize && $prize->value) ? $prize->value : '',
+            '{prize_email_image_html}' => $prizeImageHtml,
+            '{prize_email_image_url}' => $prizeImageUrl,
+            '{code_html}' => $codeHtml,
+            '{code}' => $spin->code ?: 'не указан',
+            '{date}' => $date,
+        ];
+    }
+
+    /**
+     * Получить URL файла из storage
+     */
+    protected function getFileUrl(string $path): string
+    {
+        // Если это полный URL, возвращаем как есть
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        // Если путь начинается с /, это абсолютный путь
+        if (str_starts_with($path, '/')) {
+            return url($path);
+        }
+
+        // Проверяем, существует ли файл в public storage
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+
+        // По умолчанию используем asset для storage
+        return asset('storage/' . ltrim($path, '/'));
+    }
+
+    /**
+     * Получить шаблон PDF по умолчанию
+     */
+    protected function getDefaultPdfTemplate(): string
+    {
+        return '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Сертификат выигрыша</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: \'DejaVu Sans\', Arial, sans-serif;
+            background: #667eea;
+            padding: 40px;
+            color: #333;
+        }
+        .certificate {
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .certificate-header {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .certificate-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+        .prize-name {
+            font-size: 32px;
+            color: #764ba2;
+            font-weight: bold;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f7fa;
+            border-radius: 10px;
+        }
+        .guest-name {
+            font-size: 22px;
+            color: #667eea;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        .prize-code {
+            font-size: 28px;
+            color: #667eea;
+            margin: 30px 0;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 3px solid #667eea;
+            border-radius: 12px;
+            font-family: \'DejaVu Sans\', Arial, sans-serif;
+            font-weight: bold;
+            letter-spacing: 4px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .prize-code-label {
+            font-size: 14px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .prize-description {
+            font-size: 16px;
+            color: #666;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .certificate-footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 14px;
+            color: #999;
+        }
+        .date {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #999;
+        }
+        .wheel-name {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .prize-image {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <div class="certificate-header">ПОЗДРАВЛЯЕМ!</div>
+        <div class="certificate-title">Сертификат выигрыша</div>
+
+        {guest_name_html}
+
+        <div class="wheel-name">{wheel_name}</div>
+
+        <div class="prize-name">Название приза: {prize_name}</div>
+
+        {prize_email_image_html}
+
+        {prize_description_html}
+
+        {code_html}
+
+        {prize_text_for_winner_html}
+
+        <div class="certificate-footer">
+            <div class="date">Дата выигрыша: {date}</div>
+        </div>
+    </div>
+</body>
+</html>';
     }
 }
 

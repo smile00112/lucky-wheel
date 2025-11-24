@@ -8,6 +8,7 @@
     min-height: 100vh;
     padding: 30px 0px;
     overflow-x: hidden;
+    position: relative;
 }
 
 .lucky-wheel-container {

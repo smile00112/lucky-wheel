@@ -10,6 +10,7 @@ class Setting extends Model
         'company_name',
         'logo',
         'email_template',
+        'pdf_template',
         'settings',
     ];
 

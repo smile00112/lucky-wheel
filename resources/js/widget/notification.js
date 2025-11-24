@@ -18,7 +18,8 @@ export class NotificationManager {
 
         if (!prize || !notification || !message) return;
 
-        let messageText = `<strong>Вы выиграли: ${prize.name}</strong>`;
+        const winText = this.config.getText('win_notification_win_text');
+        let messageText = `<strong>${winText} ${prize.name}</strong>`;
         if (prize.text_for_winner) {
             messageText += `<br>${prize.text_for_winner}`;
         }
@@ -30,7 +31,7 @@ export class NotificationManager {
                 codeInput.placeholder = '';
             } else {
                 codeInput.value = '';
-                codeInput.placeholder = 'Код не указан';
+                codeInput.placeholder = this.config.getText('code_not_specified');
             }
         }
 
@@ -125,7 +126,7 @@ export class NotificationManager {
         }
 
         image.src = url;
-        image.alt = 'Приз';
+        image.alt = this.config.getText('prize_image_alt');
         container.style.display = 'block';
     }
 

@@ -90,6 +90,44 @@ class WheelResource extends Resource
                 Forms\Components\KeyValue::make('settings')
                     ->label(__('filament.wheel.settings'))
                     ->columnSpanFull()
+                    ->afterStateHydrated(function ($component, $state, $record) {
+                        // Заполняем значения по умолчанию только при создании новой записи
+                        if (!$record && (empty($state) || !is_array($state))) {
+                            $defaultSettings = [
+                                'loading_text' => 'Загрузка...',
+                                'spin_button_text' => 'Крутить колесо!',
+                                'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
+                                'won_prize_label' => 'Выиграно сегодня:',
+                                'win_notification_title' => '🎉 Поздравляем с выигрышем!',
+                                'win_notification_win_text' => 'Вы выиграли:',
+                                'copy_code_button_title' => 'Копировать код',
+                                'code_not_specified' => 'Код не указан',
+                                'download_pdf_text' => 'Скачать сертификат PDF',
+                                'form_description' => 'Для получения приза на почту заполните данные:',
+                                'form_name_placeholder' => 'Ваше имя',
+                                'form_email_placeholder' => 'Email',
+                                'form_phone_placeholder' => '+7 (XXX) XXX-XX-XX',
+                                'form_submit_text' => 'Отправить приз',
+                                'form_submit_loading' => 'Отправка...',
+                                'form_submit_success' => '✓ Приз отправлен!',
+                                'form_submit_error' => 'Приз уже получен',
+                                'form_success_message' => '✓ Данные сохранены! Приз будет отправлен на указанную почту.',
+                                'prize_image_alt' => 'Приз',
+                                'spins_info_format' => 'Вращений: {count} / {limit}',
+                                'spins_limit_format' => 'Лимит вращений: {limit}',
+                                'error_init_guest' => 'Ошибка инициализации: не удалось создать гостя',
+                                'error_init' => 'Ошибка инициализации:',
+                                'error_no_prizes' => 'Нет доступных призов',
+                                'error_load_data' => 'Ошибка загрузки данных:',
+                                'error_spin' => 'При розыгрыше произошла ошибка! Обратитесь в поддержку сервиса.',
+                                'error_general' => 'Ошибка:',
+                                'error_send' => 'Ошибка при отправке',
+                                'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
+                                'wheel_default_name' => 'Колесо Фортуны',
+                            ];
+                            $component->state($defaultSettings);
+                        }
+                    })
                     ,
                 Forms\Components\CodeEditor::make('widget_embed_code')
                     ->label(__('filament.wheel.widget_embed_code'))

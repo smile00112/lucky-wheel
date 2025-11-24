@@ -94,7 +94,7 @@
 <body>
 
 <div class="lucky-wheel-content">
-    @include('widget.wheel')
+    @include('widget.wheel-v2')
 </div>
 </body>
 </html>

@@ -17,7 +17,12 @@ export class WheelController {
             const prizes = wheelData.prizes || [];
 
             if (prizes.length === 0) {
-                throw new Error('Нет доступных призов');
+                throw new Error(this.config.getText('error_no_prizes'));
+            }
+
+            // Обновляем тексты из API, если они есть
+            if (wheelData.texts) {
+                this.config.updateTexts(wheelData.texts);
             }
 
             this.state.set('wheelData', wheelData);
@@ -42,7 +47,7 @@ export class WheelController {
             Utils.notifyParent('ready', {});
         } catch (error) {
             console.error('Wheel initialization error:', error);
-            this.showError('Ошибка загрузки данных: ' + error.message);
+            this.showError(this.config.getText('error_load_data') + ' ' + error.message);
         }
     }
 
@@ -64,9 +69,11 @@ export class WheelController {
         }
 
         if (spinsCount !== null && spinsLimit !== null) {
-            infoEl.textContent = `Вращений: ${spinsCount} / ${spinsLimit}`;
+            const format = this.config.getText('spins_info_format');
+            infoEl.textContent = format.replace('{count}', spinsCount).replace('{limit}', spinsLimit);
         } else {
-            infoEl.textContent = `Лимит вращений: ${wheelData.spins_limit}`;
+            const format = this.config.getText('spins_limit_format');
+            infoEl.textContent = format.replace('{limit}', wheelData.spins_limit);
         }
     }
 
@@ -152,7 +159,7 @@ export class WheelController {
 
                 this.blockSpinning();
             } else {
-                alert('При розыгрыше произошла ошибка! Обратитесь в поддержку сервиса.');
+                alert(this.config.getText('error_spin'));
             }
         } catch (error) {
             if (error.message.includes('Already won today')) {
@@ -165,7 +172,7 @@ export class WheelController {
                     this.blockSpinning();
                 }
             } else {
-                this.showError('Ошибка: ' + error.message);
+                this.showError(this.config.getText('error_general') + ' ' + error.message);
                 Utils.notifyParent('error', { message: error.message });
             }
         } finally {
@@ -183,7 +190,7 @@ export class WheelController {
         const spinButton = document.getElementById('spinButton');
         if (spinButton) {
             spinButton.disabled = true;
-            spinButton.textContent = 'Вы уже выиграли сегодня. Попробуйте завтра!';
+            spinButton.textContent = this.config.getText('spin_button_blocked_text');
             spinButton.style.cursor = 'not-allowed';
         }
     }
@@ -192,7 +199,7 @@ export class WheelController {
         const spinButton = document.getElementById('spinButton');
         if (spinButton) {
             spinButton.disabled = false;
-            spinButton.textContent = 'Крутить колесо!';
+            spinButton.textContent = this.config.getText('spin_button_text');
             spinButton.style.cursor = 'pointer';
         }
     }

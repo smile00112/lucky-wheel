@@ -10,6 +10,7 @@ use App\Services\TelegramBotService;
 use App\Services\TelegramConnector;
 use App\Services\TelegramKeyboardService;
 use App\Services\TelegramMessageService;
+use App\Services\TelegramTextService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,17 +22,20 @@ class TelegramWebhookController extends Controller
     private TelegramBotService $botService;
     private TelegramKeyboardService $keyboardService;
     private TelegramMessageService $messageService;
+    private TelegramTextService $textService;
 
     public function __construct(
         UserService $userService,
         TelegramBotService $botService,
         TelegramKeyboardService $keyboardService,
-        TelegramMessageService $messageService
+        TelegramMessageService $messageService,
+        TelegramTextService $textService
     ) {
         $this->userService = $userService;
         $this->botService = $botService;
         $this->keyboardService = $keyboardService;
         $this->messageService = $messageService;
+        $this->textService = $textService;
     }
 
     public function handle(PlatformIntegration $integration, Request $request)
@@ -108,20 +112,20 @@ class TelegramWebhookController extends Controller
             return;
         }
 
-        // Обработка команды /spin или текста "Крутить колесо"
-        if ($text === '/spin' || $text === 'Крутить колесо' || $text === '🎡 Крутить колесо') {
+        // Обработка команды /spin или текста из настроек кнопки "Крутить колесо"
+        if ($this->matchesCommand($text, $integration, ['button_spin', 'spin_button'], ['/spin'])) {
             $this->handleSpinCommand($chatId, $integration, $connector, $bot, $telegramId);
             return;
         }
 
-        // Обработка команды /history или текста "Посмотреть историю"
-        if ($text === '/history' || $text === 'Посмотреть историю' || $text === '📜 Посмотреть историю' || $text === '📜 История призов') {
+        // Обработка команды /history или текста из настроек кнопки "История"
+        if ($this->matchesCommand($text, $integration, ['button_history'], ['/history'])) {
             $this->handleHistoryCommand($chatId, $message, $integration, $bot);
             return;
         }
 
-        // Обработка кнопки "Отправить номер"
-        if ($text === 'Отправить номер' || $text === '📱 Отправить номер') {
+        // Обработка кнопки "Отправить номер" из настроек
+        if ($this->matchesCommand($text, $integration, ['button_send_phone'])) {
             $this->handleRequestContact($chatId, $integration, $bot, $telegramId);
             return;
         }
@@ -374,4 +378,30 @@ class TelegramWebhookController extends Controller
         }
     }
 
+    private function matchesCommand(
+        ?string $text,
+        PlatformIntegration $integration,
+        array $textCodes = [],
+        array $staticVariants = []
+    ): bool {
+        if ($text === null || $text === '') {
+            return false;
+        }
+
+        foreach ($staticVariants as $variant) {
+            if ($variant !== '' && $text === $variant) {
+                return true;
+            }
+        }
+
+        foreach ($textCodes as $code) {
+            $value = $this->textService->get($integration, $code);
+
+            if ($value !== '' && $text === $value) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
