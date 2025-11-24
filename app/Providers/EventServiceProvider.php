@@ -19,6 +19,9 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // Отключаем автодискавери, если оно включено
+        $this->shouldDiscoverEvents = false;
     }
 }
 

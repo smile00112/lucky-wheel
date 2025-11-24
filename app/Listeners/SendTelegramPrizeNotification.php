@@ -20,6 +20,11 @@ class SendTelegramPrizeNotification
     {
         $spin = $event->spin;
 
+        Log::info('SendTelegramPrizeNotification handle called', [
+            'spin_id' => $event->spin->id,
+            'trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5)
+        ]);
+
         if (!$spin->isWin()) {
             return;
         }
