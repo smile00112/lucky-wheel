@@ -102,11 +102,11 @@ class Wheel extends Model
     }
 
     /**
-     * Получить настройки стилей с дефолтными значениями
+     * Получить дефолтные настройки стилей
      */
-    public function getStyleSettingsWithDefaults(): array
+    public static function getDefaultStyleSettings(): array
     {
-        $defaults = [
+        return [
             'content' => [
                 'font_family' => 'Arial, sans-serif',
                 'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -193,7 +193,14 @@ class Wheel extends Model
                 'border_radius' => '10px',
             ],
         ];
+    }
 
+    /**
+     * Получить настройки стилей с дефолтными значениями
+     */
+    public function getStyleSettingsWithDefaults(): array
+    {
+        $defaults = static::getDefaultStyleSettings();
         $settings = $this->style_settings ?? [];
 
         // Рекурсивно объединяем настройки с дефолтными значениями

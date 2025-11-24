@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -87,144 +88,92 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.ends_at'))
                     ->native(false)
                     ,
-                Forms\Components\KeyValue::make('settings')
-                    ->label(__('filament.wheel.settings'))
+
+                Section::make('Настройки текстов')
+                    ->description('')
                     ->columnSpanFull()
-                    ->afterStateHydrated(function ($component, $state, $record) {
-                        // Заполняем значения по умолчанию только при создании новой записи
-                        if (!$record && (empty($state) || !is_array($state))) {
-                            $defaultSettings = [
-                                'loading_text' => 'Загрузка...',
-                                'spin_button_text' => 'Крутить колесо!',
-                                'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
-                                'won_prize_label' => 'Выиграно сегодня:',
-                                'win_notification_title' => '🎉 Поздравляем с выигрышем!',
-                                'win_notification_win_text' => 'Вы выиграли:',
-                                'copy_code_button_title' => 'Копировать код',
-                                'code_not_specified' => 'Код не указан',
-                                'download_pdf_text' => 'Скачать сертификат PDF',
-                                'form_description' => 'Для получения приза на почту заполните данные:',
-                                'form_name_placeholder' => 'Ваше имя',
-                                'form_email_placeholder' => 'Email',
-                                'form_phone_placeholder' => '+7 (XXX) XXX-XX-XX',
-                                'form_submit_text' => 'Отправить приз',
-                                'form_submit_loading' => 'Отправка...',
-                                'form_submit_success' => '✓ Приз отправлен!',
-                                'form_submit_error' => 'Приз уже получен',
-                                'form_success_message' => '✓ Данные сохранены! Приз будет отправлен на указанную почту.',
-                                'prize_image_alt' => 'Приз',
-                                'spins_info_format' => 'Вращений: {count} / {limit}',
-                                'spins_limit_format' => 'Лимит вращений: {limit}',
-                                'error_init_guest' => 'Ошибка инициализации: не удалось создать гостя',
-                                'error_init' => 'Ошибка инициализации:',
-                                'error_no_prizes' => 'Нет доступных призов',
-                                'error_load_data' => 'Ошибка загрузки данных:',
-                                'error_spin' => 'При розыгрыше произошла ошибка! Обратитесь в поддержку сервиса.',
-                                'error_general' => 'Ошибка:',
-                                'error_send' => 'Ошибка при отправке',
-                                'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
-                                'wheel_default_name' => 'Колесо Фортуны',
-                            ];
-                            $component->state($defaultSettings);
-                        }
-                    })
-                    ,
-                Forms\Components\KeyValue::make('style_settings')
-                    ->label(__('filament.wheel.style_settings'))
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\KeyValue::make('settings')
+                            ->label(__('filament.wheel.settings'))
+                            ->columnSpanFull()
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                // Заполняем значения по умолчанию только при создании новой записи
+                                if (!$record && (empty($state) || !is_array($state))) {
+                                    $defaultSettings = [
+                                        'loading_text' => 'Загрузка...',
+                                        'spin_button_text' => 'Крутить колесо!',
+                                        'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
+                                        'won_prize_label' => 'Выиграно сегодня:',
+                                        'win_notification_title' => '🎉 Поздравляем с выигрышем!',
+                                        'win_notification_win_text' => 'Вы выиграли:',
+                                        'copy_code_button_title' => 'Копировать код',
+                                        'code_not_specified' => 'Код не указан',
+                                        'download_pdf_text' => 'Скачать сертификат PDF',
+                                        'form_description' => 'Для получения приза на почту заполните данные:',
+                                        'form_name_placeholder' => 'Ваше имя',
+                                        'form_email_placeholder' => 'Email',
+                                        'form_phone_placeholder' => '+7 (XXX) XXX-XX-XX',
+                                        'form_submit_text' => 'Отправить приз',
+                                        'form_submit_loading' => 'Отправка...',
+                                        'form_submit_success' => '✓ Приз отправлен!',
+                                        'form_submit_error' => 'Приз уже получен',
+                                        'form_success_message' => '✓ Данные сохранены! Приз будет отправлен на указанную почту.',
+                                        'prize_image_alt' => 'Приз',
+                                        'spins_info_format' => 'Вращений: {count} / {limit}',
+                                        'spins_limit_format' => 'Лимит вращений: {limit}',
+                                        'error_init_guest' => 'Ошибка инициализации: не удалось создать гостя',
+                                        'error_init' => 'Ошибка инициализации:',
+                                        'error_no_prizes' => 'Нет доступных призов',
+                                        'error_load_data' => 'Ошибка загрузки данных:',
+                                        'error_spin' => 'При розыгрыше произошла ошибка! Обратитесь в поддержку сервиса.',
+                                        'error_general' => 'Ошибка:',
+                                        'error_send' => 'Ошибка при отправке',
+                                        'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
+                                        'wheel_default_name' => 'Колесо Фортуны',
+                                    ];
+                                    $component->state($defaultSettings);
+                                }
+                            })
+                            ,
+                ]),
+                Section::make('Настройки стилей')
+                    ->description('')
                     ->columnSpanFull()
-                    ->afterStateHydrated(function ($component, $state, $record) {
-                        if (!$record && (empty($state) || !is_array($state))) {
-                            $defaultStyleSettings = [
-                                'content' => [
-                                    'font_family' => 'Arial, sans-serif',
-                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                ],
-                                'container' => [
-                                    'background' => '#ffffff',
-                                    'border_radius' => '20px',
-                                    'padding' => '30px 20px',
-                                    'max_width' => '450px',
-                                ],
-                                'title' => [
-                                    'color' => '#333333',
-                                    'font_size' => '1.8em',
-                                    'margin_bottom' => '20px',
-                                ],
-                                'description' => [
-                                    'color' => '#666666',
-                                    'font_size' => '14px',
-                                    'margin_bottom' => '35px',
-                                ],
-                                'pointer' => [
-                                    'color' => '#ff4444',
-                                ],
-                                'spin_button' => [
-                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    'color' => '#ffffff',
-                                    'font_size' => '16px',
-                                    'font_weight' => 'bold',
-                                    'padding' => '15px 40px',
-                                    'border_radius' => '50px',
-                                    'max_width' => '300px',
-                                ],
-                                'won_prize_block' => [
-                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    'color' => '#ffffff',
-                                    'padding' => '10px 20px',
-                                    'border_radius' => '10px',
-                                ],
-                                'won_prize_label' => [
-                                    'font_size' => '11px',
-                                    'opacity' => '0.9',
-                                ],
-                                'won_prize_name' => [
-                                    'font_size' => '14px',
-                                    'font_weight' => 'bold',
-                                ],
-                                'win_notification' => [
-                                    'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                    'color' => '#ffffff',
-                                    'padding' => '20px',
-                                    'border_radius' => '15px 15px 0 0',
-                                ],
-                                'win_notification_title' => [
-                                    'font_size' => '1.3em',
-                                ],
-                                'win_notification_message' => [
-                                    'font_size' => '14px',
-                                ],
-                                'win_notification_code_input' => [
-                                    'background' => 'rgba(255, 255, 255, 0.9)',
-                                    'color' => '#333333',
-                                    'font_size' => '16px',
-                                    'font_weight' => 'bold',
-                                    'border_radius' => '6px',
-                                    'padding' => '12px',
-                                ],
-                                'win_notification_submit_button' => [
-                                    'background' => '#ffffff',
-                                    'color' => '#667eea',
-                                    'font_size' => '16px',
-                                    'font_weight' => 'bold',
-                                    'border_radius' => '8px',
-                                    'padding' => '14px',
-                                ],
-                                'spins_info' => [
-                                    'font_size' => '12px',
-                                    'color' => '#999999',
-                                ],
-                                'error' => [
-                                    'background' => '#ffeeee',
-                                    'border_color' => '#ffcccc',
-                                    'color' => '#cc3333',
-                                    'padding' => '15px',
-                                    'border_radius' => '10px',
-                                ],
-                            ];
-                            $component->state($defaultStyleSettings);
-                        }
-                    })
-                    ,
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                            Forms\Components\CodeEditor::make('style_settings')
+                                ->label('')//__('filament.wheel.style_settings')
+                                ->language(Language::Json)
+                                ->columnSpanFull()
+                                ->default(function () {
+                                    return json_encode(\App\Models\Wheel::getDefaultStyleSettings(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                                })
+                                ->afterStateHydrated(function ($component, $state, $record) {
+                                    if ($record === null && (empty($state) || $state === 'null' || $state === null)) {
+                                        $component->state(json_encode(\App\Models\Wheel::getDefaultStyleSettings(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                                    } elseif (is_array($state)) {
+                                        $component->state(json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                                    } elseif (is_string($state)) {
+                                        // Проверяем, валидный ли это JSON
+                                        $decoded = json_decode($state, true);
+                                        if (json_last_error() !== JSON_ERROR_NONE) {
+                                            // Если не валидный JSON, используем дефолтные значения
+                                            $component->state(json_encode(\App\Models\Wheel::getDefaultStyleSettings(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                                        }
+                                    }
+                                })
+                                ->dehydrateStateUsing(function ($state) {
+                                    if (is_string($state)) {
+                                        $decoded = json_decode($state, true);
+                                        return $decoded !== null ? $decoded : [];
+                                    }
+                                    return is_array($state) ? $state : [];
+                                })
+                                ,
+                ]),
                 Forms\Components\CodeEditor::make('widget_embed_code')
                     ->label(__('filament.wheel.widget_embed_code'))
                     ->language(Language::Html)

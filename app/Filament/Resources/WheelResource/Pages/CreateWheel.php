@@ -53,6 +53,32 @@ class CreateWheel extends CreateRecord
 
         $data['settings'] = array_merge($defaultSettings, $data['settings']);
 
+        // Заполняем style_settings значениями по умолчанию, если они не заполнены
+        $styleSettings = $data['style_settings'] ?? null;
+        
+        // Если пришла строка JSON, декодируем её
+        if (is_string($styleSettings)) {
+            $decoded = json_decode($styleSettings, true);
+            $styleSettings = ($decoded !== null && json_last_error() === JSON_ERROR_NONE) ? $decoded : [];
+        }
+        
+        if (empty($styleSettings) || !is_array($styleSettings)) {
+            $styleSettings = [];
+        }
+
+        $defaultStyleSettings = \App\Models\Wheel::getDefaultStyleSettings();
+
+        // Объединяем дефолтные значения с переданными
+        $result = $defaultStyleSettings;
+        foreach ($styleSettings as $key => $value) {
+            if (isset($result[$key]) && is_array($result[$key]) && is_array($value)) {
+                $result[$key] = array_merge($result[$key], $value);
+            } else {
+                $result[$key] = $value;
+            }
+        }
+        $data['style_settings'] = $result;
+
         return $data;
     }
 }
