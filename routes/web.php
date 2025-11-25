@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WidgetController;
 use App\Http\Controllers\WidgetAssetController;
+use App\Http\Controllers\StorageFileController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,6 +23,11 @@ Route::get('/widget/embed-v2/{slug}', [WidgetController::class, 'embedV2'])
 Route::get('/widget/assets/{path}', WidgetAssetController::class)
     ->where('path', '.*')
     ->name('widget.assets');
+
+// Маршрут для отдачи storage файлов с CORS заголовками
+Route::get('/storage/{path}', StorageFileController::class)
+    ->where('path', '.*')
+    ->name('storage.file');
 
 // Telegram WebApp
 Route::get('/telegram/app', [App\Http\Controllers\TelegramController::class, 'webapp'])

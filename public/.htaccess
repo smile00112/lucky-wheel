@@ -4,11 +4,28 @@
     </IfModule>
 
     <IfModule mod_headers.c>
+        # CORS для виджета JS
         SetEnvIf Request_URI "^/js/widget/" lucky_wheel_widget=1
-        Header set Access-Control-Allow-Origin "*" env=lucky_wheel_widget
+        Header always set Access-Control-Allow-Origin "*" env=lucky_wheel_widget
+        
+        # CORS для storage файлов (изображения призов и другие ресурсы)
+        SetEnvIf Request_URI "^/storage/" storage_file=1
+        Header always set Access-Control-Allow-Origin "*" env=storage_file
+        Header always set Access-Control-Allow-Methods "GET, OPTIONS" env=storage_file
+        Header always set Access-Control-Allow-Headers "Content-Type, Accept, Origin" env=storage_file
+        Header always set Access-Control-Max-Age "86400" env=storage_file
     </IfModule>
 
     RewriteEngine On
+
+    # Обработка OPTIONS запросов для storage (CORS preflight)
+    RewriteCond %{REQUEST_METHOD} ^OPTIONS
+    RewriteCond %{REQUEST_URI} ^/storage/
+    RewriteRule ^(.*)$ - [R=200,L,E=storage_file:1]
+
+    # Перенаправляем запросы к storage через Laravel для CORS (до проверки существования файла)
+    RewriteCond %{REQUEST_URI} ^/storage/
+    RewriteRule ^(storage/.*)$ index.php [L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
