@@ -160,6 +160,13 @@
             background: linear-gradient(to right, transparent, #6ba644, transparent);
             margin: 30px 0;
         }
+        .code-note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            font-style: italic;
+            text-align: center;
+        }
         @media only screen and (max-width: 600px) {
             .email-body {
                 padding: 25px 20px;
@@ -221,10 +228,10 @@
                 @endif
             </div>
 
-            @if($spin->code)
+            @if($spin->prize->value)
                 <div class="code-section">
                     <div class="code-label">Идентификационный номер</div>
-                    <div class="code-value">{{ $spin->code }}</div>
+                    <div class="code-value">{{ $spin->prize->value }}</div>
                 </div>
             @endif
 
@@ -240,7 +247,7 @@
                             '{prize_text_for_winner}',
                             '{prize_type}',
                             '{prize_value}',
-                            '{code}',
+                            '{prize_value}',
                             '{guest_name}',
                             '{guest_email}',
                             '{guest_phone}'
@@ -252,7 +259,7 @@
                             $spin->prize->text_for_winner ?? '',
                             $spin->prize->type ?? '',
                             $spin->prize->value ?? '',
-                            $spin->code ?: 'не указан',
+                            $spin->prize->value ?? 'не указан',
                             $spin->guest->name ?? '',
                             $spin->guest->email ?? '',
                             $spin->guest->phone ?? ''
@@ -264,11 +271,15 @@
                 <div class="content-text">
                     <p>Уважаемый{{ $spin->guest->name ? ' ' . $spin->guest->name : '' }}!</p>
                     <p>Поздравляем вас с выигрышем приза <strong>{{ $spin->prize->name }}</strong>!</p>
-                    @if($spin->code)
-                        <p>Идентификационный номер: <strong>{{ $spin->code }}</strong></p>
+                    @if($spin->prize->value)
+                        <p>Идентификационный номер: <strong>{{ $spin->prize->value }}</strong></p>
                     @endif
                     <p>Спасибо за участие в нашей акции!</p>
                 </div>
+            @endif
+
+            @if($spin->code)
+            <div class="code-note">Примечание: Код выигрыша {{ $spin->code }}</div>
             @endif
         </div>
 

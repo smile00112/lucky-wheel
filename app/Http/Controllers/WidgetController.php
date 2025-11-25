@@ -453,12 +453,7 @@ class WidgetController extends Controller
 
             DB::commit();
 
-            // Отправка события о выигрыше приза
-            if ($prize) {
-                event(new PrizeWon($spin));
-            }
-
-            $guestHasData = !empty($guest->email) || !empty($guest->phone) || !empty($guest->name);
+            $guestHasData = !empty($guest->email) && !empty($guest->phone) && !empty($guest->name);
 
             return response()->json([
                 'spin_id' => $spin->id,
@@ -475,6 +470,8 @@ class WidgetController extends Controller
                 'spins_count' => $guestSpinsCount + 1,
                 'spins_limit' => $wheel->spins_limit,
                 'guest_has_data' => $guestHasData,
+                'win_guest_data' => $guest
+
             ]);
 
         } catch (\Exception $e) {
@@ -483,6 +480,39 @@ class WidgetController extends Controller
 
             return response()->json([
                 'error' => 'Spin failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Завершение вращения колеса (вызывается после окончания анимации)
+     * Отправляет событие PrizeWon
+     */
+    public function completeSpin(Request $request, int $spinId)
+    {
+        try {
+            $spin = Spin::with(['prize', 'guest'])->findOrFail($spinId);
+
+            // Проверяем, что у спина есть приз
+            if (!$spin->prize) {
+                return response()->json([
+                    'error' => 'No prize for this spin',
+                ], 400);
+            }
+
+            // Отправка события о выигрыше приза
+            event(new PrizeWon($spin));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Spin completed',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Complete spin error: ' . $e->getMessage());
+
+            return response()->json([
+                'error' => 'Complete spin failed',
                 'message' => $e->getMessage(),
             ], 500);
         }
@@ -580,7 +610,7 @@ class WidgetController extends Controller
                 $winGuest = $lastWin->guest;
                 $hasData = false;
                 if ($winGuest) {
-                    $hasData = !empty($winGuest->email) || !empty($winGuest->phone) || !empty($winGuest->name);
+                    $hasData = !empty($winGuest->email) && !empty($winGuest->phone) && !empty($winGuest->name);
                 }
 
                 return response()->json([
@@ -597,6 +627,7 @@ class WidgetController extends Controller
                     'win_date' => $lastWin->created_at->toIso8601String(),
                     'guest_has_data' => $hasData, // Флаг, заполнены ли данные у гостя, который выиграл
                     'win_guest_id' => $winGuest ? $winGuest->id : null, // ID гостя, который выиграл
+                    'win_guest_data' => $winGuest
                 ]);
             }
         }
@@ -1106,7 +1137,7 @@ class WidgetController extends Controller
     {
         $settings = Setting::getInstance();
         $template = $settings->pdf_template;
-        
+
         // Если шаблона нет, используем шаблон по умолчанию
         if (empty($template)) {
             $template = $this->getDefaultPdfTemplate();
@@ -1161,13 +1192,19 @@ class WidgetController extends Controller
             $prizeTextForWinnerHtml = "<div class=\"prize-description\">{$prize->text_for_winner}</div>";
         }
 
-        // Код
+        // Значение приза (основное отображение)
         $codeHtml = '';
-        if ($spin->code) {
+        if ($prize && $prize->value) {
             $codeHtml = "<div style=\"margin: 30px 0;\">
                 <div class=\"prize-code-label\">Идентификационный номер</div>
-                <div class=\"prize-code\">{$spin->code}</div>
+                <div class=\"prize-code\">{$prize->value}</div>
             </div>";
+        }
+
+        // Примечание с кодом выигрыша
+        $codeNoteHtml = '';
+        if ($spin->code) {
+            $codeNoteHtml = "<div class=\"code-note\">Примечание: Код выигрыша {$spin->code}</div>";
         }
 
         // Дата
@@ -1190,6 +1227,7 @@ class WidgetController extends Controller
             '{prize_email_image_html}' => $prizeImageHtml,
             '{prize_email_image_url}' => $prizeImageUrl,
             '{code_html}' => $codeHtml,
+            '{code_note_html}' => $codeNoteHtml,
             '{code}' => $spin->code ?: 'не указан',
             '{date}' => $date,
         ];
@@ -1236,7 +1274,6 @@ class WidgetController extends Controller
             box-sizing: border-box;
         }
         body {
-            font-family: \'DejaVu Sans\', Arial, sans-serif;
             background: #667eea;
             padding: 40px;
             color: #333;
@@ -1328,6 +1365,12 @@ class WidgetController extends Controller
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+        .code-note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -1348,6 +1391,8 @@ class WidgetController extends Controller
         {code_html}
 
         {prize_text_for_winner_html}
+
+        {code_note_html}
 
         <div class="certificate-footer">
             <div class="date">Дата выигрыша: {date}</div>

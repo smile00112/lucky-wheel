@@ -204,9 +204,12 @@
     z-index: 10000;
     max-width: 451px;
     width: calc(100% - 40px);
-    min-height: 44%;
+    /*min-height: 44%;*/
     transition: bottom 0.5s ease;
     animation: slideUpNotification 0.5s ease forwards;
+    min-height: 350px;
+    max-height: 750px;
+    top: 0;
 }
 
 .win-notification.show {

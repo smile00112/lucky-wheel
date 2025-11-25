@@ -102,6 +102,12 @@
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+        .code-note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -125,15 +131,19 @@
         <div class="prize-description">{{ $prize->description }}</div>
         @endif
 
-        @if($code)
+        @if($prize->value)
         <div style="margin: 30px 0;">
             <div class="prize-code-label">Идентификационный номер</div>
-            <div class="prize-code">{{ $code }}</div>
+            <div class="prize-code">{{ $prize->value }}</div>
         </div>
         @endif
 
         @if($prize->text_for_winner)
         <div class="prize-description">{{ $prize->text_for_winner }}</div>
+        @endif
+
+        @if(isset($code) && $code)
+        <div class="code-note">Примечание: Код выигрыша {{ $code }}</div>
         @endif
 
         <div class="certificate-footer">

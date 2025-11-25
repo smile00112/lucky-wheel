@@ -132,7 +132,7 @@ export class FormHandler {
 
         if (!spinId) {
             this.setButtonLoading(submitBtn, false);
-            throw new Error('Spin ID not found');
+            throw new Error(this.config.getText('error_spin_id_not_found'));
         }
 
         try {

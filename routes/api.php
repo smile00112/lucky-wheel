@@ -21,6 +21,10 @@ Route::prefix('widget')->group(function () {
     Route::post('/spin', [WidgetController::class, 'spin'])
         ->name('widget.spin');
     
+    // API для завершения вращения (после окончания анимации)
+    Route::post('/spin/{spinId}/complete', [WidgetController::class, 'completeSpin'])
+        ->name('widget.spin.complete');
+    
     // API для получения истории вращений гостя
     Route::get('/guest/{guestId}/spins', [WidgetController::class, 'getGuestSpins'])
         ->name('widget.guest.spins');

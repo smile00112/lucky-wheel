@@ -17,7 +17,8 @@ export class ApiService {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || data.message || 'Request failed');
+                const errorMsg = data.error || data.message || this.config.getText('error_request_failed');
+                throw new Error(errorMsg);
             }
 
             return data;
@@ -46,7 +47,7 @@ export class ApiService {
             return guestId;
         }
 
-        throw new Error('Failed to get guest ID');
+        throw new Error(this.config.getText('error_failed_to_get_guest'));
     }
 
     async loadWheelData() {
@@ -79,6 +80,12 @@ export class ApiService {
 
     async sendPrizeEmail(spinId) {
         return this.request(`/spin/${spinId}/send-email`, {
+            method: 'POST',
+        });
+    }
+
+    async completeSpin(spinId) {
+        return this.request(`/spin/${spinId}/complete`, {
             method: 'POST',
         });
     }

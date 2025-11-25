@@ -46,11 +46,11 @@ export class FormHandler {
 
         if (loading) {
             button.disabled = true;
-            button.textContent = 'Отправка...';
+            button.textContent = this.config.getText('form_submit_loading');
             button.style.cursor = 'not-allowed';
         } else {
             button.disabled = false;
-            button.textContent = 'Отправить приз';
+            button.textContent = this.config.getText('form_submit_text');
             button.style.cursor = 'pointer';
         }
     }
@@ -58,7 +58,7 @@ export class FormHandler {
     setButtonSuccess(button) {
         if (!button) return;
         button.disabled = true;
-        button.textContent = '✓ Приз отправлен!';
+        button.textContent = this.config.getText('form_submit_success');
         button.style.background = '#4caf50';
         button.style.color = 'white';
         button.style.cursor = 'not-allowed';
@@ -67,7 +67,7 @@ export class FormHandler {
     setButtonError(button, message) {
         if (!button) return;
         button.disabled = true;
-        button.textContent = message || 'Приз уже получен';
+        button.textContent = message || this.config.getText('form_submit_error');
         button.style.background = '#ff6b6b';
         button.style.color = 'white';
         button.style.cursor = 'not-allowed';
@@ -111,7 +111,13 @@ export class FormHandler {
 
             const message = document.getElementById('winNotificationMessage');
             if (message) {
-                message.innerHTML += '<br><br><strong style="color: #4caf50;">✓ Данные сохранены! Приз будет отправлен на указанную почту.</strong>';
+                const successMsg = this.config.getText('form_success_message');
+                message.innerHTML += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
+            }
+
+            const pdfLink = document.getElementById('winNotificationPdfLink');
+            if (pdfLink) {
+                await this.notification.setupPdfLink(pdfLink, true);
             }
 
             Utils.notifyParent('claim-prize', { guest_id: data.guest_id });
@@ -126,7 +132,7 @@ export class FormHandler {
 
         if (!spinId) {
             this.setButtonLoading(submitBtn, false);
-            throw new Error('Spin ID not found');
+            throw new Error(this.config.getText('error_spin_id_not_found'));
         }
 
         try {
@@ -138,10 +144,10 @@ export class FormHandler {
     }
 
     handleError(error, submitBtn) {
-        const errorMessage = error.message || 'Ошибка при отправке';
+        const errorMessage = error.message || this.config.getText('error_send');
 
         if (errorMessage.includes('already claimed') || errorMessage.includes('уже получен')) {
-            this.setButtonError(submitBtn, 'Приз уже получен');
+            this.setButtonError(submitBtn, this.config.getText('form_submit_error'));
 
             const message = document.getElementById('winNotificationMessage');
             if (message) {
@@ -163,7 +169,8 @@ export class FormHandler {
             await Utils.copyToClipboard(code);
             this.showCopyFeedback(event);
         } catch (err) {
-            alert('Не удалось скопировать код. Пожалуйста, скопируйте вручную: ' + code);
+            const errorMsg = this.config.getText('error_copy_code');
+            alert(errorMsg + ' ' + code);
         }
     }
 

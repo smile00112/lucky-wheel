@@ -105,7 +105,7 @@ export class WheelController {
 
     applyWonPrize(winData) {
         const { prize, code } = winData;
-
+console.log('applyWonPrize', winData);
         if (prize?.email_image) {
             this.notification.showPrizeImage(prize.email_image);
         }
@@ -115,7 +115,7 @@ export class WheelController {
 
         const rotation = this.renderer.calculateRotationForPrize(prize.id);
         this.state.set('currentRotation', rotation);
-        
+
         // Проверяем, что canvas инициализирован перед рисованием
         const canvas = this.state.get('canvas');
         const ctx = this.state.get('ctx');
@@ -145,6 +145,16 @@ export class WheelController {
             const prizeIndex = data.prize ? this.renderer.findPrizeIndex(data.prize.id) : -1;
 
             await this.animation.animate(prizeIndex);
+
+            // Отправляем запрос о завершении вращения после окончания анимации
+            if (data.prize && data.spin_id) {
+                try {
+                    await this.api.completeSpin(data.spin_id);
+                } catch (error) {
+                    console.error('Failed to complete spin:', error);
+                    // Не блокируем выполнение при ошибке завершения
+                }
+            }
 
             this.updateSpinsInfo(data.spins_count, data.spins_limit);
 

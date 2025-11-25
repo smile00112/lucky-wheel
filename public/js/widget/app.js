@@ -35,11 +35,11 @@ class LuckyWheelApp {
             try {
                 this.config.guestId = await this.api.createOrGetGuest();
                 if (!this.config.guestId) {
-                    this.controller.showError('Ошибка инициализации: не удалось создать гостя');
+                    this.controller.showError(this.config.getText('error_init_guest'));
                     return;
                 }
             } catch (error) {
-                this.controller.showError('Ошибка инициализации: ' + error.message);
+                this.controller.showError(this.config.getText('error_init') + ' ' + error.message);
                 return;
             }
         }

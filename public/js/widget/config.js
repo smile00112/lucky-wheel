@@ -1,9 +1,45 @@
+import { ru } from './translations/ru.js';
+
 export class Config {
     constructor() {
         this.apiUrl = window.API_URL || '';
         this.appUrl = window.APP_URL || '';
         this.wheelSlug = window.WHEEL_SLUG || '';
         this.guestId = this.getGuestIdFromUrl();
+        
+        // Тексты по умолчанию из языкового файла
+        this.defaultTexts = {
+            ...ru,
+            loading_text: 'Загрузка...',
+            spin_button_text: 'Крутить колесо!',
+            spin_button_blocked_text: 'Вы уже выиграли сегодня. Попробуйте завтра!',
+            won_prize_label: 'Выиграно сегодня:',
+            win_notification_title: '🎉 Поздравляем с выигрышем!',
+            copy_code_button_title: 'Копировать код',
+            download_pdf_text: 'Скачать сертификат PDF',
+            form_description: 'Для получения приза на почту заполните данные:',
+            form_name_placeholder: 'Ваше имя',
+            form_email_placeholder: 'Email',
+            form_phone_placeholder: '+7 (XXX) XXX-XX-XX',
+            form_submit_text: 'Отправить приз',
+            form_submit_loading: 'Отправка...',
+            form_submit_success: '✓ Приз отправлен!',
+            form_success_message: '✓ Данные сохранены! Приз будет отправлен на указанную почту.',
+            spins_info_format: 'Вращений: {count} / {limit}',
+            spins_limit_format: 'Лимит вращений: {limit}',
+            wheel_default_name: 'Колесо Фортуны',
+        };
+        
+        // Получаем тексты из window или используем значения по умолчанию
+        this.texts = window.WHEEL_TEXTS ? { ...this.defaultTexts, ...window.WHEEL_TEXTS } : this.defaultTexts;
+    }
+
+    getText(key) {
+        return this.texts[key] || this.defaultTexts[key] || '';
+    }
+
+    updateTexts(texts) {
+        this.texts = { ...this.defaultTexts, ...texts };
     }
 
     getGuestIdFromUrl() {

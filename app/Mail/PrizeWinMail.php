@@ -100,13 +100,19 @@ class PrizeWinMail extends Mailable
             $prizeTextForWinnerHtml = "<div class=\"prize-description\"><strong>Сообщение:</strong> {$prize->text_for_winner}</div>";
         }
 
-        // Код
+        // Значение приза (основное отображение)
         $codeHtml = '';
-        if ($spin->code) {
+        if ($prize && $prize->value) {
             $codeHtml = "<div class=\"code-section\">
                 <div class=\"code-label\">Идентификационный номер</div>
-                <div class=\"code-value\">{$spin->code}</div>
+                <div class=\"code-value\">{$prize->value}</div>
             </div>";
+        }
+
+        // Примечание с кодом выигрыша
+        $codeNoteHtml = '';
+        if ($spin->code) {
+            $codeNoteHtml = "<div class=\"code-note\">Примечание: Код выигрыша {$spin->code}</div>";
         }
 
         return [
@@ -127,6 +133,7 @@ class PrizeWinMail extends Mailable
             '{prize_email_image_html}' => $prizeImageHtml,
             '{prize_email_image_url}' => ($prize && $prize->email_image) ? $this->getFileUrl($prize->email_image) : '',
             '{code_html}' => $codeHtml,
+            '{code_note_html}' => $codeNoteHtml,
             '{code}' => $spin->code ?: 'не указан',
         ];
     }
@@ -322,6 +329,13 @@ class PrizeWinMail extends Mailable
             background: linear-gradient(to right, transparent, #6ba644, transparent);
             margin: 30px 0;
         }
+        .code-note {
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+            font-style: italic;
+            text-align: center;
+        }
         @media only screen and (max-width: 600px) {
             .email-body {
                 padding: 25px 20px;
@@ -366,6 +380,8 @@ class PrizeWinMail extends Mailable
                 <p>Поздравляем вас с выигрышем приза <strong>{prize_name}</strong>!</p>
                 <p>Спасибо за участие в нашей акции!</p>
             </div>
+
+            {code_note_html}
         </div>
 
         <div class="email-footer">

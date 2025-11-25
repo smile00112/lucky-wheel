@@ -19,13 +19,13 @@
     RewriteEngine On
 
     # Обработка OPTIONS запросов для storage (CORS preflight)
-    RewriteCond %{REQUEST_METHOD} ^OPTIONS
-    RewriteCond %{REQUEST_URI} ^/storage/
-    RewriteRule ^(.*)$ - [R=200,L,E=storage_file:1]
+    #RewriteCond %{REQUEST_METHOD} ^OPTIONS
+    #RewriteCond %{REQUEST_URI} ^/storage/
+    #RewriteRule ^(.*)$ - [R=200,L,E=storage_file:1]
 
     # Перенаправляем запросы к storage через Laravel для CORS (до проверки существования файла)
-    RewriteCond %{REQUEST_URI} ^/storage/
-    RewriteRule ^(storage/.*)$ index.php [L]
+    #RewriteCond %{REQUEST_URI} ^/storage/
+    #RewriteRule ^(storage/.*)$ index.php [L]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .

@@ -7,7 +7,7 @@ export class NotificationManager {
         this.api = api;
     }
 
-    show(prize, code, guestHasData = null) {
+    async show(prize, code, guestHasData = null) {
         const notification = document.getElementById('winNotification');
         const message = document.getElementById('winNotificationMessage');
         const codeInput = document.getElementById('winNotificationCode');
@@ -18,7 +18,8 @@ export class NotificationManager {
 
         if (!prize || !notification || !message) return;
 
-        let messageText = `<strong>Вы выиграли: ${prize.name}</strong>`;
+        const winText = this.config.getText('win_notification_win_text');
+        let messageText = `<strong>${winText} ${prize.name}</strong>`;
         if (prize.text_for_winner) {
             messageText += `<br>${prize.text_for_winner}`;
         }
@@ -30,7 +31,7 @@ export class NotificationManager {
                 codeInput.placeholder = '';
             } else {
                 codeInput.value = '';
-                codeInput.placeholder = 'Код не указан';
+                codeInput.placeholder = this.config.getText('code_not_specified');
             }
         }
 
@@ -38,8 +39,12 @@ export class NotificationManager {
             codeContainer.style.display = 'flex';
         }
 
-        this.setupPdfLink(pdfLink);
-        this.setupFormVisibility(formContainer, sendContainer, guestHasData);
+        if (pdfLink) {
+            pdfLink.style.display = 'none';
+        }
+
+        const hasData = await this.setupFormVisibility(formContainer, sendContainer, guestHasData);
+        await this.setupPdfLink(pdfLink, hasData);
 
         notification.style.display = 'block';
         setTimeout(() => {
@@ -57,8 +62,23 @@ export class NotificationManager {
         }
     }
 
-    async setupPdfLink(pdfLink) {
+    async setupPdfLink(pdfLink, guestHasData = null) {
         if (!pdfLink) return;
+
+        if (guestHasData === null || guestHasData === undefined) {
+            try {
+                const guestData = await this.api.getGuestInfo(this.config.guestId);
+                const hasEmail = guestData?.email && guestData.email.trim() !== '';
+                guestHasData = hasEmail;
+            } catch (e) {
+                guestHasData = false;
+            }
+        }
+
+        if (guestHasData !== true) {
+            pdfLink.style.display = 'none';
+            return;
+        }
 
         const winData = this.state.getWinData();
         let spinId = winData?.spin_id;
@@ -83,13 +103,15 @@ export class NotificationManager {
     }
 
     async setupFormVisibility(formContainer, sendContainer, guestHasData) {
+        let guestData = null;
+
         if (guestHasData === null || guestHasData === undefined) {
             try {
                 const data = await this.api.checkTodayWin(this.config.guestId);
                 if (data.has_win && data.guest_has_data !== undefined) {
                     guestHasData = data.guest_has_data;
                 } else {
-                    const guestData = await this.api.getGuestInfo(this.config.guestId);
+                    guestData = await this.api.getGuestInfo(this.config.guestId);
                     guestHasData = guestData.has_data || false;
                 }
             } catch (e) {
@@ -97,17 +119,52 @@ export class NotificationManager {
             }
         }
 
-        if (guestHasData === true) {
+        if (!guestData) {
+            try {
+                guestData = await this.api.getGuestInfo(this.config.guestId);
+            } catch (e) {
+                guestData = null;
+            }
+        }
+
+        const hasEmail = guestData?.email && guestData.email.trim() !== '';
+        const hasAllRequiredFields = hasEmail;
+
+        if (hasAllRequiredFields) {
             if (formContainer) formContainer.style.display = 'none';
             if (sendContainer) sendContainer.style.display = 'block';
         } else {
             if (formContainer) formContainer.style.display = 'block';
             if (sendContainer) sendContainer.style.display = 'none';
 
+            this.prefillForm(guestData);
+
             const phoneInput = document.getElementById('winNotificationPhone');
             if (phoneInput) {
                 Utils.applyPhoneMask(phoneInput);
             }
+        }
+
+        return hasAllRequiredFields;
+    }
+
+    prefillForm(guestData) {
+        if (!guestData) return;
+
+        const nameInput = document.getElementById('winNotificationName');
+        const emailInput = document.getElementById('winNotificationEmail');
+        const phoneInput = document.getElementById('winNotificationPhone');
+
+        if (nameInput && guestData.name) {
+            nameInput.value = guestData.name;
+        }
+
+        if (emailInput && guestData.email) {
+            emailInput.value = guestData.email;
+        }
+
+        if (phoneInput && guestData.phone) {
+            phoneInput.value = guestData.phone;
         }
     }
 
@@ -125,7 +182,7 @@ export class NotificationManager {
         }
 
         image.src = url;
-        image.alt = 'Приз';
+        image.alt = this.config.getText('prize_image_alt');
         container.style.display = 'block';
     }
 

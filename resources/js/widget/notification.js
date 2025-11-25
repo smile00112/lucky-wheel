@@ -79,7 +79,7 @@ export class NotificationManager {
             }
         }
 
-        if (guestHasData === false) {
+        if (guestHasData !== true) {
             pdfLink.style.display = 'none';
             return;
         }

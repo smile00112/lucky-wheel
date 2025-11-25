@@ -1,3 +1,5 @@
+import { ru } from './translations/ru.js';
+
 export class Config {
     constructor() {
         this.apiUrl = window.API_URL || '';
@@ -5,8 +7,9 @@ export class Config {
         this.wheelSlug = window.WHEEL_SLUG || '';
         this.guestId = this.getGuestIdFromUrl();
         
-        // Тексты по умолчанию
+        // Тексты по умолчанию из языкового файла
         this.defaultTexts = {
+            ...ru,
             loading_text: 'Загрузка...',
             spin_button_text: 'Крутить колесо!',
             spin_button_blocked_text: 'Вы уже выиграли сегодня. Попробуйте завтра!',

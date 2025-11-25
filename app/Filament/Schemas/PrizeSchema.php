@@ -49,11 +49,11 @@ class PrizeSchema
                 ->label(__('filament.prize.value'))
                 ->maxLength(255)
                 ->helperText(__('filament.prize.value_hint'))
-                ->hidden($hideValue),
+                ,
             Forms\Components\Textarea::make('description')
                 ->label(__('filament.prize.description'))
                 ->rows(3)
-                //->columnSpanFull()
+                ->columnSpanFull()
             ,
             Forms\Components\Textarea::make('text_for_winner')
                 ->label(__('filament.prize.text_for_winner'))
