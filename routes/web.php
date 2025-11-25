@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WidgetController;
+use App\Http\Controllers\WidgetAssetController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -17,6 +18,10 @@ Route::get('/widget/embed/{slug}', [WidgetController::class, 'embed'])
 // Веб-маршрут для виджета v2 (новая модульная версия)
 Route::get('/widget/embed-v2/{slug}', [WidgetController::class, 'embedV2'])
     ->name('widget.embed.v2');
+
+Route::get('/widget/assets/{path}', WidgetAssetController::class)
+    ->where('path', '.*')
+    ->name('widget.assets');
 
 // Telegram WebApp
 Route::get('/telegram/app', [App\Http\Controllers\TelegramController::class, 'webapp'])

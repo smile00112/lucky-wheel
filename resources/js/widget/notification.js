@@ -7,7 +7,7 @@ export class NotificationManager {
         this.api = api;
     }
 
-    show(prize, code, guestHasData = null) {
+    async show(prize, code, guestHasData = null) {
         const notification = document.getElementById('winNotification');
         const message = document.getElementById('winNotificationMessage');
         const codeInput = document.getElementById('winNotificationCode');
@@ -39,8 +39,12 @@ export class NotificationManager {
             codeContainer.style.display = 'flex';
         }
 
-        this.setupPdfLink(pdfLink);
-        this.setupFormVisibility(formContainer, sendContainer, guestHasData);
+        if (pdfLink) {
+            pdfLink.style.display = 'none';
+        }
+
+        const hasData = await this.setupFormVisibility(formContainer, sendContainer, guestHasData);
+        await this.setupPdfLink(pdfLink, hasData);
 
         notification.style.display = 'block';
         setTimeout(() => {
@@ -58,8 +62,27 @@ export class NotificationManager {
         }
     }
 
-    async setupPdfLink(pdfLink) {
+    async setupPdfLink(pdfLink, guestHasData = null) {
         if (!pdfLink) return;
+
+        if (guestHasData === null || guestHasData === undefined) {
+            try {
+                const data = await this.api.checkTodayWin(this.config.guestId);
+                if (data.has_win && data.guest_has_data !== undefined) {
+                    guestHasData = data.guest_has_data;
+                } else {
+                    const guestData = await this.api.getGuestInfo(this.config.guestId);
+                    guestHasData = guestData.has_data || false;
+                }
+            } catch (e) {
+                guestHasData = false;
+            }
+        }
+
+        if (guestHasData === false) {
+            pdfLink.style.display = 'none';
+            return;
+        }
 
         const winData = this.state.getWinData();
         let spinId = winData?.spin_id;
@@ -110,6 +133,8 @@ export class NotificationManager {
                 Utils.applyPhoneMask(phoneInput);
             }
         }
+
+        return guestHasData;
     }
 
     showPrizeImage(imageUrl) {

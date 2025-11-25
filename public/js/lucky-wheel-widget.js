@@ -594,6 +594,12 @@
                                 const existingScript = document.querySelector(`script[src="${oldScript.src}"]`);
                                 if (!existingScript) {
                                     const newScript = document.createElement('script');
+                                    if (oldScript.getAttribute('type')) {
+                                        newScript.setAttribute('type', oldScript.getAttribute('type'));
+                                    }
+                                    if (oldScript.noModule) {
+                                        newScript.noModule = true;
+                                    }
                                     newScript.src = oldScript.src;
                                     newScript.async = oldScript.async || false;
                                     newScript.defer = oldScript.defer || false;

@@ -115,6 +115,11 @@ export class FormHandler {
                 message.innerHTML += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
             }
 
+            const pdfLink = document.getElementById('winNotificationPdfLink');
+            if (pdfLink) {
+                await this.notification.setupPdfLink(pdfLink, true);
+            }
+
             Utils.notifyParent('claim-prize', { guest_id: data.guest_id });
         } catch (error) {
             this.handleError(error, submitBtn);

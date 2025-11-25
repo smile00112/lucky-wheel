@@ -3,6 +3,11 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    <IfModule mod_headers.c>
+        SetEnvIf Request_URI "^/js/widget/" lucky_wheel_widget=1
+        Header set Access-Control-Allow-Origin "*" env=lucky_wheel_widget
+    </IfModule>
+
     RewriteEngine On
 
     # Handle Authorization Header

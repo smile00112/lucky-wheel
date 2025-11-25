@@ -458,6 +458,8 @@ class WidgetController extends Controller
                 event(new PrizeWon($spin));
             }
 
+            $guestHasData = !empty($guest->email) || !empty($guest->phone) || !empty($guest->name);
+
             return response()->json([
                 'spin_id' => $spin->id,
                 'prize' => $prize ? [
@@ -472,6 +474,7 @@ class WidgetController extends Controller
                 'has_prize' => $prize !== null,
                 'spins_count' => $guestSpinsCount + 1,
                 'spins_limit' => $wheel->spins_limit,
+                'guest_has_data' => $guestHasData,
             ]);
 
         } catch (\Exception $e) {

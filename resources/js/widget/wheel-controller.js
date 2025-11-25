@@ -149,11 +149,11 @@ export class WheelController {
             this.updateSpinsInfo(data.spins_count, data.spins_limit);
 
             if (data.prize) {
-                this.state.saveWin(data.prize, data.code, null, data.spin_id);
+                this.state.saveWin(data.prize, data.code, data.guest_has_data, data.spin_id);
                 Utils.notifyParent('win', data.prize);
 
                 setTimeout(() => {
-                    this.notification.show(data.prize, data.code);
+                    this.notification.show(data.prize, data.code, data.guest_has_data);
                     this.notification.showWonPrizeBlock(data.code);
                 }, 500);
 
@@ -166,7 +166,7 @@ export class WheelController {
                 const winData = this.state.getWinData();
                 if (winData) {
                     setTimeout(() => {
-                        this.notification.show(winData.prize, winData.code);
+                        this.notification.show(winData.prize, winData.code, winData.guest_has_data);
                         this.notification.showWonPrizeBlock(winData.code);
                     }, 100);
                     this.blockSpinning();

@@ -155,6 +155,8 @@ class TelegramWebhookController extends Controller
         ]);
 
         $this->botService->sendMessage($bot, $chatId, $message, $keyboard);
+        //чистим кнопку приложения
+        $this->botService->removeMenuButton($bot, $chatId);
     }
 
     private function handleContact(
@@ -233,6 +235,12 @@ class TelegramWebhookController extends Controller
             $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
             $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactSavedMessage($integration), $keyboard);
 
+            //добавляем кнопку на приложение
+            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+            if($webAppUrl)
+                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+
+
         } catch (\Exception $e) {
             Log::error('Error processing contact', [
                 'error' => $e->getMessage(),
@@ -241,6 +249,17 @@ class TelegramWebhookController extends Controller
             ]);
 
             $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactProcessingError($integration));
+
+            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+            Log::info('1111111 22', [
+
+                'webAppUrl' => $webAppUrl,
+
+            ]);
+
+            if($webAppUrl)
+                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+
         }
     }
 
@@ -274,7 +293,7 @@ class TelegramWebhookController extends Controller
 
         //к url вызова колеса добавляем id гостя
         $telegramUser = TelegramUser::findByTelegramId($telegramId);
-        
+
         if (!$telegramUser || !$telegramUser->guest_id) {
             $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
             $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
@@ -283,6 +302,12 @@ class TelegramWebhookController extends Controller
 
         $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
         $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinWelcomeMessage($integration), $webAppUrl, $this->keyboardService, $integration);
+
+        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+
+        if($webAppUrl)
+            $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+
     }
 
     private function handleHistoryCommand(
@@ -320,6 +345,9 @@ class TelegramWebhookController extends Controller
         $messageText = $this->messageService->getHistoryMessage($wins, $integration);
         $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
         $this->botService->sendMessage($bot, $chatId, $messageText, $keyboard);
+        //$this->botService->removeMenuButton($bot);
+
+
     }
 
     private function handleRequestContact(
@@ -376,7 +404,7 @@ class TelegramWebhookController extends Controller
 
                 //к url вызова колеса добавляем id гостя
                 $telegramUser = TelegramUser::findByTelegramId($telegramId);
-                
+
                 if (!$telegramUser || !$telegramUser->guest_id) {
                     $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
                     $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);

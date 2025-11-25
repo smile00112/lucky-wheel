@@ -124,5 +124,5 @@
     window.WHEEL_TEXTS = @json($texts);
 </script>
 
-<script type="module" src="{{ url('js/widget/app.js') }}"></script>
+<script type="module" src="{{ route('widget.assets', ['path' => 'app.js']) }}"></script>
 

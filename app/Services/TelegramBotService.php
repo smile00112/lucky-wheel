@@ -83,5 +83,60 @@ class TelegramBotService
             ]);
         }
     }
+
+    public function setMenuButton(
+        BotApi $bot,
+        string $text,
+        string $url,
+        ?int $chatId = null
+    ): void {
+        try {
+            $payload = [
+                'menu_button' => json_encode([
+                    'type' => 'web_app',
+                    'text' => $text,
+                    'web_app' => ['url' => $url],
+                ], JSON_THROW_ON_ERROR),
+            ];
+
+            if ($chatId) {
+                $payload['chat_id'] = $chatId;
+            }
+
+            $bot->call('setChatMenuButton', $payload);
+        } catch (\Throwable $e) {
+            Log::error('Failed to set menu button', ['error' => $e->getMessage()]);
+        }
+    }
+
+    public function removeMenuButton(BotApi $bot, ?int $chatId = null): void
+    {
+        try {
+            $bot->call('setChatMenuButton', [
+                'menu_button' => json_encode([
+                    'type' => 'default',
+                ], JSON_THROW_ON_ERROR),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to remove menu button', ['error' => $e->getMessage()]);
+        }
+
+
+        try {
+            $payload = [
+                'menu_button' => json_encode([
+                    'type' => 'default',
+                ], JSON_THROW_ON_ERROR),
+            ];
+
+            if ($chatId) {
+                $payload['chat_id'] = $chatId;
+            }
+
+            $bot->call('setChatMenuButton', $payload);
+        } catch (\Throwable $e) {
+            Log::error('Failed to remove menu button', ['error' => $e->getMessage()]);
+        }
+    }
 }
 

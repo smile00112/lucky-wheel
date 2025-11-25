@@ -103,33 +103,40 @@ class Wheel extends Model
 
     /**
      * Получить дефолтные настройки стилей
+     * Все стили должны соответствовать тем, что используются в generateStyleCss()
      */
     public static function getDefaultStyleSettings(): array
     {
         return [
+            // .lucky-wheel-content
             'content' => [
                 'font_family' => 'Arial, sans-serif',
                 'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             ],
+            // .lucky-wheel-container
             'container' => [
                 'background' => '#ffffff',
                 'border_radius' => '20px',
                 'padding' => '30px 20px',
                 'max_width' => '450px',
             ],
+            // .lucky-wheel-container h1
             'title' => [
                 'color' => '#333333',
                 'font_size' => '1.8em',
                 'margin_bottom' => '20px',
             ],
+            // .lucky-wheel-container .description
             'description' => [
                 'color' => '#666666',
                 'font_size' => '14px',
                 'margin_bottom' => '35px',
             ],
+            // .pointer
             'pointer' => [
                 'color' => '#ff4444',
             ],
+            // .spin-button
             'spin_button' => [
                 'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 'color' => '#ffffff',
@@ -139,32 +146,39 @@ class Wheel extends Model
                 'border_radius' => '50px',
                 'max_width' => '300px',
             ],
+            // .won-prize-block
             'won_prize_block' => [
                 'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 'color' => '#ffffff',
                 'padding' => '10px 20px',
                 'border_radius' => '10px',
             ],
+            // .won-prize-label
             'won_prize_label' => [
                 'font_size' => '11px',
                 'opacity' => '0.9',
             ],
+            // .won-prize-name
             'won_prize_name' => [
                 'font_size' => '14px',
                 'font_weight' => 'bold',
             ],
+            // .win-notification
             'win_notification' => [
                 'background' => 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 'color' => '#ffffff',
                 'padding' => '20px',
                 'border_radius' => '15px 15px 0 0',
             ],
+            // .win-notification h3
             'win_notification_title' => [
                 'font_size' => '1.3em',
             ],
+            // .win-notification-message
             'win_notification_message' => [
                 'font_size' => '14px',
             ],
+            // .win-notification-code input
             'win_notification_code_input' => [
                 'background' => 'rgba(255, 255, 255, 0.9)',
                 'color' => '#333333',
@@ -173,6 +187,7 @@ class Wheel extends Model
                 'border_radius' => '6px',
                 'padding' => '12px',
             ],
+            // .win-notification-submit-btn
             'win_notification_submit_button' => [
                 'background' => '#ffffff',
                 'color' => '#667eea',
@@ -181,10 +196,12 @@ class Wheel extends Model
                 'border_radius' => '8px',
                 'padding' => '14px',
             ],
+            // .spins-info
             'spins_info' => [
                 'font_size' => '12px',
                 'color' => '#999999',
             ],
+            // .error
             'error' => [
                 'background' => '#ffeeee',
                 'border_color' => '#ffcccc',
@@ -204,10 +221,18 @@ class Wheel extends Model
         $settings = $this->style_settings ?? [];
 
         // Рекурсивно объединяем настройки с дефолтными значениями
+        return $this->arrayMergeRecursive($defaults, $settings);
+    }
+
+    /**
+     * Рекурсивное объединение массивов
+     */
+    private function arrayMergeRecursive(array $defaults, array $settings): array
+    {
         $result = $defaults;
         foreach ($settings as $key => $value) {
             if (isset($result[$key]) && is_array($result[$key]) && is_array($value)) {
-                $result[$key] = array_merge($result[$key], $value);
+                $result[$key] = $this->arrayMergeRecursive($result[$key], $value);
             } else {
                 $result[$key] = $value;
             }
