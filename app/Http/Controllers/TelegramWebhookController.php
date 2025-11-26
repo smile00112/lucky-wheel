@@ -294,6 +294,15 @@ class TelegramWebhookController extends Controller
         //к url вызова колеса добавляем id гостя
         $telegramUser = TelegramUser::findByTelegramId($telegramId);
 
+       log::info('handleSpinCommand 1', [
+           'telegram_id' => $telegramId,
+           'wheel_slug' => $wheelSlug,
+           '$chatId' => $chatId,
+           '$telegramId' => $telegramId,
+
+
+       ]) ;
+
         if (!$telegramUser || !$telegramUser->guest_id) {
             $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
             $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);

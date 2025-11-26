@@ -745,6 +745,14 @@ class WidgetController extends Controller
     {
         $guest = Guest::find($guestId);
 
+
+        Log::info('getGuestInfo ', [
+            'id' => $guest->id,
+            'email' => $guest->email,
+            'phone' => $guest->phone,
+            'name' => $guest->name,
+        ]);
+
         if (!$guest) {
             return response()->json([
                 'error' => 'Guest not found',
