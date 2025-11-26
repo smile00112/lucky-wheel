@@ -45,3 +45,64 @@ Route::get('/telegram/app', [App\Http\Controllers\TelegramController::class, 'we
 Route::post('/telegram/{integration}/webhook', [App\Http\Controllers\TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
+// Тестовый роут для отправки письма о призе
+Route::get('/test/prize-email/{prizeId}', function ($prizeId) {
+    $prize = \App\Models\Prize::findOrFail($prizeId);
+
+    // Создаем или находим тестового гостя
+    $guest = \App\Models\Guest::firstOrCreate(
+        ['email' => 'gorely.aleksei@yandex.ru'],
+        [
+            'name' => 'Тестовый пользователь',
+            'phone' => '+79991234567',
+        ]
+    );
+
+    $results = [];
+    $errors = [];
+
+    // Список всех шаблонов для отправки
+    $mailClasses = [
+        'spa-prize-win' => \App\Mail\SpaPrizeWinMail::class,
+        'spa-prize-win-elegant' => \App\Mail\SpaPrizeWinElegantMail::class,
+        'spa-prize-win-modern' => \App\Mail\SpaPrizeWinModernMail::class,
+        'spa-prize-win-vibrant' => \App\Mail\SpaPrizeWinVibrantMail::class,
+    ];
+
+    foreach ($mailClasses as $templateName => $mailClass) {
+        try {
+            // Создаем тестовый Spin для каждого письма
+            $spin = \App\Models\Spin::create([
+                'wheel_id' => $prize->wheel_id,
+                'guest_id' => $guest->id,
+                'prize_id' => $prize->id,
+                'code' => \App\Models\Spin::generateUniqueCode(),
+                'email_notification' => false,
+            ]);
+
+            // Отправляем письмо
+            \Illuminate\Support\Facades\Mail::to('gorely.aleksei@yandex.ru')
+                ->send(new $mailClass($spin));
+
+            $results[] = [
+                'template' => $templateName,
+                'status' => 'success',
+                'spin_id' => $spin->id,
+            ];
+        } catch (\Exception $e) {
+            $errors[] = [
+                'template' => $templateName,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    return response()->json([
+        'success' => count($errors) === 0,
+        'message' => count($results) . ' писем отправлено, ' . count($errors) . ' ошибок',
+        'results' => $results,
+        'errors' => $errors,
+        'prize_name' => $prize->name,
+    ]);
+})->name('test.prize-email');
