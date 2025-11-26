@@ -15,8 +15,10 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class WheelResource extends Resource
@@ -329,6 +331,43 @@ class WheelResource extends Resource
                     ->native(false),
             ])
             ->actions([
+                Action::make('duplicate')
+                    ->label('Копировать')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('info')
+                    ->iconButton()
+                    ->requiresConfirmation()
+                    ->modalHeading('Копировать колесо')
+                    ->modalDescription('Создать копию колеса со всеми призами?')
+                    ->modalSubmitActionLabel('Копировать')
+                    ->action(function (Wheel $record) {
+                        $newWheel = null;
+                        
+                        DB::transaction(function () use ($record, &$newWheel) {
+                            // Копируем колесо
+                            $newWheel = $record->replicate();
+                            $newWheel->name = $record->name . ' - копия';
+                            $newWheel->slug = static::generateUniqueSlug($record->slug);
+                            $newWheel->is_active = false; // Делаем неактивным по умолчанию
+                            $newWheel->user_id = auth()->id();
+                            $newWheel->save();
+
+                            // Копируем все призы
+                            foreach ($record->prizes as $prize) {
+                                $newPrize = $prize->replicate();
+                                $newPrize->wheel_id = $newWheel->id;
+                                $newPrize->quantity_used = 0; // Сбрасываем счетчик использованных призов
+                                $newPrize->save();
+                            }
+                        });
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Колесо успешно скопировано')
+                            ->success()
+                            ->send();
+
+                        return redirect(static::getUrl('edit', ['record' => $newWheel]));
+                    }),
                 EditAction::make()->iconButton(),
                 DeleteAction::make()->iconButton(),
             ])
@@ -352,6 +391,23 @@ class WheelResource extends Resource
             'create' => Pages\CreateWheel::route('/create'),
             'edit' => Pages\EditWheel::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Генерирует уникальный slug для копии колеса
+     */
+    private static function generateUniqueSlug(string $originalSlug): string
+    {
+        $baseSlug = $originalSlug . '-copy';
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (Wheel::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 }
 
