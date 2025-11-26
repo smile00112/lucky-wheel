@@ -34,7 +34,14 @@ class TelegramController extends Controller
             abort(404, 'Wheel has expired');
         }
 
-        return view('telegram.webapp', compact('wheel'));
+        // Обработка guest_id из GET параметра
+        $guest = null;
+        $guestId = $request->query('guest_id');
+        if ($guestId && is_numeric($guestId) && $guestId > 0) {
+            $guest = Guest::find((int) $guestId);
+        }
+
+        return view('telegram.webapp', compact('wheel', 'guest'));
     }
 
     public function auth(Request $request)

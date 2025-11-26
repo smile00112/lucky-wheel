@@ -316,6 +316,8 @@ class TelegramWebhookController extends Controller
 
         $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
 
+            log::info('$webAppUrl', ['$webAppUrl'=>$webAppUrl]);
+
         if($webAppUrl)
             $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
 
