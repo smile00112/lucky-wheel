@@ -12,9 +12,13 @@ export class WheelController {
     }
 
     async init() {
+        console.log('[LuckyWheel] WheelController.init() started');
         try {
+            console.log('[LuckyWheel] Loading wheel data...');
             const wheelData = await this.api.loadWheelData();
+            console.log('[LuckyWheel] Wheel data loaded:', wheelData);
             const prizes = wheelData.prizes || [];
+            console.log('[LuckyWheel] Prizes count:', prizes.length);
 
             if (prizes.length === 0) {
                 throw new Error(this.config.getText('error_no_prizes'));
@@ -29,6 +33,7 @@ export class WheelController {
             this.state.set('prizes', prizes);
 
             // Загрузка изображений с таймаутом
+            console.log('[LuckyWheel] Loading prize images...');
             try {
                 await Promise.race([
                     this.imageLoader.loadPrizeImages(prizes),
@@ -36,38 +41,62 @@ export class WheelController {
                         setTimeout(() => reject(new Error('Image loading timeout')), 20000)
                     )
                 ]);
+                console.log('[LuckyWheel] Prize images loaded');
             } catch (error) {
-                console.warn('Image loading failed or timeout:', error);
+                console.warn('[LuckyWheel] Image loading failed or timeout:', error);
                 // Продолжаем работу без изображений
             }
 
+            console.log('[LuckyWheel] Showing wheel content...');
             this.showWheelContent();
 
             // Инициализируем canvas после показа контента, чтобы размеры были правильными
             const canvas = document.getElementById('wheelCanvas');
+            console.log('[LuckyWheel] Canvas element:', canvas ? 'found' : 'not found');
             if (canvas) {
                 // Небольшая задержка для гарантии, что DOM обновился
                 setTimeout(() => {
+                    console.log('[LuckyWheel] Initializing canvas...');
                     this.renderer.init(canvas);
                     this.renderer.draw(0);
+                    console.log('[LuckyWheel] Canvas initialized and drawn');
                 }, 50);
             }
             this.updateSpinsInfo();
+            console.log('[LuckyWheel] Checking and applying won prize...');
             await this.checkAndApplyWonPrize();
 
             Utils.notifyParent('ready', {});
+            console.log('[LuckyWheel] WheelController.init() completed successfully');
         } catch (error) {
-            console.error('Wheel initialization error:', error);
+            console.error('[LuckyWheel] Wheel initialization error:', error);
             this.showError(this.config.getText('error_load_data') + ' ' + error.message);
+            // Убеждаемся, что контент показан даже при ошибке
+            this.showWheelContent();
         }
     }
 
     showWheelContent() {
+        console.log('[LuckyWheel] showWheelContent() called');
         const loading = document.getElementById('loading');
         const content = document.getElementById('wheelContent');
 
-        if (loading) loading.style.display = 'none';
-        if (content) content.style.display = 'block';
+        console.log('[LuckyWheel] Loading element:', loading ? 'found' : 'not found');
+        console.log('[LuckyWheel] Content element:', content ? 'found' : 'not found');
+
+        if (loading) {
+            loading.style.display = 'none';
+            console.log('[LuckyWheel] Loading hidden');
+        } else {
+            console.warn('[LuckyWheel] Loading element not found!');
+        }
+        
+        if (content) {
+            content.style.display = 'block';
+            console.log('[LuckyWheel] Content shown');
+        } else {
+            console.warn('[LuckyWheel] Content element not found!');
+        }
     }
 
     updateSpinsInfo(spinsCount = null, spinsLimit = null) {

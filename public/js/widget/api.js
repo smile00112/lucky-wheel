@@ -5,6 +5,7 @@ export class ApiService {
 
     async request(endpoint, options = {}) {
         const url = `${this.config.apiUrl}${endpoint}`;
+        console.log('[LuckyWheel] API request:', url, options.method || 'GET');
         const defaultOptions = {
             headers: {
                 'Content-Type': 'application/json',
@@ -14,7 +15,10 @@ export class ApiService {
 
         const timeout = 15000; // 15 секунд
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        const timeoutId = setTimeout(() => {
+            console.warn('[LuckyWheel] API request timeout:', url);
+            controller.abort();
+        }, timeout);
 
         try {
             const response = await fetch(url, { 
@@ -23,20 +27,24 @@ export class ApiService {
                 signal: controller.signal
             });
             clearTimeout(timeoutId);
+            console.log('[LuckyWheel] API response received:', url, response.status);
             const data = await response.json();
 
             if (!response.ok) {
                 const errorMsg = data.error || data.message || this.config.getText('error_request_failed');
+                console.error('[LuckyWheel] API error response:', url, errorMsg);
                 throw new Error(errorMsg);
             }
 
+            console.log('[LuckyWheel] API request successful:', url);
             return data;
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
+                console.error('[LuckyWheel] API request timeout:', url);
                 throw new Error('Request timeout');
             }
-            console.error('API request failed:', error);
+            console.error('[LuckyWheel] API request failed:', url, error);
             throw error;
         }
     }

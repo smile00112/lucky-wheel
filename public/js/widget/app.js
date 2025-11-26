@@ -31,42 +31,69 @@ class LuckyWheelApp {
     }
 
     async init() {
+        console.log('[LuckyWheel] App.init() started');
+        
         if (!this.config.guestId) {
+            console.log('[LuckyWheel] No guestId, creating/getting guest...');
             try {
                 this.config.guestId = await this.api.createOrGetGuest();
+                console.log('[LuckyWheel] Guest ID obtained:', this.config.guestId);
                 if (!this.config.guestId) {
+                    console.error('[LuckyWheel] Failed to get guest ID');
                     this.controller.showError(this.config.getText('error_init_guest'));
                     return;
                 }
             } catch (error) {
+                console.error('[LuckyWheel] Error creating/getting guest:', error);
                 this.controller.showError(this.config.getText('error_init') + ' ' + error.message);
                 return;
             }
+        } else {
+            console.log('[LuckyWheel] Using existing guestId:', this.config.guestId);
         }
-
 
         const phoneInput = document.getElementById('winNotificationPhone');
         if (phoneInput) {
             Utils.applyPhoneMask(phoneInput);
         }
 
-        await this.checkTodayWin();
-        await this.controller.init();
+        console.log('[LuckyWheel] Checking today win...');
+        try {
+            await this.checkTodayWin();
+            console.log('[LuckyWheel] checkTodayWin() completed');
+        } catch (error) {
+            console.error('[LuckyWheel] Error in checkTodayWin():', error);
+        }
+
+        console.log('[LuckyWheel] Initializing controller...');
+        try {
+            await this.controller.init();
+            console.log('[LuckyWheel] controller.init() completed');
+        } catch (error) {
+            console.error('[LuckyWheel] Error in controller.init():', error);
+            // Убеждаемся, что контент показан даже при ошибке
+            this.controller.showWheelContent();
+        }
 
         setInterval(() => this.checkTodayWin(), 60000);
 
         this.setupEventListeners();
+        console.log('[LuckyWheel] App.init() completed');
     }
 
     async checkTodayWin() {
+        console.log('[LuckyWheel] checkTodayWin() started');
         const winData = this.state.getWinData();
+        console.log('[LuckyWheel] winData from storage:', winData);
 
         if (winData && this.state.isTodayWin(winData)) {
+            console.log('[LuckyWheel] Today win found in storage');
             this.controller.applyWonPrize(winData);
             return;
         }
 
         if (winData && !this.state.isTodayWin(winData)) {
+            console.log('[LuckyWheel] Old win data found, clearing...');
             this.state.clearWin();
             this.controller.unblockSpinning();
             this.notification.hide();
@@ -81,8 +108,11 @@ class LuckyWheelApp {
         }
 
         try {
+            console.log('[LuckyWheel] Checking today win via API...');
             const data = await this.api.checkTodayWin(this.config.guestId);
+            console.log('[LuckyWheel] API response:', data);
             if (data.has_win && data.prize) {
+                console.log('[LuckyWheel] Today win found via API');
                 this.state.saveWin(data.prize, data.code, data.guest_has_data, data.spin_id);
                 this.controller.applyWonPrize({
                     prize: data.prize,
@@ -91,6 +121,7 @@ class LuckyWheelApp {
                     spin_id: data.spin_id,
                 });
             } else {
+                console.log('[LuckyWheel] No win today');
                 this.controller.unblockSpinning();
                 this.notification.hideWonPrizeBlock();
                 this.state.set('currentRotation', 0);
@@ -101,7 +132,7 @@ class LuckyWheelApp {
                 }
             }
         } catch (error) {
-            console.error('Error checking today win:', error);
+            console.error('[LuckyWheel] Error checking today win:', error);
         }
     }
 
@@ -148,8 +179,17 @@ class LuckyWheelApp {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+console.log('[LuckyWheel] Script loaded, document.readyState:', document.readyState);
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[LuckyWheel] DOMContentLoaded fired');
+        const app = new LuckyWheelApp();
+        app.init();
+    });
+} else {
+    console.log('[LuckyWheel] DOM already loaded, initializing immediately');
     const app = new LuckyWheelApp();
     app.init();
-});
+}
 

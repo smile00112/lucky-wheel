@@ -5,8 +5,10 @@ export class ImageLoader {
     }
 
     async loadPrizeImages(prizes) {
+        console.log('[LuckyWheel] loadPrizeImages() started, prizes count:', prizes.length);
         const imagePromises = prizes.map(async (prize) => {
             if (!prize.image) {
+                console.log('[LuckyWheel] No image for prize:', prize.id);
                 this.setPrizeImage(prize.id, null);
                 return;
             }
@@ -15,6 +17,8 @@ export class ImageLoader {
                 const img = new Image();
                 const timeout = 10000; // 10 секунд
                 let timeoutId;
+
+                console.log('[LuckyWheel] Loading image for prize:', prize.id, prize.image);
 
                 if (prize.image.startsWith('http://') || prize.image.startsWith('https://')) {
                     const currentOrigin = window.location.origin;
@@ -32,20 +36,21 @@ export class ImageLoader {
 
                 img.onload = () => {
                     cleanup();
+                    console.log('[LuckyWheel] Image loaded successfully:', prize.id);
                     this.setPrizeImage(prize.id, img);
                     resolve();
                 };
 
                 img.onerror = () => {
                     cleanup();
-                    console.warn('Failed to load image for prize:', prize.id, prize.image);
+                    console.warn('[LuckyWheel] Failed to load image for prize:', prize.id, prize.image);
                     this.setPrizeImage(prize.id, null);
                     resolve();
                 };
 
                 timeoutId = setTimeout(() => {
                     cleanup();
-                    console.warn('Image load timeout for prize:', prize.id, prize.image);
+                    console.warn('[LuckyWheel] Image load timeout for prize:', prize.id, prize.image);
                     this.setPrizeImage(prize.id, null);
                     resolve();
                 }, timeout);
@@ -55,6 +60,7 @@ export class ImageLoader {
         });
 
         await Promise.all(imagePromises);
+        console.log('[LuckyWheel] loadPrizeImages() completed');
     }
 
     setPrizeImage(prizeId, image) {
