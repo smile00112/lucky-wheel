@@ -122,6 +122,12 @@
     window.APP_URL = '{{ url('/') }}';
     window.WHEEL_SLUG = '{{ $wheel->slug }}';
     window.WHEEL_TEXTS = @json($texts);
+    window.GUEST_DATA = @json($guest ? [
+        'id' => $guest->id,
+        'name' => $guest->name,
+        'email' => $guest->email,
+        'phone' => $guest->phone,
+    ] : null);
 </script>
 
 <script type="module" src="{{ route('widget.assets', ['path' => 'app.js']) }}"></script>

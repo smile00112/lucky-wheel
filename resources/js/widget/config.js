@@ -56,7 +56,11 @@ export class Config {
 
     getGuestIdFromUrl() {
         const params = new URLSearchParams(window.location.search);
-        return params.get('guest_id');
+        const guestId = params.get('guest_id');
+        if (guestId && !isNaN(guestId) && parseInt(guestId) > 0) {
+            return parseInt(guestId);
+        }
+        return null;
     }
 
     getStorageKey(key) {

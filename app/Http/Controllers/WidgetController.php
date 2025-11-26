@@ -30,7 +30,7 @@ class WidgetController extends Controller
     /**
      * Отобразить первое доступное колесо
      */
-    public function show()
+    public function show(Request $request)
     {
         // Получаем первое активное колесо
         $wheel = Wheel::where('is_active', true)
@@ -56,13 +56,20 @@ class WidgetController extends Controller
             abort(404, 'Wheel has expired');
         }
 
-        return view('widget.wheel-v2', compact('wheel'));
+        // Обработка guest_id из GET параметра
+        $guest = null;
+        $guestId = $request->query('guest_id');
+        if ($guestId && is_numeric($guestId) && $guestId > 0) {
+            $guest = Guest::find((int) $guestId);
+        }
+
+        return view('widget.wheel-v2', compact('wheel', 'guest'));
     }
 
     /**
      * Отобразить виджет для iframe
      */
-    public function embed(string $slug)
+    public function embed(string $slug, Request $request)
     {
         $wheel = Wheel::where('slug', $slug)
             ->where('is_active', true)
@@ -76,6 +83,13 @@ class WidgetController extends Controller
         }
         if ($wheel->ends_at && $wheel->ends_at->isPast()) {
             abort(404, 'Wheel has expired');
+        }
+
+        // Обработка guest_id из GET параметра
+        $guest = null;
+        $guestId = $request->query('guest_id');
+        if ($guestId && is_numeric($guestId) && $guestId > 0) {
+            $guest = Guest::find((int) $guestId);
         }
 
         // Проверяем, нужен ли только контент (без HTML структуры)
@@ -87,13 +101,13 @@ class WidgetController extends Controller
 //
 //        return view('widget.wheel', compact('wheel'));
 
-        return view('widget.wheel-page', compact('wheel'));
+        return view('widget.wheel-page', compact('wheel', 'guest'));
     }
 
     /**
      * Отобразить виджет для iframe (новая версия v2)
      */
-    public function embedV2(string $slug)
+    public function embedV2(string $slug, Request $request)
     {
         $wheel = Wheel::where('slug', $slug)
             ->where('is_active', true)
@@ -109,7 +123,14 @@ class WidgetController extends Controller
             abort(404, 'Wheel has expired');
         }
 
-        return view('widget.wheel-v2', compact('wheel'));
+        // Обработка guest_id из GET параметра
+        $guest = null;
+        $guestId = $request->query('guest_id');
+        if ($guestId && is_numeric($guestId) && $guestId > 0) {
+            $guest = Guest::find((int) $guestId);
+        }
+
+        return view('widget.wheel-v2', compact('wheel', 'guest'));
     }
 
     /**

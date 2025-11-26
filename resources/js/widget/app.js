@@ -57,6 +57,9 @@ class LuckyWheelApp {
             Utils.applyPhoneMask(phoneInput);
         }
 
+        // Заполнение формы данными гостя, если они переданы
+        this.fillGuestForm();
+
         console.log('[LuckyWheel] Checking today win...');
         try {
             await this.checkTodayWin();
@@ -176,6 +179,33 @@ class LuckyWheelApp {
         window.hideWinNotification = () => this.notification.hide();
         window.submitPrizeForm = (e) => this.formHandler.submit(e);
         window.copyPrizeCode = (e) => this.formHandler.copyCode(e);
+    }
+
+    fillGuestForm() {
+        const guestData = window.GUEST_DATA;
+        if (!guestData) {
+            return;
+        }
+
+        console.log('[LuckyWheel] Filling form with guest data:', guestData);
+
+        const nameInput = document.getElementById('winNotificationName');
+        const emailInput = document.getElementById('winNotificationEmail');
+        const phoneInput = document.getElementById('winNotificationPhone');
+
+        if (nameInput && guestData.name) {
+            nameInput.value = guestData.name;
+        }
+        if (emailInput && guestData.email) {
+            emailInput.value = guestData.email;
+        }
+        if (phoneInput && guestData.phone) {
+            phoneInput.value = guestData.phone;
+            // Применяем маску к телефону после заполнения
+            if (Utils.applyPhoneMask) {
+                Utils.applyPhoneMask(phoneInput);
+            }
+        }
     }
 }
 
