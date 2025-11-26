@@ -33,6 +33,12 @@
     ];
     $settings = $wheel->settings ?? [];
     $texts = array_merge($defaultTexts, $settings);
+    $guestData = $guest ? [
+        'id' => $guest->id,
+        'name' => $guest->name,
+        'email' => $guest->email,
+        'phone' => $guest->phone,
+    ] : null;
 @endphp
 
 <link rel="stylesheet" href="{{ url('css/widget/wheel.css') }}">
@@ -122,12 +128,7 @@
     window.APP_URL = '{{ url('/') }}';
     window.WHEEL_SLUG = '{{ $wheel->slug }}';
     window.WHEEL_TEXTS = @json($texts);
-    window.GUEST_DATA = @json($guest ? [
-        'id' => $guest->id,
-        'name' => $guest->name,
-        'email' => $guest->email,
-        'phone' => $guest->phone,
-    ] : null);
+    window.GUEST_DATA = @json($guestData);
 </script>
 
 <script type="module" src="{{ route('widget.assets', ['path' => 'app.js']) }}"></script>
