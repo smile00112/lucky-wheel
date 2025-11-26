@@ -18,3 +18,4 @@ class ListPlatformIntegrations extends ListRecords
     }
 }
 
+

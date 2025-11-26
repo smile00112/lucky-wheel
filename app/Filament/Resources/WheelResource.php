@@ -350,6 +350,11 @@ class WheelResource extends Resource
                             $newWheel->slug = static::generateUniqueSlug($record->slug);
                             $newWheel->is_active = false; // Делаем неактивным по умолчанию
                             $newWheel->user_id = auth()->id();
+                            
+                            // Удаляем вычисляемые поля перед сохранением
+                            $newWheel->unsetAttribute('prizes_count');
+                            $newWheel->unsetAttribute('spins_count');
+                            
                             $newWheel->save();
 
                             // Копируем все призы

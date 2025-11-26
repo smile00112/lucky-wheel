@@ -10,3 +10,4 @@ class CreatePlatformIntegration extends CreateRecord
     protected static string $resource = PlatformIntegrationResource::class;
 }
 
+

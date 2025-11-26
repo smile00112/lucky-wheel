@@ -18,3 +18,4 @@ class EditPlatformIntegration extends EditRecord
     }
 }
 
+
