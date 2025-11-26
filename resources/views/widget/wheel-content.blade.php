@@ -1366,7 +1366,7 @@
                 }));
             }
 
-            function calculateOptimalTextSize(text, sectorWidth, sectorHeight, minFontSize = 12, maxFontSize = 100) {
+            function calculateOptimalTextSize(text, sectorWidth, sectorHeight, minFontSize = 10, maxFontSize = 95) {
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
 

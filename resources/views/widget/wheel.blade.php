@@ -1070,6 +1070,20 @@
                 return;
             }
 
+            const togglePdfLink = (shouldShow) => {
+                if (!pdfLink) {
+                    return;
+                }
+
+                if (shouldShow && spinId) {
+                    pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
+                    pdfLink.style.display = 'flex';
+                } else {
+                    pdfLink.removeAttribute('href');
+                    pdfLink.style.display = 'none';
+                }
+            };
+
             if (!notification) {
                 console.error('showWinNotification: winNotification element not found');
                 return;
@@ -1143,14 +1157,6 @@
                 }
             }
 
-            // Устанавливаем ссылку на PDF, если есть spin_id
-            // if (spinId && pdfLink) {
-            //     pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
-            //     pdfLink.style.display = 'flex';
-            // } else if (pdfLink) {
-            //     pdfLink.style.display = 'none';
-            // }
-
             // Проверяем, заполнены ли данные гостя
             let guestHasData = guestHasDataParam; // Используем переданный параметр, если есть
 
@@ -1189,16 +1195,11 @@
                 // Данные уже заполнены - показываем только кнопку отправки
                 if (formContainer) {
                     formContainer.style.display = 'none';
-
-                    //показываем кнопку скачавания pdf
-                    if (spinId && pdfLink) {
-                        pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
-                        pdfLink.style.display = 'flex';
-                    }
                 }
                 if (sendContainer) {
                     sendContainer.style.display = 'block';
                 }
+                togglePdfLink(true);
             } else {
                 // Данные не заполнены - показываем форму
                 if (formContainer) {
@@ -1206,13 +1207,8 @@
                 }
                 if (sendContainer) {
                     sendContainer.style.display = 'none';
-
-                    //показываем кнопку скачавания pdf
-                    if (spinId && pdfLink) {
-                        pdfLink.href = `${API_URL}/spin/${spinId}/download-pdf`;
-                        pdfLink.style.display = 'flex';
-                    }
                 }
+                togglePdfLink(false);
                 // Применяем маску для поля телефона, если форма показывается
                 const phoneInput = document.getElementById('winNotificationPhone');
                 if (phoneInput && !phoneInput.hasAttribute('data-mask-applied')) {
@@ -1445,6 +1441,7 @@
                     const todayWinKey = `lucky_wheel_win_${WHEEL_SLUG}_${GUEST_ID}`;
                     const winDataStr = localStorage.getItem(todayWinKey);
                     let prizeEmailImage = null;
+                    let spinIdForPdf = null;
 
                     if (winDataStr) {
                         try {
@@ -1452,6 +1449,7 @@
                             if (winData.prize && winData.prize.email_image) {
                                 prizeEmailImage = winData.prize.email_image;
                             }
+                            spinIdForPdf = winData.spin_id || null;
                         } catch (e) {
                             console.warn('Could not parse win data:', e);
                         }
@@ -1468,6 +1466,13 @@
 
                     //показываем фото qr кода
                     show_prize_image();
+
+                    // Показываем кнопку скачивания PDF после сохранения данных
+                    const pdfLink = document.getElementById('winNotificationPdfLink');
+                    if (pdfLink && spinIdForPdf) {
+                        pdfLink.href = `${API_URL}/spin/${spinIdForPdf}/download-pdf`;
+                        pdfLink.style.display = 'flex';
+                    }
 
                     // Отправляем guest_id в родительское окно, если он есть в ответе
                     if (data.guest_id && typeof data.guest_id === 'number') {
@@ -1681,7 +1686,7 @@
         }
 
         // Функция для расчета оптимального размера шрифта и переноса текста
-        function calculateOptimalTextSize(text, sectorWidth, sectorHeight, minFontSize = 12, maxFontSize = 100) {
+        function calculateOptimalTextSize(text, sectorWidth, sectorHeight, minFontSize = 10, maxFontSize = 95) {
             // Создаем временный контекст для измерения текста
             const tempCanvas = document.createElement('canvas');
             const tempCtx = tempCanvas.getContext('2d');

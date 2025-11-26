@@ -17,7 +17,8 @@ export class ApiService {
             const data = await response.json();
 
             if (!response.ok) {
-                const errorMsg = data.error || data.message || this.config.getText('error_request_failed');
+                // Сервер передает локализованный текст в message, а error содержит код
+                const errorMsg = data.message || data.error || this.config.getText('error_request_failed');
                 throw new Error(errorMsg);
             }
 
