@@ -13,6 +13,7 @@ class StorageFileController extends Controller
 {
     public function __invoke(Request $request, string $path): Response
     {
+
         // Обработка OPTIONS запросов (preflight)
         if ($request->isMethod('OPTIONS')) {
             $origin = $request->header('Origin');
@@ -43,7 +44,7 @@ class StorageFileController extends Controller
         }
 
         $fullPath = Storage::disk('public')->path($cleanPath);
-        
+
         if (!File::exists($fullPath)) {
             abort(404);
         }

@@ -25,7 +25,7 @@ Route::get('/widget/assets/{path}', WidgetAssetController::class)
     ->name('widget.assets');
 
 // Маршрут для отдачи storage файлов с CORS заголовками
-Route::get('/storage/{path}', StorageFileController::class)
+Route::get('/storage/prizes/{path}', StorageFileController::class)
     ->where('path', '.*')
     ->name('storage.file');
 

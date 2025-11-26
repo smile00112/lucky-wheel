@@ -5,7 +5,6 @@ export class NotificationManager {
         this.state = state;
         this.config = config;
         this.api = api;
-        this.cachedGuestInfo = null;
     }
 
     async show(prize, code, guestHasData = null) {
@@ -108,73 +107,50 @@ export class NotificationManager {
     }
 
     async setupFormVisibility(formContainer, sendContainer, guestHasData) {
-        let guestInfo = null;
-
         if (guestHasData === null || guestHasData === undefined) {
             try {
                 const data = await this.api.checkTodayWin(this.config.guestId);
                 if (data.has_win && data.guest_has_data !== undefined) {
                     guestHasData = data.guest_has_data;
                 } else {
-                    guestInfo = await this.fetchGuestInfo();
-                    guestHasData = guestInfo?.has_data ?? false;
+                    const guestData = await this.api.getGuestInfo(this.config.guestId);
+                    guestHasData = guestData.has_data || false;
                 }
             } catch (e) {
-                guestInfo = await this.fetchGuestInfo();
-                guestHasData = guestInfo?.has_data ?? false;
+                guestHasData = false;
             }
-        } else if (guestHasData === false) {
-            guestInfo = await this.fetchGuestInfo();
         }
 
         if (guestHasData === true) {
             if (formContainer) formContainer.style.display = 'none';
             if (sendContainer) sendContainer.style.display = 'block';
         } else {
+            // Всегда получаем данные гостя для заполнения формы
+            let guestInfo = null;
+            try {
+                guestInfo = await this.api.getGuestInfo(this.config.guestId);
+            } catch (e) {
+                console.warn('Could not fetch guest info for form prefill:', e);
+            }
+
             if (formContainer) formContainer.style.display = 'block';
             if (sendContainer) sendContainer.style.display = 'none';
 
             const phoneInput = document.getElementById('winNotificationPhone');
             if (phoneInput) {
                 Utils.applyPhoneMask(phoneInput);
+                if (guestInfo?.phone) {
+                    phoneInput.value = Utils.formatPhoneDisplay(guestInfo.phone);
+                }
             }
 
-            await this.prefillFormWithGuestData(guestInfo);
+            const nameInput = document.getElementById('winNotificationName');
+            if (nameInput && guestInfo?.name) {
+                nameInput.value = guestInfo.name;
+            }
         }
 
         return guestHasData;
-    }
-
-    async fetchGuestInfo(force = false) {
-        if (!force && this.cachedGuestInfo) {
-            return this.cachedGuestInfo;
-        }
-
-        try {
-            const info = await this.api.getGuestInfo(this.config.guestId);
-            this.cachedGuestInfo = info;
-            return info;
-        } catch (error) {
-            console.warn('Could not fetch guest info:', error);
-            return null;
-        }
-    }
-
-    async prefillFormWithGuestData(guestInfo = null) {
-        const data = guestInfo || await this.fetchGuestInfo();
-        if (!data) return;
-
-        const nameInput = document.getElementById('winNotificationName');
-        const phoneInput = document.getElementById('winNotificationPhone');
-
-        if (nameInput && data.name && !nameInput.value) {
-            nameInput.value = data.name;
-        }
-
-        if (phoneInput && data.phone && !phoneInput.value) {
-            Utils.applyPhoneMask(phoneInput);
-            phoneInput.value = Utils.formatPhoneDisplay(data.phone);
-        }
     }
 
     showPrizeImage(imageUrl) {
