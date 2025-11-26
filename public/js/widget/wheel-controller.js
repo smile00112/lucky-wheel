@@ -23,7 +23,18 @@ export class WheelController {
             this.state.set('wheelData', wheelData);
             this.state.set('prizes', prizes);
 
-            await this.imageLoader.loadPrizeImages(prizes);
+            // Загрузка изображений с таймаутом
+            try {
+                await Promise.race([
+                    this.imageLoader.loadPrizeImages(prizes),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Image loading timeout')), 20000)
+                    )
+                ]);
+            } catch (error) {
+                console.warn('Image loading failed or timeout:', error);
+                // Продолжаем работу без изображений
+            }
 
             this.showWheelContent();
 

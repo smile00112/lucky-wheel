@@ -13,6 +13,8 @@ export class ImageLoader {
 
             return new Promise((resolve) => {
                 const img = new Image();
+                const timeout = 10000; // 10 секунд
+                let timeoutId;
 
                 if (prize.image.startsWith('http://') || prize.image.startsWith('https://')) {
                     const currentOrigin = window.location.origin;
@@ -22,16 +24,31 @@ export class ImageLoader {
                     }
                 }
 
+                const cleanup = () => {
+                    if (timeoutId) clearTimeout(timeoutId);
+                    img.onload = null;
+                    img.onerror = null;
+                };
+
                 img.onload = () => {
+                    cleanup();
                     this.setPrizeImage(prize.id, img);
                     resolve();
                 };
 
                 img.onerror = () => {
+                    cleanup();
                     console.warn('Failed to load image for prize:', prize.id, prize.image);
                     this.setPrizeImage(prize.id, null);
                     resolve();
                 };
+
+                timeoutId = setTimeout(() => {
+                    cleanup();
+                    console.warn('Image load timeout for prize:', prize.id, prize.image);
+                    this.setPrizeImage(prize.id, null);
+                    resolve();
+                }, timeout);
 
                 img.src = prize.image;
             });

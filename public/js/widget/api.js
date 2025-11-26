@@ -12,8 +12,17 @@ export class ApiService {
             },
         };
 
+        const timeout = 15000; // 15 секунд
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
         try {
-            const response = await fetch(url, { ...defaultOptions, ...options });
+            const response = await fetch(url, { 
+                ...defaultOptions, 
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
             const data = await response.json();
 
             if (!response.ok) {
@@ -23,6 +32,10 @@ export class ApiService {
 
             return data;
         } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout');
+            }
             console.error('API request failed:', error);
             throw error;
         }
