@@ -138,19 +138,10 @@ class WidgetController extends Controller
         $prizes = $wheel->activePrizes->map(function ($prize) {
             $imageUrl =  $emailImageUrl = null;
             if ($prize->image) {
-                // Если изображение - это полный URL, используем как есть
-                if (filter_var($prize->image, FILTER_VALIDATE_URL)) {
-                    $imageUrl = $prize->image;
-                } elseif (str_starts_with($prize->image, '/')) {
-                    // Если путь начинается с /, это абсолютный путь
-                    $imageUrl = url($prize->image);
-                } elseif (Storage::disk('public')->exists($prize->image)) {
-                    // Если файл в public storage
-                    $imageUrl = Storage::disk('public')->url($prize->image);
-                } else {
-                    // По умолчанию используем asset для storage
-                    $imageUrl = asset('storage/' . ltrim($prize->image, '/'));
-                }
+                // Используем прокси-роут для всех изображений
+                // Кодируем путь в base64url для безопасной передачи
+                $encodedPath = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($prize->image));
+                $imageUrl = route('image.proxy', ['path' => $encodedPath]);
             }
             if ($prize->email_image) {
                 // Если изображение - это полный URL, используем как есть

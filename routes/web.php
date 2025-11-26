@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WidgetController;
 use App\Http\Controllers\WidgetAssetController;
 use App\Http\Controllers\StorageFileController;
+use App\Http\Controllers\ImageProxyController;
+use App\Http\Middleware\WidgetCors;
 
 Route::get('/', function () {
     return view('welcome');
@@ -28,6 +30,12 @@ Route::get('/widget/assets/{path}', WidgetAssetController::class)
 Route::get('/storage/prizes/{path}', StorageFileController::class)
     ->where('path', '.*')
     ->name('storage.file');
+
+// Маршрут для проксирования изображений призов с CORS заголовками
+Route::get('/img/{path}', ImageProxyController::class)
+    ->where('path', '.*')
+    ->middleware(WidgetCors::class)
+    ->name('image.proxy');
 
 // Telegram WebApp
 Route::get('/telegram/app', [App\Http\Controllers\TelegramController::class, 'webapp'])
