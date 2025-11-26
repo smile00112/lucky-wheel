@@ -352,8 +352,7 @@ class WheelResource extends Resource
                             $newWheel->user_id = auth()->id();
                             
                             // Удаляем вычисляемые поля перед сохранением
-                            $newWheel->unsetAttribute('prizes_count');
-                            $newWheel->unsetAttribute('spins_count');
+                            unset($newWheel->attributes['prizes_count'], $newWheel->attributes['spins_count']);
                             
                             $newWheel->save();
 
