@@ -31,7 +31,23 @@ export class ApiService {
             const data = await response.json();
 
             if (!response.ok) {
-                const errorMsg = data.error || data.message || this.config.getText('error_request_failed');
+                // Сервер передает локализованный текст в message, а error содержит код
+                let errorMsg = data.message || data.error || this.config.getText('error_request_failed');
+                
+                // Переводим известные коды ошибок
+                if (data.error === 'Validation failed') {
+                    errorMsg = this.config.getText('error_validation_failed');
+                } else if (data.error === 'Prize already claimed today') {
+                    errorMsg = this.config.getText('error_prize_already_claimed_today');
+                } else if (data.error && !data.message) {
+                    // Пытаемся найти перевод для кода ошибки
+                    const translationKey = `error_${data.error.toLowerCase().replace(/\s+/g, '_')}`;
+                    const translation = this.config.getText(translationKey);
+                    if (translation) {
+                        errorMsg = translation;
+                    }
+                }
+                
                 console.error('[LuckyWheel] API error response:', url, errorMsg);
                 throw new Error(errorMsg);
             }

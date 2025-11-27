@@ -6,6 +6,7 @@ use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Schemas\Components\Section;
 
 class PrizeSchema
 {
@@ -126,6 +127,31 @@ class PrizeSchema
                 ->minValue(1)
                 ->helperText(__('filament.prize.quantity_guest_limit_hint'))
                 ->hidden(),
+            Section::make('Данные для email')
+                ->description('Настройки для отправки приза по email')
+                ->columnSpanFull()
+                ->collapsible()
+                ->collapsed(false)
+                ->schema([
+                    Forms\Components\TextInput::make('email_name')
+                        ->label('Название приза для email')
+                        ->maxLength(255)
+                        ->helperText('Название приза, которое будет использоваться в email')
+                        ->required()
+                        ->columnSpanFull(),
+                    Forms\Components\Textarea::make('email_text_after_congratulation')
+                        ->label('Текст после поздравления')
+                        ->rows(3)
+                        ->helperText('Текст, который будет отображаться после поздравления в email')
+                        ->required()
+                        ->columnSpanFull(),
+                    Forms\Components\Textarea::make('email_coupon_after_code_text')
+                        ->label('Текст поля кода купона')
+                        ->rows(3)
+                        ->helperText('Текст, который будет отображаться после кода купона в email')
+                        ->required()
+                        ->columnSpanFull(),
+                ]),
         ]);
 
         return $schema->components($components);

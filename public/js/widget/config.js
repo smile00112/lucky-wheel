@@ -25,6 +25,8 @@ export class Config {
             form_submit_loading: 'Отправка...',
             form_submit_success: '✓ Приз отправлен!',
             form_success_message: '✓ Данные сохранены! Приз будет отправлен на указанную почту.',
+            error_validation_failed: 'Ошибка валидации данных',
+            error_prize_already_claimed_today: 'Приз уже был получен сегодня. Попробуйте завтра!',
             spins_info_format: 'Вращений: {count} / {limit}',
             spins_limit_format: 'Лимит вращений: {limit}',
             wheel_default_name: 'Колесо Фортуны',

@@ -22,6 +22,10 @@ Route::get('/widget/embed/{slug}', [WidgetController::class, 'embed'])
 Route::get('/widget/embed-v2/{slug}', [WidgetController::class, 'embedV2'])
     ->name('widget.embed.v2');
 
+// Веб-маршрут для виджета v3 (новая версия с отдельным шаблоном)
+Route::get('/widget/embed-v3/{slug}', [WidgetController::class, 'embedV3'])
+    ->name('widget.embed.v3');
+
 Route::get('/widget/assets/{path}', WidgetAssetController::class)
     ->where('path', '.*')
     ->name('widget.assets');

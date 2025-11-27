@@ -1474,8 +1474,30 @@
                         pdfLink.style.display = 'flex';
                     }
 
-                    // Отправляем guest_id в родительское окно, если он есть в ответе
-                    if (data.guest_id && typeof data.guest_id === 'number') {
+                    // Обновляем guest_id в localStorage, если он пришел в ответе и нет ошибок
+                    if (data.guest_id && typeof data.guest_id === 'number' && !data.error) {
+                        const guestIdStr = String(data.guest_id);
+                        const guestKey = `lucky_wheel_guest_${WHEEL_SLUG}`;
+                        
+                        // Обновляем ключ с wheelSlug
+                        localStorage.setItem(guestKey, guestIdStr);
+                        
+                        // Обновляем старый формат ключа
+                        localStorage.setItem('lucky_wheel_guest_id', guestIdStr);
+                        
+                        // Обновляем все ключи, которые начинаются с lucky_wheel_guest_
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && key.startsWith('lucky_wheel_guest_')) {
+                                localStorage.setItem(key, guestIdStr);
+                            }
+                        }
+                        
+                        // Обновляем переменную GUEST_ID
+                        GUEST_ID = guestIdStr;
+                        
+                        notifyParent('claim-prize', { guest_id: data.guest_id });
+                    } else if (data.guest_id && typeof data.guest_id === 'number') {
                         notifyParent('claim-prize', { guest_id: data.guest_id });
                     }
                 } else {

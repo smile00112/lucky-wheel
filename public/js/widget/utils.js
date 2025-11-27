@@ -96,5 +96,33 @@ export class Utils {
     static normalizeAngle(angle) {
         return ((angle % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI);
     }
+
+    static updateGuestIdInStorage(guestId, wheelSlug = null) {
+        if (!guestId) return;
+
+        const guestIdStr = String(guestId);
+
+        // Обновляем ключ с wheelSlug (если передан)
+        if (wheelSlug) {
+            const key = `lucky_wheel_guest_${wheelSlug}`;
+            localStorage.setItem(key, guestIdStr);
+        }
+
+        // Обновляем старый формат ключа (без slug)
+        localStorage.setItem('lucky_wheel_guest_id', guestIdStr);
+
+        // Обновляем все ключи, которые начинаются с lucky_wheel_guest_
+        const keysToUpdate = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('lucky_wheel_guest_')) {
+                keysToUpdate.push(key);
+            }
+        }
+
+        keysToUpdate.forEach(key => {
+            localStorage.setItem(key, guestIdStr);
+        });
+    }
 }
 

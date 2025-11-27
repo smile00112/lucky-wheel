@@ -6,6 +6,8 @@ export const ru = {
     error_already_claimed: 'Приз уже получен',
     error_network: 'Ошибка сети. Проверьте подключение к интернету.',
     error_server: 'Ошибка сервера. Попробуйте позже.',
+    error_validation_failed: 'Ошибка валидации данных',
+    error_prize_already_claimed_today: 'Приз уже был получен сегодня. Попробуйте завтра!',
     
     // Ошибки инициализации
     error_init_guest: 'Ошибка инициализации: не удалось создать гостя',
