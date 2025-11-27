@@ -134,5 +134,5 @@
     window.GUEST_DATA = @json($guestData);
 </script>
 
-<script type="module" src="{{ route('widget.assets', ['path' => 'app.js']) }}"></script>
+<script type="module" src="{{ route('widget.assets', ['path' => 'widget-v3/app.js']) }}"></script>
 

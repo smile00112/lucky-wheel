@@ -11,13 +11,20 @@ class WidgetAssetController extends Controller
 {
     public function __invoke(string $path): Response
     {
-        $basePath = realpath(public_path('js/widget'));
-        if ($basePath === false) {
+        $cleanPath = ltrim($path, '/');
+        if (str_contains($cleanPath, '..')) {
             abort(404);
         }
 
-        $cleanPath = ltrim($path, '/');
-        if (str_contains($cleanPath, '..')) {
+        // Поддержка widget-v3
+        if (str_starts_with($cleanPath, 'widget-v3/')) {
+            $basePath = realpath(public_path('js/widget-v3'));
+            $cleanPath = substr($cleanPath, strlen('widget-v3/'));
+        } else {
+            $basePath = realpath(public_path('js/widget'));
+        }
+
+        if ($basePath === false) {
             abort(404);
         }
 
