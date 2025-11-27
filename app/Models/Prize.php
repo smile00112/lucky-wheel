@@ -11,6 +11,9 @@ class Prize extends Model
     protected $fillable = [
         'wheel_id',
         'name',
+        'email_name',
+        'email_text_after_congratulation',
+        'email_coupon_after_code_text',
         'description',
         'text_for_winner',
         'type',

@@ -120,6 +120,14 @@ export class FormHandler {
                 await this.notification.setupPdfLink(pdfLink, true);
             }
 
+            // Обновляем guest_id в localStorage, если он пришел в ответе
+            if (data.guest_id && !data.error) {
+                Utils.updateGuestIdInStorage(data.guest_id, this.config.wheelSlug);
+                if (this.config.guestId) {
+                    this.config.guestId = String(data.guest_id);
+                }
+            }
+
             Utils.notifyParent('claim-prize', { guest_id: data.guest_id });
         } catch (error) {
             this.handleError(error, submitBtn);

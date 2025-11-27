@@ -134,7 +134,7 @@ return [
         'company_name' => 'Название компании',
         'logo' => 'Логотип',
         'email_template' => 'Шаблон письма о призе',
-        'email_template_hint' => 'HTML шаблон письма, которое будет отправлено клиенту при выигрыше. Доступные переменные: {company_name}, {logo_html}, {logo_url}, {prize_name}, {prize_description}, {prize_description_html}, {prize_text_for_winner}, {prize_text_for_winner_html}, {prize_type}, {prize_value}, {prize_email_image_html}, {prize_email_image_url}, {code}, {code_html}, {guest_name}, {guest_name_html}, {guest_email}, {guest_phone}',
+        'email_template_hint' => 'HTML шаблон письма, которое будет отправлено клиенту при выигрыше. Доступные переменные: {company_name}, {logo_html}, {logo_url}, {prize_name}, {prize_email_name}, {prize_email_name_html}, {prize_description}, {prize_description_html}, {prize_text_for_winner}, {prize_text_for_winner_html}, {prize_email_text_after_congratulation}, {prize_email_text_after_congratulation_html}, {prize_type}, {prize_value}, {prize_email_image_html}, {prize_email_image_url}, {code}, {code_html}, {code_note_html}, {prize_email_coupon_after_code_text}, {prize_email_coupon_after_code_text_html}, {guest_name}, {guest_name_html}, {guest_email}, {guest_phone}',
         'pdf_template' => 'Шаблон PDF сертификата',
         'pdf_template_hint' => 'HTML шаблон PDF сертификата, который будет сгенерирован при выигрыше. Доступные переменные: {company_name}, {wheel_name}, {prize_name}, {prize_description}, {prize_description_html}, {prize_text_for_winner}, {prize_text_for_winner_html}, {prize_type}, {prize_value}, {prize_email_image_html}, {prize_email_image_url}, {code}, {code_html}, {guest_name}, {guest_name_html}, {guest_email}, {guest_phone}, {date}',
     ],

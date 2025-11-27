@@ -134,6 +134,35 @@ class WidgetController extends Controller
     }
 
     /**
+     * Отобразить виджет для iframe (версия v3)
+     */
+    public function embedV3(string $slug, Request $request)
+    {
+        $wheel = Wheel::where('slug', $slug)
+            ->where('is_active', true)
+            ->with('activePrizes')
+            ->firstOrFail();
+
+        // Проверка временных ограничений
+        $now = now();
+        if ($wheel->starts_at && $wheel->starts_at->isFuture()) {
+            abort(404, 'Wheel not available yet');
+        }
+        if ($wheel->ends_at && $wheel->ends_at->isPast()) {
+            abort(404, 'Wheel has expired');
+        }
+
+        // Обработка guest_id из GET параметра
+        $guest = null;
+        $guestId = $request->query('guest_id');
+        if ($guestId && is_numeric($guestId) && $guestId > 0) {
+            $guest = Guest::find((int) $guestId);
+        }
+
+        return view('widget.wheel-v3', compact('wheel', 'guest'));
+    }
+
+    /**
      * Получить данные колеса (JSON API)
      */
     public function getWheel(string $slug)
@@ -256,6 +285,7 @@ class WidgetController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'error' => 'Validation failed',
+                'message' => 'Ошибка валидации данных',
                 'messages' => $validator->errors(),
             ], 422);
         }
@@ -305,6 +335,7 @@ class WidgetController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'error' => 'Validation failed',
+                'message' => 'Ошибка валидации данных',
                 'messages' => $validator->errors(),
             ], 422);
         }
@@ -755,8 +786,20 @@ class WidgetController extends Controller
      */
     public function getGuestInfo(Request $request, int $guestId)
     {
-        $guest = Guest::find($guestId);
+        try {
+            $guest = Guest::find($guestId);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Guest not found',
+            ], 404);
+        }
 
+        if (!$guest) {
+            return response()->json([
+                'error' => 'Guest not found',
+            ], 404);
+        }
 
         Log::info('getGuestInfo ', [
             'id' => $guest->id,
@@ -764,12 +807,6 @@ class WidgetController extends Controller
             'phone' => $guest->phone,
             'name' => $guest->name,
         ]);
-
-        if (!$guest) {
-            return response()->json([
-                'error' => 'Guest not found',
-            ], 404);
-        }
 
         // Проверяем, заполнены ли основные данные
         $hasData = !empty($guest->email) || !empty($guest->phone) || !empty($guest->name);
@@ -798,6 +835,7 @@ class WidgetController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'error' => 'Validation failed',
+                'message' => 'Ошибка валидации данных',
                 'messages' => $validator->errors(),
             ], 422);
         }

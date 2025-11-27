@@ -115,6 +115,25 @@ class PrizeWinMail extends Mailable
             $codeNoteHtml = "<div class=\"code-note\">Примечание: Код выигрыша {$spin->code}</div>";
         }
 
+        // Название приза для email
+        $prizeEmailName = ($prize && $prize->email_name) ? $prize->email_name : (($prize && $prize->name) ? $prize->name : '');
+        $prizeEmailNameHtml = '';
+        if ($prizeEmailName) {
+            $prizeEmailNameHtml = "<div class=\"prize-email-name\">{$prizeEmailName}</div>";
+        }
+
+        // Текст после поздравления
+        $prizeEmailTextAfterCongratulationHtml = '';
+        if ($prize && $prize->email_text_after_congratulation) {
+            $prizeEmailTextAfterCongratulationHtml = "<div class=\"prize-email-text-after-congratulation\">{$prize->email_text_after_congratulation}</div>";
+        }
+
+        // Текст после кода купона
+        $prizeEmailCouponAfterCodeTextHtml = '';
+        if ($prize && $prize->email_coupon_after_code_text) {
+            $prizeEmailCouponAfterCodeTextHtml = "<div class=\"prize-email-coupon-after-code-text\">{$prize->email_coupon_after_code_text}</div>";
+        }
+
         return [
             '{logo_html}' => $logoHtml,
             '{logo_url}' => $settings->logo ? $this->getFileUrl($settings->logo) : '',
@@ -124,10 +143,16 @@ class PrizeWinMail extends Mailable
             '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
             '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
             '{prize_name}' => ($prize && $prize->name) ? $prize->name : '',
+            '{prize_email_name}' => $prizeEmailName,
+            '{prize_email_name_html}' => $prizeEmailNameHtml,
             '{prize_description_html}' => $prizeDescriptionHtml,
             '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
             '{prize_text_for_winner_html}' => $prizeTextForWinnerHtml,
             '{prize_text_for_winner}' => ($prize && $prize->text_for_winner) ? $prize->text_for_winner : '',
+            '{prize_email_text_after_congratulation}' => ($prize && $prize->email_text_after_congratulation) ? $prize->email_text_after_congratulation : '',
+            '{prize_email_text_after_congratulation_html}' => $prizeEmailTextAfterCongratulationHtml,
+            '{prize_email_coupon_after_code_text}' => ($prize && $prize->email_coupon_after_code_text) ? $prize->email_coupon_after_code_text : '',
+            '{prize_email_coupon_after_code_text_html}' => $prizeEmailCouponAfterCodeTextHtml,
             '{prize_type}' => ($prize && $prize->type) ? $prize->type : '',
             '{prize_value}' => ($prize && $prize->value) ? $prize->value : '',
             '{prize_email_image_html}' => $prizeImageHtml,
@@ -365,19 +390,21 @@ class PrizeWinMail extends Mailable
 
         <div class="email-body">
             <div class="prize-section">
-                <div class="prize-title">🏆 Ваш приз: {prize_name}</div>
+                <div class="prize-title">🏆 Ваш приз: {prize_email_name}</div>
                 {prize_email_image_html}
                 {prize_description_html}
                 {prize_text_for_winner_html}
             </div>
 
             {code_html}
+            {prize_email_coupon_after_code_text_html}
 
             <div class="divider"></div>
 
             <div class="content-text">
                 <p>Уважаемый{guest_name}!</p>
-                <p>Поздравляем вас с выигрышем приза <strong>{prize_name}</strong>!</p>
+                <p>Поздравляем вас с выигрышем приза <strong>{prize_email_name}</strong>!</p>
+                {prize_email_text_after_congratulation_html}
                 <p>Спасибо за участие в нашей акции!</p>
             </div>
 

@@ -39,6 +39,8 @@ export class Config {
             error_general: 'Ошибка:',
             error_send: 'Ошибка при отправке',
             error_copy_code: 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
+            error_validation_failed: 'Ошибка валидации данных',
+            error_prize_already_claimed_today: 'Приз уже был получен сегодня. Попробуйте завтра!',
             wheel_default_name: 'Колесо Фортуны',
         };
         
