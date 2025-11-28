@@ -366,7 +366,7 @@
                     #lucky-wheel-modal {
                         background: white;
                         border-radius: 20px;
-                        max-width: 600px;
+                        /*max-width: 600px;*/
                         width: 100%;
                         max-height: 90vh;
                         position: relative;
