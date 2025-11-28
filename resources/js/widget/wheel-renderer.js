@@ -143,11 +143,14 @@ export class WheelRenderer {
     }
 
     drawPrizeText(ctx, prize, angle, radius) {
+        const isMobile = this.state.get('isMobile') || window.innerWidth <= 768;
         const midRadius = radius * 0.65;
         const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
         const sectorHeight = radius * 0.8;
 
-        const textConfig = this.calculateOptimalTextSize(prize.name, sectorWidth, sectorHeight);
+        const baseMaxFontSize = prize.font_size || 95;
+        const maxFontSize = isMobile ? Math.round(baseMaxFontSize * 0.8) : baseMaxFontSize;
+        const textConfig = this.calculateOptimalTextSize(prize.name, sectorWidth, sectorHeight, 10, maxFontSize);
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -230,12 +233,14 @@ export class WheelRenderer {
         const centerX = size / 2;
         const centerY = size / 2;
         const radius = Math.max(Math.min(centerX, centerY) - 10, 50); // Минимум 50px радиуса
+        const isMobile = window.innerWidth <= 768;
 
         this.state.set('canvas', canvasElement);
         this.state.set('ctx', canvasElement.getContext('2d'));
         this.state.set('centerX', centerX);
         this.state.set('centerY', centerY);
         this.state.set('radius', radius);
+        this.state.set('isMobile', isMobile);
     }
 
     findPrizeIndex(prizeId) {

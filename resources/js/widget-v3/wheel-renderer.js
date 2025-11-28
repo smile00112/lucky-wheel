@@ -97,7 +97,8 @@ export class WheelRenderer {
 
     drawPrizeText(ctx, prize, angle, radius) {
         const isMobile = this.state.get('isMobile') || window.innerWidth <= 768;
-        const fontSize = isMobile ? 12 : 13;
+        const baseFontSize = prize.font_size || 18;
+        const fontSize = isMobile ? Math.round(baseFontSize * 0.8) : baseFontSize;
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -105,8 +106,7 @@ export class WheelRenderer {
         ctx.font = `bold ${fontSize}px Arial`;
 
         const lineHeight = fontSize * 1.3;
-        let yOffset = 0;
-        const textRadius = radius * 0.6;
+        const textRadius = radius * 0.5;
 
         // Поддержка переносов строк: \n и <br> / <br />
         const processText = (text) => {
@@ -119,20 +119,24 @@ export class WheelRenderer {
         };
 
         const nameLines = processText(prize.name);
+        const descLines = (prize.description && !isMobile) ? processText(prize.description) : [];
+        const totalLines = nameLines.length + descLines.length;
+
+        // Вычисляем начальный yOffset для центрирования всего блока текста
+        const totalHeight = totalLines * lineHeight;
+        let yOffset = -totalHeight / 2 + lineHeight / 2;
+
         nameLines.forEach((line, index) => {
             ctx.font = `bold ${fontSize}px Arial`;
             ctx.fillText(line, textRadius, yOffset);
             yOffset += lineHeight;
         });
 
-        if (prize.description && !isMobile) {
-            const descLines = processText(prize.description);
-            descLines.forEach((line) => {
-                ctx.font = `${fontSize - 1}px Arial`;
-                ctx.fillText(line, textRadius, yOffset);
-                yOffset += lineHeight;
-            });
-        }
+        descLines.forEach((line) => {
+            ctx.font = `${fontSize - 1}px Arial`;
+            ctx.fillText(line, textRadius, yOffset);
+            yOffset += lineHeight;
+        });
     }
 
 

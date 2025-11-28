@@ -120,6 +120,13 @@ class PrizeSchema
                 ->label('Цвет текста в секции')
                 ->helperText('Цвет текста приза на колесе (по умолчанию белый)')
                 ->default('#ffffff'),
+            Forms\Components\TextInput::make('font_size')
+                ->label('Размер шрифта')
+                ->numeric()
+                ->minValue(8)
+                ->maxValue(72)
+                ->helperText('Размер шрифта текста приза на колесе (в пикселях)')
+                ->default(18),
 
             Forms\Components\TextInput::make('sort')
                 ->label(__('filament.prize.sort'))

@@ -466,7 +466,7 @@
 .win-notification-image-container {
     display: none;
     text-align: center;
-    width: 100%;
+    /*width: 100%;*/
     margin-bottom: 15px;
 }
 
@@ -597,6 +597,11 @@
     .win-notification-message_dop {
         font-size: 14px;
     }
+
+    .win-notification-code {
+        /*flex-grow: 1;*/
+
+    }
 }
 
 @media (max-width: 480px) {
@@ -639,6 +644,7 @@
 
     .win-notification-code {
         flex-direction: row;
+
     }
 
     .checkbox-label {
