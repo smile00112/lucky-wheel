@@ -306,16 +306,40 @@ class LuckyWheelApp {
     }
 }
 
+// Глобальная переменная для хранения экземпляра приложения
+window.__luckyWheelAppInstance = null;
+
+function initializeLuckyWheel() {
+    // Если уже есть экземпляр, уничтожаем его
+    if (window.__luckyWheelAppInstance) {
+        console.log('[LuckyWheel] Destroying previous instance');
+        window.__luckyWheelAppInstance = null;
+    }
+
+    console.log('[LuckyWheel] Initializing new instance');
+    const app = new LuckyWheelApp();
+    window.__luckyWheelAppInstance = app;
+    app.init();
+}
+
 console.log('[LuckyWheel] Script loaded, document.readyState:', document.readyState);
 
+// Инициализация при первой загрузке
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         console.log('[LuckyWheel] DOMContentLoaded fired');
-        const app = new LuckyWheelApp();
-        app.init();
+        initializeLuckyWheel();
     });
 } else {
     console.log('[LuckyWheel] DOM already loaded, initializing immediately');
-    const app = new LuckyWheelApp();
-    app.init();
+    initializeLuckyWheel();
 }
+
+// Экспортируем функцию для повторной инициализации
+window.reinitializeLuckyWheel = function() {
+    console.log('[LuckyWheel] Reinitializing via window.reinitializeLuckyWheel()');
+    // Небольшая задержка, чтобы DOM успел обновиться
+    setTimeout(() => {
+        initializeLuckyWheel();
+    }, 100);
+};

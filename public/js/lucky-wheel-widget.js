@@ -383,22 +383,25 @@
                         right: 15px;
                         width: 35px;
                         height: 35px;
-                        background: rgba(0, 0, 0, 0.1);
+                        /* background: rgba(0, 0, 0, 0.1); */
                         border: none;
                         border-radius: 50%;
                         cursor: pointer;
                         z-index: 10000;
-                        display: flex;
+                        display: flex
+                    ;
                         align-items: center;
                         justify-content: center;
-                        transition: all 0.3s ease;
+                        transition: all 0.3s
+                    ease;
                         flex-direction: column;
-
                         font-size: 20px;
                         line-height: 1;
-                        color: white;
+                        /* color: white; */
                         font-weight: 100;
                         padding: 0;
+                        background: round;
+                        color: #878787;
                     }
                     #lucky-wheel-modal-close:hover {
                         background: rgba(0, 0, 0, 0.2);
@@ -594,9 +597,17 @@
                             oldScript.remove();
 
                             if (oldScript.src) {
-                                // Для внешних скриптов - проверяем, не загружен ли уже
+                                // Для модульных скриптов (type="module") всегда загружаем заново при повторной загрузке контента
+                                const isModule = oldScript.getAttribute('type') === 'module';
                                 const existingScript = document.querySelector(`script[src="${oldScript.src}"]`);
-                                if (!existingScript) {
+
+                                // Для модульных скриптов или если скрипт еще не загружен
+                                if (isModule || !existingScript) {
+                                    // Если скрипт уже есть, но это модуль - удаляем старый для повторной загрузки
+                                    if (isModule && existingScript) {
+                                        existingScript.remove();
+                                    }
+
                                     const newScript = document.createElement('script');
                                     if (oldScript.getAttribute('type')) {
                                         newScript.setAttribute('type', oldScript.getAttribute('type'));
@@ -615,6 +626,9 @@
 
                                     container.appendChild(newScript);
                                     scriptPromises.push(scriptPromise);
+                                } else {
+                                    // Скрипт уже загружен и не модуль - просто резолвим промис
+                                    scriptPromises.push(Promise.resolve());
                                 }
                             } else {
                                 // Для inline скриптов - заменяем const/let на var, чтобы избежать ошибок повторного объявления
@@ -665,6 +679,14 @@
                         Promise.all(scriptPromises).then(() => {
                             // Даем время на выполнение всех скриптов
                             setTimeout(() => {
+                                // Для версии v3 используем модульную систему
+                                if (version === 'v3' && typeof window.reinitializeLuckyWheel === 'function') {
+                                    console.log('LuckyWheel: Reinitializing v3 widget');
+                                    window.reinitializeLuckyWheel();
+                                    resolve();
+                                    return;
+                                }
+
                                 // Инициализируем колесо вручную, если DOMContentLoaded уже произошел
                                 if (typeof createOrGetGuest === 'function' && typeof loadWheelData === 'function') {
                                     // Вызываем инициализацию
@@ -722,7 +744,10 @@
                         }).catch(() => {
                             // Продолжаем даже при ошибках
                             setTimeout(() => {
-                                if (typeof loadWheelData === 'function') {
+                                // Для версии v3 пытаемся переинициализировать
+                                if (version === 'v3' && typeof window.reinitializeLuckyWheel === 'function') {
+                                    window.reinitializeLuckyWheel();
+                                } else if (typeof loadWheelData === 'function') {
                                     loadWheelData();
                                 }
                                 resolve();
