@@ -131,7 +131,8 @@
 .won-prize-name {
     font-size: 14px;
     font-weight: bold;
-    white-space: nowrap;
+    word-wrap: break-word;
+    white-space: normal;
 }
 
 @keyframes slideDownPrize {
@@ -616,6 +617,8 @@
 
     .won-prize-name {
         font-size: 12px;
+        word-wrap: break-word;
+        white-space: normal;
     }
 
 
@@ -626,11 +629,6 @@
 
     .win-notification-message_dop {
         font-size: 14px;
-    }
-
-    .win-notification-code {
-        /*flex-grow: 1;*/
-
     }
 }
 

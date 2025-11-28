@@ -131,7 +131,8 @@ export class FormHandler {
             const message = document.getElementById('winNotificationMessage');
             if (message) {
                 const winText = this.config.getText('win_notification_win_text');
-                let messageText = `<strong>${winText} ${winData?.prize?.name || ''}</strong>`;
+                const prizeNameHtml = this.processTextForHtml(winData?.prize?.name || '');
+                let messageText = `<strong>${winText} ${prizeNameHtml}</strong>`;
                 if (winData?.prize?.text_for_winner) {
                     messageText += `<br>${winData.prize.text_for_winner}`;
                 }
@@ -233,6 +234,16 @@ export class FormHandler {
             button.innerHTML = originalHTML;
             button.style.background = 'white';
         }, 2000);
+    }
+
+    processTextForHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/<br\s*\/?>/gi, '\n')
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .join('<br>');
     }
 }
 
