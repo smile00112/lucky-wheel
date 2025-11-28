@@ -207,7 +207,7 @@
 
         <div class="email-body">
             <div class="prize-section">
-                <div class="prize-title">🏆 Ваш приз: {{ $spin->prize->name }}</div>
+                <div class="prize-title">🏆 Ваш приз: {{ $spin->prize->getNameWithoutSeparator() }}</div>
                 @if($spin->prize->email_image)
                     @php
                         $emailImageUrl = filter_var($spin->prize->email_image, FILTER_VALIDATE_URL)
@@ -216,7 +216,7 @@
                                 ? url($spin->prize->email_image)
                                 : asset('storage/' . $spin->prize->email_image));
                     @endphp
-                    <img src="{{ $emailImageUrl }}" alt="{{ $spin->prize->name }}" class="prize-image">
+                    <img src="{{ $emailImageUrl }}" alt="{{ $spin->prize->getNameWithoutSeparator() }}" class="prize-image">
                 @endif
                 @if($spin->prize->description)
                     <div class="prize-description">{{ $spin->prize->description }}</div>
@@ -254,7 +254,7 @@
                         ],
                         [
                             $settings->company_name ?: 'Колесо фортуны',
-                            $spin->prize->name ?? '',
+                            $spin->prize->getNameWithoutSeparator() ?? '',
                             $spin->prize->description ?? '',
                             $spin->prize->text_for_winner ?? '',
                             $spin->prize->type ?? '',
@@ -270,7 +270,7 @@
             @else
                 <div class="content-text">
                     <p>Уважаемый{{ $spin->guest->name ? ' ' . $spin->guest->name : '' }}!</p>
-                    <p>Поздравляем вас с выигрышем приза <strong>{{ $spin->prize->name }}</strong>!</p>
+                    <p>Поздравляем вас с выигрышем приза <strong>{{ $spin->prize->getNameWithoutSeparator() }}</strong>!</p>
                     @if($spin->prize->value)
                         <p>Идентификационный номер: <strong>{{ $spin->prize->value }}</strong></p>
                     @endif

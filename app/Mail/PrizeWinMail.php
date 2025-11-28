@@ -84,7 +84,7 @@ class PrizeWinMail extends Mailable
         $prizeImageHtml = '';
         if ($prize && $prize->email_image) {
             $prizeImageUrl = $this->getFileUrl($prize->email_image);
-            $prizeImageAlt = $prize->name ?? '';
+            $prizeImageAlt = $prize->getNameWithoutSeparator() ?? '';
             $prizeImageHtml = "<img src=\"{$prizeImageUrl}\" alt=\"{$prizeImageAlt}\" class=\"prize-image\">";
         }
 
@@ -116,7 +116,7 @@ class PrizeWinMail extends Mailable
         }
 
         // Название приза для email
-        $prizeEmailName = ($prize && $prize->email_name) ? $prize->email_name : (($prize && $prize->name) ? $prize->name : '');
+        $prizeEmailName = ($prize && $prize->email_name) ? $prize->email_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '');
         $prizeEmailNameHtml = '';
         if ($prizeEmailName) {
             $prizeEmailNameHtml = "<div class=\"prize-email-name\">{$prizeEmailName}</div>";
@@ -142,7 +142,7 @@ class PrizeWinMail extends Mailable
             '{guest_name}' => $guestName,
             '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
             '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
-            '{prize_name}' => ($prize && $prize->name) ? $prize->name : '',
+            '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
             '{prize_email_name}' => $prizeEmailName,
             '{prize_email_name_html}' => $prizeEmailNameHtml,
             '{prize_description_html}' => $prizeDescriptionHtml,

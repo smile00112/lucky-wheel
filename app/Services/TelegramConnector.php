@@ -162,7 +162,7 @@ class TelegramConnector implements PlatformConnector
         $message .= "Колесо: <b>{$wheel->name}</b>\n";
 
         if ($prize) {
-            $message .= "🎁 <b>Вы выиграли: {$prize->name}</b>\n";
+            $message .= "🎁 <b>Вы выиграли: {$prize->getNameWithoutSeparator()}</b>\n";
             if ($prize->description) {
                 $message .= "{$prize->description}\n";
             }

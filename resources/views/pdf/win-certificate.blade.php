@@ -121,10 +121,10 @@
 
         <div class="wheel-name">{{ $wheel->name ?? 'Колесо Фортуны' }}</div>
 
-        <div class="prize-name">Название приза: {{ $prize->name }}</div>
+        <div class="prize-name">Название приза: {{ $prize->getNameWithoutSeparator() }}</div>
 
         @if(isset($emailImageUrl) && $emailImageUrl)
-        <img src="{{ $emailImageUrl }}" alt="{{ $prize->name }}" class="prize-image">
+        <img src="{{ $emailImageUrl }}" alt="{{ $prize->getNameWithoutSeparator() }}" class="prize-image">
         @endif
 
         @if($prize->description)

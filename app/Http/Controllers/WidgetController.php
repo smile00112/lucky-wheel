@@ -1304,7 +1304,7 @@ class WidgetController extends Controller
         $prizeImageUrl = '';
         if ($prize && $prize->email_image) {
             $prizeImageUrl = $this->getFileUrl($prize->email_image);
-            $prizeImageAlt = $prize->name ?? '';
+            $prizeImageAlt = $prize->getNameWithoutSeparator() ?? '';
             $prizeImageHtml = "<img src=\"{$prizeImageUrl}\" alt=\"{$prizeImageAlt}\" class=\"prize-image\">";
         }
 
@@ -1345,7 +1345,7 @@ class WidgetController extends Controller
             '{guest_name}' => $guestName,
             '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
             '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
-            '{prize_name}' => ($prize && $prize->name) ? $prize->name : '',
+            '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
             '{prize_description_html}' => $prizeDescriptionHtml,
             '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
             '{prize_text_for_winner_html}' => $prizeTextForWinnerHtml,

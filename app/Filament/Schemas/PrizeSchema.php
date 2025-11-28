@@ -44,6 +44,7 @@ class PrizeSchema
             ,
             Forms\Components\TextInput::make('name')
                 ->label(__('filament.prize.name'))
+                ->helperText(__('filament.prize.name_hint'))
                 ->required()
                 ->maxLength(255),
             Forms\Components\TextInput::make('value')

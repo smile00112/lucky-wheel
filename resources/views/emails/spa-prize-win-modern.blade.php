@@ -266,7 +266,7 @@
             </div>
 
             <div class="prize-section">
-                <div class="prize-title">🏆 Твой приз: {{ $spin->prize->name }}</div>
+                <div class="prize-title">🏆 Твой приз: {{ $spin->prize->getNameWithoutSeparator() }}</div>
                 
                 @if(isset($qrCodeDataUri) && $qrCodeDataUri)
                 <div class="qr-code-wrapper">
@@ -284,7 +284,7 @@
                                 : asset('storage/' . $spin->prize->email_image));
                     @endphp
                     <div style="margin: 25px 0;">
-                        <img src="{{ $emailImageUrl }}" alt="{{ $spin->prize->name }}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <img src="{{ $emailImageUrl }}" alt="{{ $spin->prize->getNameWithoutSeparator() }}" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                     </div>
                 @endif
 

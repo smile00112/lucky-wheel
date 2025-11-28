@@ -131,7 +131,8 @@ export class FormHandler {
             const message = document.getElementById('winNotificationMessage');
             if (message) {
                 const winText = this.config.getText('win_notification_win_text');
-                const prizeNameHtml = this.processTextForHtml(winData?.prize?.name || '');
+                const cleanName = this.cleanPrizeName(winData?.prize?.name || '');
+                const prizeNameHtml = this.processTextForHtml(cleanName);
                 let messageText = `<strong>${winText} ${prizeNameHtml}</strong>`;
                 if (winData?.prize?.text_for_winner) {
                     messageText += `<br>${winData.prize.text_for_winner}`;
@@ -244,6 +245,20 @@ export class FormHandler {
             .map(line => line.trim())
             .filter(line => line.length > 0)
             .join('<br>');
+    }
+
+    cleanPrizeName(name) {
+        if (!name) return '';
+        // Сначала обрабатываем HTML теги <br>
+        let cleanName = name.replace(/<br\s*\/?>/gi, '|');
+        const separators = ['|', ' - ', ' — ', ' | ', '| ', ' |'];
+        for (const separator of separators) {
+            const pos = cleanName.indexOf(separator);
+            if (pos !== -1) {
+                return cleanName.substring(0, pos).trim();
+            }
+        }
+        return name;
     }
 }
 

@@ -56,7 +56,8 @@ export class NotificationManager {
             }
             if (formMessage) {
                 const winText = this.config.getText('win_notification_win_text');
-                const prizeNameHtml = this.processTextForHtml(prize.name);
+                const cleanName = this.cleanPrizeName(prize.name);
+                const prizeNameHtml = this.processTextForHtml(cleanName);
                 let messageText = `<strong>${prizeNameHtml}</strong>`;
                 // if (prize.text_for_winner) {
                 //     messageText += `<br>${prize.text_for_winner}`;
@@ -83,7 +84,8 @@ export class NotificationManager {
 
         // Показываем секцию с результатами
         const winText = this.config.getText('win_notification_win_text');
-        const prizeNameHtml = this.processTextForHtml(prize.name);
+        const cleanName = this.cleanPrizeName(prize.name);
+        const prizeNameHtml = this.processTextForHtml(cleanName);
         let messageText = `<strong>${prizeNameHtml}</strong>`;
         // if (prize.text_for_winner) {
         //     messageText += `<br>${winText}`;
@@ -298,6 +300,20 @@ export class NotificationManager {
             .map(line => line.trim())
             .filter(line => line.length > 0)
             .join('<br>');
+    }
+
+    cleanPrizeName(name) {
+        if (!name) return '';
+        // Сначала обрабатываем HTML теги <br>
+        let cleanName = name.replace(/<br\s*\/?>/gi, '|');
+        const separators = ['|', ' - ', ' — ', ' | ', '| ', ' |'];
+        for (const separator of separators) {
+            const pos = cleanName.indexOf(separator);
+            if (pos !== -1) {
+                return cleanName.substring(0, pos).trim();
+            }
+        }
+        return name;
     }
 }
 

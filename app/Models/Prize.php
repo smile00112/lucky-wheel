@@ -147,4 +147,30 @@ class Prize extends Model
     {
         return $this->spins()->count();
     }
+
+    /**
+     * Получить название приза без разделителя
+     * Удаляет все после разделителей: |, - , —, | , | , <br>, <br/>, <br />
+     */
+    public function getNameWithoutSeparator(): string
+    {
+        if (!$this->name) {
+            return '';
+        }
+
+        // Сначала обрабатываем HTML теги <br>
+        $name = preg_replace('/<br\s*\/?>/i', '|', $this->name);
+
+        $separators = ['|', ' - ', ' — ', ' | ', '| ', ' |', '  '];
+
+        return str_replace($separators, ' ', $name);
+//        foreach ($separators as $separator) {
+//            $pos = strpos($name, $separator);
+//            if ($pos !== false) {
+//                return trim(substr($name, 0, $pos));
+//            }
+//        }
+
+        return $this->name;
+    }
 }

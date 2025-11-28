@@ -78,7 +78,7 @@ class TelegramMessageService
 
         foreach ($wins as $win) {
             $date = $win->created_at->format('d.m.Y H:i');
-            $prizeName = $win->prize ? $win->prize->name : 'Неизвестный приз';
+            $prizeName = $win->prize ? $win->prize->getNameWithoutSeparator() : 'Неизвестный приз';
             $messageText .= __('telegram.history_item_date', ['date' => $date], 'ru') . "\n";
             $messageText .= __('telegram.history_item_prize', ['prize' => $prizeName], 'ru') . "\n\n";
         }
