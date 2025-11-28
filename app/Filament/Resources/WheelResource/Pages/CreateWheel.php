@@ -23,8 +23,8 @@ class CreateWheel extends CreateRecord
             'spin_button_text' => 'Крутить колесо!',
             'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
             'won_prize_label' => 'Выиграно сегодня:',
-            'win_notification_title' => '🎉 Поздравляем с выигрышем!',
-            'win_notification_win_text' => 'Вы выиграли:',
+            'win_notification_title' => 'Ваш подарок',
+            'win_notification_win_text' => 'Скопируйте промокод или покажите QR-код на ресепшене',
             'copy_code_button_title' => 'Копировать код',
             'code_not_specified' => 'Код не указан',
             'download_pdf_text' => 'Скачать сертификат PDF',
@@ -55,13 +55,13 @@ class CreateWheel extends CreateRecord
 
         // Заполняем style_settings значениями по умолчанию, если они не заполнены
         $styleSettings = $data['style_settings'] ?? null;
-        
+
         // Если пришла строка JSON, декодируем её
         if (is_string($styleSettings)) {
             $decoded = json_decode($styleSettings, true);
             $styleSettings = ($decoded !== null && json_last_error() === JSON_ERROR_NONE) ? $decoded : [];
         }
-        
+
         if (empty($styleSettings) || !is_array($styleSettings)) {
             $styleSettings = [];
         }

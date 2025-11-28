@@ -46,6 +46,7 @@ class WheelResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\Toggle::make('force_data_collection')
                     ->label('Принудительный сбор данных')
+                    ->helperText('Если включено, то перед вращением колеса, необходимо будет заполнить форму с данными гостя')
                     ->default(false)
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('name')
@@ -119,8 +120,8 @@ class WheelResource extends Resource
                                         'spin_button_text' => 'Крутить колесо!',
                                         'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
                                         'won_prize_label' => 'Выиграно сегодня:',
-                                        'win_notification_title' => '🎉 Поздравляем с выигрышем!',
-                                        'win_notification_win_text' => 'Вы выиграли:',
+                                        'win_notification_title' => 'Ваш подарок',
+                                        'win_notification_win_text' => 'Скопируйте промокод или покажите QR-код на ресепшене',
                                         'copy_code_button_title' => 'Копировать код',
                                         'code_not_specified' => 'Код не указан',
                                         'download_pdf_text' => 'Скачать сертификат PDF',
@@ -358,7 +359,7 @@ class WheelResource extends Resource
                     ->modalSubmitActionLabel('Копировать')
                     ->action(function (Wheel $record) {
                         $newWheel = null;
-                        
+
                         DB::transaction(function () use ($record, &$newWheel) {
                             // Копируем колесо
                             $newWheel = $record->replicate();
@@ -366,11 +367,11 @@ class WheelResource extends Resource
                             $newWheel->slug = static::generateUniqueSlug($record->slug);
                             $newWheel->is_active = false; // Делаем неактивным по умолчанию
                             $newWheel->user_id = auth()->id();
-                            
+
                             // Удаляем вычисляемые поля перед сохранением
                             $newWheel->offsetUnset('prizes_count');
                             $newWheel->offsetUnset('spins_count');
-                            
+
                             $newWheel->save();
 
                             // Копируем все призы

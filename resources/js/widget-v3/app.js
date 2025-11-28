@@ -79,9 +79,16 @@ class LuckyWheelApp {
             this.controller.showWheelContent();
         }
 
-        // Показываем форму при загрузке, если нет выигрыша
+        // Показываем форму или блок информации о колесе при загрузке, если нет выигрыша
         if (!hasWin) {
-            this.showInitialForm();
+            const wheelData = this.state.get('wheelData');
+            const forceDataCollection = wheelData?.force_data_collection ?? true;
+            
+            if (forceDataCollection) {
+                this.showInitialForm();
+            } else {
+                this.showWheelInfoBlock();
+            }
         }
 
         setInterval(() => this.checkTodayWin(), 60000);
@@ -184,6 +191,15 @@ class LuckyWheelApp {
             });
         }
 
+        const wheelInfoSpinButton = document.getElementById('wheelInfoSpinButton');
+        if (wheelInfoSpinButton) {
+            wheelInfoSpinButton.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                await this.handleWheelInfoSpinButtonClick();
+            });
+        }
+
         const submitBtn2 = document.getElementById('winNotificationSubmitBtn2');
         if (submitBtn2) {
             submitBtn2.removeAttribute('onclick');
@@ -233,15 +249,29 @@ class LuckyWheelApp {
         const notification = document.getElementById('winNotification');
         const formContainer = document.getElementById('winNotificationFormContainer');
         const winningFormContainer = document.getElementById('winningFormContainer');
+        const wheelInfoBlock = document.getElementById('wheelInfoBlock');
         const sendContainer = document.getElementById('winNotificationSendContainer');
         const spinButton = document.getElementById('spinButton');
         const submitBtn = document.getElementById('winNotificationSubmitBtn');
+        const formHeader = document.getElementById('winNotificationFormHeader');
+        const formInitial = document.getElementById('winNotificationFormInitial');
 
         if (!notification || !formContainer) return;
 
-        // Скрываем секцию с результатами
+        // Скрываем секцию с результатами и блок информации о колесе
         if (winningFormContainer) {
             winningFormContainer.style.display = 'none';
+        }
+        if (wheelInfoBlock) {
+            wheelInfoBlock.style.display = 'none';
+        }
+
+        // Скрываем блок с заголовком выигрыша, показываем начальный блок
+        if (formHeader) {
+            formHeader.style.display = 'none';
+        }
+        if (formInitial) {
+            formInitial.style.display = 'block';
         }
 
         // Показываем форму
@@ -249,8 +279,64 @@ class LuckyWheelApp {
         notification.classList.add('show');
         formContainer.style.display = 'block';
         if (sendContainer) sendContainer.style.display = 'none';
-        if (spinButton) spinButton.style.display = 'block';
-        if (submitBtn) submitBtn.style.display = 'none';
+        if (spinButton) {
+            spinButton.style.display = 'block';
+            spinButton.disabled = false;
+        }
+        if (submitBtn) {
+            submitBtn.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    }
+
+    showWheelInfoBlock() {
+        const notification = document.getElementById('winNotification');
+        const formContainer = document.getElementById('winNotificationFormContainer');
+        const winningFormContainer = document.getElementById('winningFormContainer');
+        const wheelInfoBlock = document.getElementById('wheelInfoBlock');
+        const sendContainer = document.getElementById('winNotificationSendContainer');
+
+        if (!notification || !wheelInfoBlock) return;
+
+        // Скрываем форму и секцию с результатами
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+        if (winningFormContainer) {
+            winningFormContainer.style.display = 'none';
+        }
+        if (sendContainer) {
+            sendContainer.style.display = 'none';
+        }
+
+        // Обновляем данные в блоке информации о колесе
+        const wheelData = this.state.get('wheelData');
+        if (wheelData) {
+            const nameElement = document.getElementById('wheelInfoName');
+            const descElement = document.getElementById('wheelInfoDescription');
+            const imageElement = document.getElementById('wheelInfoImage');
+            
+            if (nameElement && wheelData.name) {
+                nameElement.textContent = wheelData.name;
+            }
+            if (descElement && wheelData.description) {
+                descElement.textContent = wheelData.description;
+                descElement.style.display = 'block';
+            } else if (descElement) {
+                descElement.style.display = 'none';
+            }
+            if (imageElement && wheelData.image) {
+                imageElement.src = wheelData.image;
+                imageElement.parentElement.style.display = 'block';
+            } else if (imageElement) {
+                imageElement.parentElement.style.display = 'none';
+            }
+        }
+
+        // Показываем блок информации о колесе
+        notification.style.display = 'block';
+        notification.classList.add('show');
+        wheelInfoBlock.style.display = 'block';
     }
 
     async handleSpinButtonClick() {
@@ -302,6 +388,31 @@ class LuckyWheelApp {
             this.controller.showError(this.config.getText('error_general') + ' ' + error.message);
             spinButton.disabled = false;
             spinButton.textContent = originalText;
+        }
+    }
+
+    async handleWheelInfoSpinButtonClick() {
+        const wheelInfoSpinButton = document.getElementById('wheelInfoSpinButton');
+        if (!wheelInfoSpinButton || wheelInfoSpinButton.disabled) return;
+
+        if (!this.config.guestId) {
+            console.error('[LuckyWheel] Guest ID not found');
+            this.controller.showError(this.config.getText('error_init_guest'));
+            return;
+        }
+
+        wheelInfoSpinButton.disabled = true;
+        const originalText = wheelInfoSpinButton.textContent;
+        wheelInfoSpinButton.textContent = this.config.getText('form_submit_loading');
+
+        try {
+            await this.controller.spin();
+            wheelInfoSpinButton.textContent = originalText;
+        } catch (error) {
+            console.error('[LuckyWheel] Error spinning:', error);
+            this.controller.showError(this.config.getText('error_general') + ' ' + error.message);
+            wheelInfoSpinButton.disabled = false;
+            wheelInfoSpinButton.textContent = originalText;
         }
     }
 }

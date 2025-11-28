@@ -13,25 +13,79 @@ export class NotificationManager {
         const codeInput = document.getElementById('winNotificationCode');
         const winningFormContainer = document.getElementById('winningFormContainer');
         const formContainer = document.getElementById('winNotificationFormContainer');
+        const wheelInfoBlock = document.getElementById('wheelInfoBlock');
         const sendContainer = document.getElementById('winNotificationSendContainer');
         const pdfLink = document.getElementById('winNotificationPdfLink');
 
         if (!prize || !notification || !message) return;
 
-        // Скрываем форму
+        // Скрываем форму и блок информации о колесе
         if (formContainer) {
             formContainer.style.display = 'none';
+        }
+        if (wheelInfoBlock) {
+            wheelInfoBlock.style.display = 'none';
         }
         if (sendContainer) {
             sendContainer.style.display = 'none';
         }
 
+        // Проверяем, нужно ли показывать форму вместо результатов
+        const wheelData = this.state.get('wheelData');
+        const forceDataCollection = wheelData?.force_data_collection ?? true;
+
+        if (!forceDataCollection && !guestHasData) {
+            // Если force_data_collection = false и данные не заполнены, показываем форму
+            if (formContainer) {
+                formContainer.style.display = 'block';
+            }
+            if (winningFormContainer) {
+                winningFormContainer.style.display = 'none';
+            }
+
+            // Показываем блок с заголовком выигрыша над формой
+            const formHeader = document.getElementById('winNotificationFormHeader');
+            const formInitial = document.getElementById('winNotificationFormInitial');
+            const formMessage = document.getElementById('winNotificationFormMessage');
+
+            if (formHeader) {
+                formHeader.style.display = 'block';
+            }
+            if (formInitial) {
+                formInitial.style.display = 'none';
+            }
+            if (formMessage) {
+                const winText = this.config.getText('win_notification_win_text');
+                let messageText = `<strong>${prize.name}</strong>`;
+                // if (prize.text_for_winner) {
+                //     messageText += `<br>${prize.text_for_winner}`;
+                //}
+                formMessage.innerHTML = messageText;
+            }
+
+            // Показываем кнопку отправки формы вместо кнопки вращения
+            const spinButton = document.getElementById('spinButton');
+            const submitBtn = document.getElementById('winNotificationSubmitBtn');
+            if (spinButton) {
+                spinButton.style.display = 'none';
+                spinButton.disabled = true;
+            }
+            if (submitBtn) {
+                submitBtn.style.display = 'block';
+                submitBtn.disabled = false;
+            }
+
+            notification.style.display = 'block';
+            notification.classList.add('show');
+            return;
+        }
+
         // Показываем секцию с результатами
         const winText = this.config.getText('win_notification_win_text');
-        let messageText = `<strong>${winText} ${prize.name}</strong>`;
-        if (prize.text_for_winner) {
-            messageText += `<br>${prize.text_for_winner}`;
-        }
+        let messageText = `<strong>${prize.name}</strong>`;
+        // if (prize.text_for_winner) {
+        //     messageText += `<br>${winText}`;
+        // }
         message.innerHTML = messageText;
 
         // Заполняем поле value приза

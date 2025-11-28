@@ -109,6 +109,7 @@ export class FormHandler {
 
             const formContainer = document.getElementById('winNotificationFormContainer');
             const sendContainer = document.getElementById('winNotificationSendContainer');
+            const winningFormContainer = document.getElementById('winningFormContainer');
             if (formContainer) formContainer.style.display = 'none';
             if (sendContainer) sendContainer.style.display = 'none';
 
@@ -117,10 +118,40 @@ export class FormHandler {
                 this.notification.showPrizeImage(winData.prize.email_image);
             }
 
+            // Показываем блок с результатами
+            const notification = document.getElementById('winNotification');
+            if (notification) {
+                notification.style.display = 'block';
+                notification.classList.add('show');
+            }
+            if (winningFormContainer) {
+                winningFormContainer.style.display = 'block';
+            }
+
             const message = document.getElementById('winNotificationMessage');
             if (message) {
+                const winText = this.config.getText('win_notification_win_text');
+                let messageText = `<strong>${winText} ${winData?.prize?.name || ''}</strong>`;
+                if (winData?.prize?.text_for_winner) {
+                    messageText += `<br>${winData.prize.text_for_winner}`;
+                }
                 const successMsg = this.config.getText('form_success_message');
-                message.innerHTML += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
+                messageText += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
+                message.innerHTML = messageText;
+            }
+
+            // Заполняем поле кода
+            const codeInput = document.getElementById('winNotificationCode');
+            if (codeInput && winData?.code) {
+                codeInput.value = winData.code;
+            }
+
+            // Заполняем поле промокода
+            const promoCodeInput = document.getElementById('winNotificationPromoCode');
+            const promoCodeContainer = document.getElementById('winNotificationPromoCodeContainer');
+            if (promoCodeInput && promoCodeContainer && winData?.code) {
+                promoCodeInput.value = winData.code;
+                promoCodeContainer.style.display = 'flex';
             }
 
             const pdfLink = document.getElementById('winNotificationPdfLink');

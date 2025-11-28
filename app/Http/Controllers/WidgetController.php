@@ -241,8 +241,8 @@ class WidgetController extends Controller
             'spin_button_text' => 'Крутить колесо!',
             'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
             'won_prize_label' => 'Выиграно сегодня:',
-            'win_notification_title' => '🎉 Поздравляем с выигрышем!',
-            'win_notification_win_text' => 'Вы выиграли:',
+            'win_notification_title' => 'Ваш подарок',
+            'win_notification_win_text' => 'Скопируйте промокод или покажите QR-код на ресепшене',
             'copy_code_button_title' => 'Копировать код',
             'code_not_specified' => 'Код не указан',
             'download_pdf_text' => 'Скачать сертификат PDF',
@@ -272,12 +272,19 @@ class WidgetController extends Controller
         $settings = $wheel->settings ?? [];
         $texts = array_merge($defaultTexts, $settings);
 
+        $imageUrl = null;
+        if ($wheel->image) {
+            $imageUrl = Storage::disk('public')->url($wheel->image);
+        }
+
         return response()->json([
             'id' => $wheel->id,
             'name' => $wheel->name,
             'description' => $wheel->description,
             'slug' => $wheel->slug,
             'spins_limit' => $wheel->spins_limit,
+            'force_data_collection' => (bool) $wheel->force_data_collection,
+            'image' => $imageUrl,
             'prizes' => $prizes,
             'texts' => $texts,
         ]);

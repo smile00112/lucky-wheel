@@ -375,7 +375,8 @@
                         overflow: hidden;
                         height: 100%;
                         max-height: 750px;
-
+                      background: none;
+                      box-shadow: none;
                     }
                     #lucky-wheel-modal-close {
                         position: absolute;
@@ -419,6 +420,10 @@
                         overflow-y: auto;
                         overflow-x: hidden;
                         overflow: hidden;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+
                     }
                     @keyframes lucky-wheel-fadeIn {
                         from {
@@ -450,6 +455,12 @@
                             padding: 0;
                         }
                     }
+                  @media (max-width: 480px) {
+                    #lucky-wheel-modal-content {
+                        min-height: auto !important;
+                    }
+                  }
+
                 `;
                 if (document.head) {
                     document.head.appendChild(style);

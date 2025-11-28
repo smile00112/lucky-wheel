@@ -45,6 +45,9 @@
 
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 
 <style>
 {{--{!! $wheel->generateStyleCss() !!}--}}
@@ -111,9 +114,31 @@
         </a>
     </div>
 
+    <div class="wheel-info-block" id="wheelInfoBlock" style="display: none;">
+        <h1 id="wheelInfoName">{{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>
+        @if($wheel->description)
+            <div class="description" id="wheelInfoDescription">{{ $wheel->description }}</div>
+        @endif
+
+        <button type="button" id="wheelInfoSpinButton" class="spin-button">{{ $texts['spin_button_text'] }}</button>
+
+        @if($wheel->image)
+            <div class="wheel-info-image-container">
+                <img id="wheelInfoImage" src="{{ Storage::disk('public')->url($wheel->image) }}" alt="{{ $wheel->name ?? $texts['wheel_default_name'] }}">
+            </div>
+        @endif
+    </div>
+
     <div class="win-notification-form" id="winNotificationFormContainer">
+        <div class="win-notification-form-header" id="winNotificationFormHeader" style="display: none;">
+            <h3>{{ $texts['win_notification_title'] }}</h3>
+            <div class="win-notification-message" id="winNotificationFormMessage"></div>
+            <div class="win-notification-message_dop" id="winNotificationFormMessageDop">{{ $texts['win_notification_message_dop'] }}</div>
+        </div>
+        <div class="win-notification-form-initial" id="winNotificationFormInitial">
             <h1>Крути колесо!</h1>
             <div class="description">Заполни поля ниже, чтобы крутить колесо и выиграть призы! Распродажа только сегодня!</div>
+        </div>
 {{--        <h1>{{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>--}}
 {{--        @if($wheel->description)--}}
 {{--            <div class="description">{{ $wheel->description }}</div>--}}
@@ -136,14 +161,14 @@
                 </label>
             </div>
             <button type="button" id="spinButton" class="spin-button">{{ $texts['spin_button_text'] }}</button>
-            <button type="submit" class="win-notification-submit-btn" id="winNotificationSubmitBtn" style="display: none;">
+            <button type="submit" class="win-notification-submit-btn- spin-button" id="winNotificationSubmitBtn" style="display: none;">
                 {{ $texts['form_submit_text'] }}
             </button>
         </form>
     </div>
 
     <div class="win-notification-send-container" id="winNotificationSendContainer" style="display: none;">
-        <button type="button" class="win-notification-submit-btn" id="winNotificationSubmitBtn2">
+        <button type="button" class="win-notification-submit-btn- spin-button" id="winNotificationSubmitBtn2">
             {{ $texts['form_submit_text'] }}
         </button>
     </div>

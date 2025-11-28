@@ -174,8 +174,12 @@ console.log('applyWonPrize', winData);
 
         this.state.set('isSpinning', true);
         const spinButton = document.getElementById('spinButton');
+        const wheelInfoSpinButton = document.getElementById('wheelInfoSpinButton');
         if (spinButton) {
             spinButton.disabled = true;
+        }
+        if (wheelInfoSpinButton) {
+            wheelInfoSpinButton.disabled = true;
         }
 
         this.hideError();
@@ -213,6 +217,16 @@ console.log('applyWonPrize', winData);
             } else {
                 alert(this.config.getText('error_spin'));
             }
+
+            // Разблокируем кнопки после завершения вращения
+            const spinButton = document.getElementById('spinButton');
+            const wheelInfoSpinButton = document.getElementById('wheelInfoSpinButton');
+            if (spinButton) {
+                spinButton.disabled = false;
+            }
+            if (wheelInfoSpinButton) {
+                wheelInfoSpinButton.disabled = false;
+            }
         } catch (error) {
             if (error.message.includes('Already won today')) {
                 const winData = this.state.getWinData();
@@ -228,6 +242,15 @@ console.log('applyWonPrize', winData);
             }
         } finally {
             this.state.set('isSpinning', false);
+            // Разблокируем кнопки в случае ошибки
+            const spinButton = document.getElementById('spinButton');
+            const wheelInfoSpinButton = document.getElementById('wheelInfoSpinButton');
+            if (spinButton && !this.state.getWinData()) {
+                spinButton.disabled = false;
+            }
+            if (wheelInfoSpinButton && !this.state.getWinData()) {
+                wheelInfoSpinButton.disabled = false;
+            }
             const wheelData = this.state.get('wheelData');
             if (wheelData?.spins_limit) {
                 setTimeout(() => this.init(), 500);
