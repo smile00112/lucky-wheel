@@ -53,6 +53,7 @@ class PrizeSchema
                 ,
             Forms\Components\Textarea::make('description')
                 ->label(__('filament.prize.description'))
+                ->helperText(__('filament.prize.description_hint'))
                 ->rows(3)
                 ->columnSpanFull()
             ,
@@ -125,7 +126,7 @@ class PrizeSchema
                 ->numeric()
                 ->minValue(8)
                 ->maxValue(72)
-                ->helperText('Размер шрифта текста приза на колесе (в пикселях)')
+                ->helperText('Размер шрифта текста приза на колесе (в пикселях. По умолчанию - 18px)')
                 ->default(18),
 
             Forms\Components\TextInput::make('sort')

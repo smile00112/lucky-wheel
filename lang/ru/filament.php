@@ -61,6 +61,7 @@ return [
         'unlimited' => 'Без ограничений',
         'created_at' => 'Создано',
         'updated_at' => 'Обновлено',
+        'description_hint' => 'для длинных строк используйте разделитель `<br>`',
     ],
     'spin' => [
         'wheel_id' => 'Колесо',

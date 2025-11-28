@@ -44,6 +44,10 @@ class WheelResource extends Resource
                     ->label(__('filament.wheel.is_active'))
                     ->default(true)
                     ->columnSpanFull(),
+                Forms\Components\Toggle::make('force_data_collection')
+                    ->label('Принудительный сбор данных')
+                    ->default(false)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('name')
                     ->label(__('filament.wheel.name'))
                     ->required()
@@ -61,6 +65,13 @@ class WheelResource extends Resource
                 Forms\Components\Textarea::make('description')
                     ->label(__('filament.wheel.description'))
                     ->rows(3)
+                    ->columnSpanFull(),
+                Forms\Components\FileUpload::make('image')
+                    ->label('Изображение')
+                    ->image()
+                    ->disk('public')
+                    ->directory('wheels')
+                    ->visibility('public')
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('spins_limit')
                     ->label(__('filament.wheel.spins_limit'))
@@ -244,6 +255,11 @@ class WheelResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\ImageColumn::make('image')
+                    ->label('')
+                    ->disk('public')
+                    ->visibility('public')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('name')
                     ->label(__('filament.wheel.name'))
                     ->searchable()

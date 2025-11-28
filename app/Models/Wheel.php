@@ -16,6 +16,7 @@ class Wheel extends Model
         'description',
         'slug',
         'is_active',
+        'force_data_collection',
         'settings',
         'style_settings',
         'spins_limit',
@@ -23,10 +24,12 @@ class Wheel extends Model
         'probability_type',
         'starts_at',
         'ends_at',
+        'image',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'force_data_collection' => 'boolean',
         'settings' => 'array',
         'style_settings' => 'array',
         'spins_limit' => 'integer',
