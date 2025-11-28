@@ -16,8 +16,13 @@ class WidgetAssetController extends Controller
             abort(404);
         }
 
+        // Поддержка CSS файлов
+        if (str_starts_with($cleanPath, 'css/widget/')) {
+            $basePath = realpath(resource_path('css/widget'));
+            $cleanPath = substr($cleanPath, strlen('css/widget/'));
+        }
         // Поддержка widget-v3
-        if (str_starts_with($cleanPath, 'widget-v3/')) {
+        elseif (str_starts_with($cleanPath, 'widget-v3/')) {
             $basePath = realpath(resource_path('js/widget-v3'));
             $cleanPath = substr($cleanPath, strlen('widget-v3/'));
         } else {

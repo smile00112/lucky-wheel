@@ -276,6 +276,13 @@
     line-height: 1.5;
 }
 
+.win-notification-message_dop {
+    font-weight: 400;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+}
+
 .win-notification-code {
     display: flex;
     align-items: center;
@@ -286,13 +293,6 @@
     padding: 12px;
     flex-direction: row;
     border: 1px dotted #B0B0B0;
-}
-
-.win-notification-code-input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
 }
 
 .win-notification-code input {
@@ -458,24 +458,21 @@
 
 .win-notification-image-container {
     display: none;
-    flex-shrink: 0;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 15px;
 }
 
 .win-notification-image-container img {
     height: auto;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    max-height: 100px;
-    max-width: 100px;
-    width: auto;
-}
-
-#winNotificationCodeContainer .win-notification-image-container {
-    margin: 0;
-}
-
-#winNotificationPromoCodeContainer {
-    display: none;
+    max-height: 300px;
+    max-width: 290px;
+    width: 64px;
+    border-radius: 8px;
+    border: 1px dotted #B0B0B0;
+    padding: 2px;
 }
 
 .win-notification-pdf-link {
@@ -530,7 +527,19 @@
     }
 }
 
+.win-notification-code-input-wrapper{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 @media (max-width: 768px) {
+    .win-notification-code-input-wrapper{
+        flex-wrap: wrap;
+    }
+
     .lucky-wheel-content {
         justify-content: flex-start;
         padding: 10px 0px;
@@ -575,6 +584,10 @@
 
     .spin-button {
         padding: 12px 30px;
+        font-size: 14px;
+    }
+
+    .win-notification-message_dop {
         font-size: 14px;
     }
 }
@@ -625,4 +638,5 @@
         font-size: 11px;
     }
 }
+
 

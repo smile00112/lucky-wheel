@@ -42,7 +42,7 @@
     ] : null;
 @endphp
 
-<link rel="stylesheet" href="{{ url('css/widget/wheel-v3.css') }}">
+<link rel="stylesheet" href="{{ route('widget.assets', ['path' => 'css/widget/wheel-v3.css']) }}">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 
 <style>
