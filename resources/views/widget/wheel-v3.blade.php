@@ -30,6 +30,7 @@
         'error_send' => 'Ошибка при отправке',
         'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
         'wheel_default_name' => 'Колесо Фортуны',
+        'win_notification_message_dop' => 'Скопируйте промокод или покажите QR-код на ресепшене',
     ];
     $settings = $wheel->settings ?? [];
     $texts = array_merge($defaultTexts, $settings);
@@ -68,29 +69,51 @@
         </div>
 
 <div id="winNotification" class="win-notification" style="display: none;">
-    <h3>{{ $texts['win_notification_title'] }}</h3>
-    <div class="win-notification-message" id="winNotificationMessage"></div>
-    <div class="win-notification-code" id="winNotificationCodeContainer">
-        <input type="text" id="winNotificationCode" readonly value="">
-        <button title="{{ $texts['copy_code_button_title'] }}">
+
+    <div class="winning-form" id="winningFormContainer" style="display: none;">
+        <h3>{{ $texts['win_notification_title'] }}</h3>
+        <div class="win-notification-message" id="winNotificationMessage"></div>
+        <div class="win-notification-message_dop" id="winNotificationMessageDop">{{ $texts['win_notification_message_dop'] }}</div>
+        <div class="win-notification-code-input-wrapper">
+            <div class="win-notification-code" id="winNotificationCodeContainer">
+                <input type="text" id="winNotificationCode" readonly value="">
+                <button title="{{ $texts['copy_code_button_title'] }}">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </button>
+
+            </div>
+            <div class="win-notification-image-container" id="winNotificationImageContainer" style="display: none;">
+                <img id="winNotificationImage" src="" alt="{{ $texts['prize_image_alt'] }}">
+            </div>
+        </div>
+        <div class="win-notification-code" id="winNotificationPromoCodeContainer" style="display: none;">
+
+                <input type="text" id="winNotificationPromoCode" readonly value="">
+                <button title="{{ $texts['copy_code_button_title'] }}">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    </svg>
+                </button>
+
+        </div>
+
+        <a href="#" id="winNotificationPdfLink" class="win-notification-pdf-link" target="_blank">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
             </svg>
-        </button>
+            <span>{{ $texts['download_pdf_text'] }}</span>
+        </a>
     </div>
 
-    <a href="#" id="winNotificationPdfLink" class="win-notification-pdf-link" style="display: none;" target="_blank">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-        </svg>
-        <span>{{ $texts['download_pdf_text'] }}</span>
-    </a>
-
-    <div class="win-notification-form" id="winNotificationFormContainer" style="display: none;">
-        <h1>{{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>
-        @if($wheel->description)
-            <div class="description">{{ $wheel->description }}</div>
-        @endif
+    <div class="win-notification-form" id="winNotificationFormContainer">
+            <h1>Крути колесо!</h1>
+            <div class="description">Заполни поля ниже, чтобы крутить колесо и выиграть призы! Распродажа только сегодня!</div>
+{{--        <h1>{{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>--}}
+{{--        @if($wheel->description)--}}
+{{--            <div class="description">{{ $wheel->description }}</div>--}}
+{{--        @endif--}}
 {{--        <p class="win-notification-form-text">{{ $texts['form_description'] }}</p>--}}
         <form id="winNotificationForm">
             <div class="win-notification-form-group">
@@ -121,9 +144,6 @@
         </button>
     </div>
 
-    <div class="win-notification-image-container" id="winNotificationImageContainer" style="display: none;">
-        <img id="winNotificationImage" src="" alt="{{ $texts['prize_image_alt'] }}">
-    </div>
         </div>
     </div>
 

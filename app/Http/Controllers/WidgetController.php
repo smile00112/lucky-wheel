@@ -508,6 +508,7 @@ class WidgetController extends Controller
                     'text_for_winner' => $prize->text_for_winner,
                     'type' => $prize->type,
                     'email_image' => $prize->email_image,
+                    'value' => $prize->value,
                 ] : null,
                 'code' => $spin->code, // Код из spin, а не value из prize
                 'has_prize' => $prize !== null,
@@ -666,6 +667,7 @@ class WidgetController extends Controller
                         'text_for_winner' => $lastWin->prize->text_for_winner,
                         'type' => $lastWin->prize->type,
                         'email_image' => $lastWin->prize->email_image,
+                        'value' => $lastWin->prize->value,
                     ],
                     'code' => $lastWin->code, // Код из spin
                     'win_date' => $lastWin->created_at->toIso8601String(),
@@ -815,6 +817,55 @@ class WidgetController extends Controller
         return response()->json([
             'id' => $guest->id,
             'has_data' => $hasData,
+            'email' => $guest->email,
+            'phone' => $guest->phone,
+            'name' => $guest->name,
+        ]);
+    }
+
+    /**
+     * Обновить данные гостя
+     */
+    public function updateGuest(Request $request, int $guestId)
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'message' => 'Ошибка валидации данных',
+                'messages' => $validator->errors(),
+            ], 422);
+        }
+
+        $guest = Guest::find($guestId);
+        if (!$guest) {
+            return response()->json([
+                'error' => 'Guest not found',
+            ], 404);
+        }
+
+        $updateData = [];
+        if ($request->has('name')) {
+            $updateData['name'] = $request->input('name');
+        }
+        if ($request->has('email')) {
+            $updateData['email'] = $request->input('email');
+        }
+        if ($request->has('phone')) {
+            $updateData['phone'] = $request->input('phone');
+        }
+
+        if (!empty($updateData)) {
+            $guest->update($updateData);
+        }
+
+        return response()->json([
+            'id' => $guest->id,
             'email' => $guest->email,
             'phone' => $guest->phone,
             'name' => $guest->name,

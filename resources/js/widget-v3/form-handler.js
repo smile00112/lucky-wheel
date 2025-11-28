@@ -175,8 +175,8 @@ export class FormHandler {
         }
     }
 
-    async copyCode(event) {
-        const codeInput = document.getElementById('winNotificationCode');
+    async copyCode(event, inputElement = null) {
+        const codeInput = inputElement || document.getElementById('winNotificationCode');
         const code = codeInput?.value;
 
         if (!code) return;

@@ -1,6 +1,6 @@
 .wheel-content-contener{
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
 }
@@ -24,7 +24,7 @@
     padding: 30px 20px;
     /*box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);*/
     text-align: center;
-    max-width: 1200px;
+    /*max-width: 1200px;*/
     width: 100%;
     max-height: 100%;
     margin: 0 auto;
@@ -33,15 +33,15 @@
 }
 
 .lucky-wheel-container h1 {
-    color: #333;
     margin-bottom: 20px;
-    font-size: 1.8em;
+    font-size: 30px;
+    color: #000000;
 }
 
 .lucky-wheel-container .description {
-    color: #666;
+    color: #000000;
     margin-bottom: 35px;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .wheel-content-wrapper {
@@ -54,7 +54,8 @@
 }
 @media (min-width: 768px) {
     .wheel-content-wrapper {
-        min-width: 600px;
+        flex-grow: 1;
+        flex-basis: 500px;
     }
 }
 
@@ -127,18 +128,19 @@
 }
 
 .spin-button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
     color: white;
     border: none;
     padding: 15px 40px;
     font-size: 16px;
     font-weight: bold;
-    border-radius: 50px;
+    /* border-radius: 50px; */
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     width: 100%;
-    max-width: 300px;
+    /* max-width: 300px; */
+    background: #4396CF;
 }
 
 .spin-button:hover:not(:disabled) {
@@ -231,21 +233,23 @@
     padding-left: 236px;
 
 }
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .win-notification {
         position: relative;
         left: -200px;
-        height: 465px;
+        /*height: 465px;*/
         width: auto;
-        min-width: 500px;
+        /*min-width: 500px;*/
+        flex-grow: 1;
+        flex-basis: 500px;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .win-notification {
         position: relative;
         width: 100%;
-        height: 518px;
+        min-height: 518px;
         top: -200px;
         padding-top: 210px;
 
@@ -270,6 +274,13 @@
     text-align: center;
     font-size: 14px;
     line-height: 1.5;
+}
+
+.win-notification-message_dop {
+    font-weight: 400;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 16px;
 }
 
 .win-notification-code {
@@ -338,8 +349,6 @@
 }
 
 .win-notification-form {
-    margin-top: 20px;
-    padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -362,18 +371,19 @@
 .win-notification-form-group input {
     width: 100%;
     padding: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    color: #333;
+    background: #F2F4F7;
+    color: #000000;
     font-size: 14px;
     transition: all 0.3s ease;
+    border: 1px solid #E2E8F0;
 }
 
 .win-notification-form-group input:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.6);
-    background: white;
+    background: #f2f4f794;
+    border: 1px solid #E2E8F0;
+    /*background: white;*/
 }
 
 .win-notification-form-group input::placeholder {
@@ -392,7 +402,7 @@
     cursor: pointer;
     font-size: 12px;
     line-height: 1.5;
-    color: rgba(255, 255, 255, 0.95);
+    color: #878787;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -401,7 +411,7 @@
     min-width: 18px;
     margin-top: 2px;
     cursor: pointer;
-    accent-color: #667eea;
+    accent-color: #4396CF;
     flex-shrink: 0;
 }
 
@@ -449,8 +459,8 @@
 .win-notification-image-container {
     display: none;
     text-align: center;
-    margin: 20px 0;
     width: 100%;
+    margin-bottom: 15px;
 }
 
 .win-notification-image-container img {
@@ -459,6 +469,10 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     max-height: 300px;
     max-width: 290px;
+    width: 64px;
+    border-radius: 8px;
+    border: 1px dotted #B0B0B0;
+    padding: 2px;
 }
 
 .win-notification-pdf-link {
@@ -513,7 +527,19 @@
     }
 }
 
+.win-notification-code-input-wrapper{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
 @media (max-width: 768px) {
+    .win-notification-code-input-wrapper{
+        flex-wrap: wrap;
+    }
+
     .lucky-wheel-content {
         justify-content: flex-start;
         padding: 10px 0px;
@@ -560,6 +586,10 @@
         padding: 12px 30px;
         font-size: 14px;
     }
+
+    .win-notification-message_dop {
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -574,7 +604,11 @@
     }
 
     .lucky-wheel-container h1 {
-        font-size: 1.5em;
+        font-size: 20px;
+    }
+
+    .lucky-wheel-container description {
+        font-size: 14px;
     }
 
     .wheel-container {
@@ -604,4 +638,5 @@
         font-size: 11px;
     }
 }
+
 

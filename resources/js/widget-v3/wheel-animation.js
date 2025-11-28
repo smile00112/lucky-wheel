@@ -15,7 +15,8 @@ export class WheelAnimation {
                 finalAngle = -Math.PI / 2 + Math.random() * 2 * Math.PI;
             }
 
-            const targetRotation = -Math.PI / 2 - finalAngle;
+            // Останавливаем призовой сектор на 90° (15:00, 3:00) = 0 радиан в canvas
+            const targetRotation = 0 - finalAngle;
             const currentRotation = this.state.get('currentRotation');
             const finalRotation = currentRotation + (spins * 2 * Math.PI) + targetRotation;
 

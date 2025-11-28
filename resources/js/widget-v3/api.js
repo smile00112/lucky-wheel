@@ -130,5 +130,12 @@ export class ApiService {
     async getGuestInfo(guestId) {
         return this.request(`/guest/${guestId}/info`);
     }
+
+    async updateGuest(guestId, formData) {
+        return this.request(`/guest/${guestId}`, {
+            method: 'PUT',
+            body: JSON.stringify(formData),
+        });
+    }
 }
 

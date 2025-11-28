@@ -37,6 +37,10 @@ Route::prefix('widget')->group(function () {
     Route::get('/guest/{guestId}/info', [WidgetController::class, 'getGuestInfo'])
         ->name('widget.guest.info');
     
+    // API для обновления данных гостя
+    Route::put('/guest/{guestId}', [WidgetController::class, 'updateGuest'])
+        ->name('widget.guest.update');
+    
     // API для сохранения данных гостя и отправки приза
     Route::post('/guest/{guestId}/claim-prize', [WidgetController::class, 'claimPrize'])
         ->name('widget.guest.claim-prize');

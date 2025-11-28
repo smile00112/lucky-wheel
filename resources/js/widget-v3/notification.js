@@ -11,13 +11,22 @@ export class NotificationManager {
         const notification = document.getElementById('winNotification');
         const message = document.getElementById('winNotificationMessage');
         const codeInput = document.getElementById('winNotificationCode');
-        const codeContainer = document.getElementById('winNotificationCodeContainer');
+        const winningFormContainer = document.getElementById('winningFormContainer');
         const formContainer = document.getElementById('winNotificationFormContainer');
         const sendContainer = document.getElementById('winNotificationSendContainer');
         const pdfLink = document.getElementById('winNotificationPdfLink');
 
         if (!prize || !notification || !message) return;
 
+        // Скрываем форму
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+        if (sendContainer) {
+            sendContainer.style.display = 'none';
+        }
+
+        // Показываем секцию с результатами
         const winText = this.config.getText('win_notification_win_text');
         let messageText = `<strong>${winText} ${prize.name}</strong>`;
         if (prize.text_for_winner) {
@@ -25,9 +34,10 @@ export class NotificationManager {
         }
         message.innerHTML = messageText;
 
+        // Заполняем поле value приза
         if (codeInput) {
-            if (code && code.toString().trim()) {
-                codeInput.value = code.toString().trim();
+            if (prize.value && prize.value.toString().trim()) {
+                codeInput.value = prize.value.toString().trim();
                 codeInput.placeholder = '';
             } else {
                 codeInput.value = '';
@@ -35,16 +45,49 @@ export class NotificationManager {
             }
         }
 
-        if (codeContainer) {
-            codeContainer.style.display = 'flex';
+        // Заполняем поле промокода
+        const promoCodeInput = document.getElementById('winNotificationPromoCode');
+        const promoCodeContainer = document.getElementById('winNotificationPromoCodeContainer');
+        if (promoCodeInput && promoCodeContainer) {
+            if (code && code.toString().trim()) {
+                promoCodeInput.value = code.toString().trim();
+                promoCodeInput.placeholder = '';
+                promoCodeContainer.style.display = 'flex';
+            } else {
+                promoCodeInput.value = '';
+                promoCodeInput.placeholder = this.config.getText('code_not_specified');
+                promoCodeContainer.style.display = 'none';
+            }
         }
 
-        if (pdfLink) {
-            pdfLink.style.display = 'none';
+        // Скрываем кнопки формы
+        const spinButton = document.getElementById('spinButton');
+        const submitBtn = document.getElementById('winNotificationSubmitBtn');
+        if (spinButton) spinButton.style.display = 'none';
+        if (submitBtn) submitBtn.style.display = 'none';
+
+        // Определяем hasData для PDF ссылки
+        let hasData = guestHasData;
+        if (hasData === null || hasData === undefined) {
+            try {
+                const data = await this.api.checkTodayWin(this.config.guestId);
+                if (data.has_win && data.guest_has_data !== undefined) {
+                    hasData = data.guest_has_data;
+                } else {
+                    const guestData = await this.api.getGuestInfo(this.config.guestId);
+                    hasData = guestData.has_data || false;
+                }
+            } catch (e) {
+                hasData = false;
+            }
         }
 
-        const hasData = await this.setupFormVisibility(formContainer, sendContainer, guestHasData);
         await this.setupPdfLink(pdfLink, hasData);
+
+        // Показываем блок с результатами
+        if (winningFormContainer) {
+            winningFormContainer.style.display = 'block';
+        }
 
         notification.style.display = 'block';
         notification.classList.add('show');
@@ -52,9 +95,17 @@ export class NotificationManager {
 
     hide() {
         const notification = document.getElementById('winNotification');
+        const formContainer = document.getElementById('winNotificationFormContainer');
+        const winningFormContainer = document.getElementById('winningFormContainer');
         if (notification) {
             notification.classList.remove('show');
             notification.style.display = 'none';
+        }
+        if (formContainer) {
+            formContainer.style.display = 'none';
+        }
+        if (winningFormContainer) {
+            winningFormContainer.style.display = 'none';
         }
     }
 
@@ -75,11 +126,6 @@ export class NotificationManager {
             }
         }
 
-        if (guestHasData !== true) {
-            pdfLink.style.display = 'none';
-            return;
-        }
-
         const winData = this.state.getWinData();
         let spinId = winData?.spin_id;
 
@@ -94,11 +140,8 @@ export class NotificationManager {
             }
         }
 
-        if (spinId) {
+        if (spinId && guestHasData === true) {
             pdfLink.href = `${this.config.apiUrl}/spin/${spinId}/download-pdf`;
-            pdfLink.style.display = 'flex';
-        } else {
-            pdfLink.style.display = 'none';
         }
     }
 

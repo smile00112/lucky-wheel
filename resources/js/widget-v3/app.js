@@ -60,9 +60,12 @@ class LuckyWheelApp {
         this.fillGuestForm();
 
         console.log('[LuckyWheel] Checking today win...');
+        let hasWin = false;
         try {
             await this.checkTodayWin();
             console.log('[LuckyWheel] checkTodayWin() completed');
+            const winData = this.state.getWinData();
+            hasWin = winData && this.state.isTodayWin(winData);
         } catch (error) {
             console.error('[LuckyWheel] Error in checkTodayWin():', error);
         }
@@ -74,6 +77,11 @@ class LuckyWheelApp {
         } catch (error) {
             console.error('[LuckyWheel] Error in controller.init():', error);
             this.controller.showWheelContent();
+        }
+
+        // Показываем форму при загрузке, если нет выигрыша
+        if (!hasWin) {
+            this.showInitialForm();
         }
 
         setInterval(() => this.checkTodayWin(), 60000);
@@ -138,6 +146,20 @@ class LuckyWheelApp {
     }
 
     setupEventListeners() {
+        // Обработчики для кнопок копирования
+        const copyButtons = document.querySelectorAll('#winNotificationCodeContainer button, #winNotificationPromoCodeContainer button');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const container = e.target.closest('#winNotificationCodeContainer, #winNotificationPromoCodeContainer');
+                if (container) {
+                    const input = container.querySelector('input');
+                    if (input) {
+                        this.formHandler.copyCode(e, input);
+                    }
+                }
+            });
+        });
+
         const copyButton = document.querySelector('[onclick*="copyPrizeCode"]');
         if (copyButton) {
             copyButton.removeAttribute('onclick');
@@ -155,10 +177,10 @@ class LuckyWheelApp {
 
         const spinButton = document.getElementById('spinButton');
         if (spinButton) {
-            spinButton.addEventListener('click', (e) => {
+            spinButton.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.controller.spin();
+                await this.handleSpinButtonClick();
             });
         }
 
@@ -204,6 +226,82 @@ class LuckyWheelApp {
             if (Utils.applyPhoneMask) {
                 Utils.applyPhoneMask(phoneInput);
             }
+        }
+    }
+
+    showInitialForm() {
+        const notification = document.getElementById('winNotification');
+        const formContainer = document.getElementById('winNotificationFormContainer');
+        const winningFormContainer = document.getElementById('winningFormContainer');
+        const sendContainer = document.getElementById('winNotificationSendContainer');
+        const spinButton = document.getElementById('spinButton');
+        const submitBtn = document.getElementById('winNotificationSubmitBtn');
+
+        if (!notification || !formContainer) return;
+
+        // Скрываем секцию с результатами
+        if (winningFormContainer) {
+            winningFormContainer.style.display = 'none';
+        }
+
+        // Показываем форму
+        notification.style.display = 'block';
+        notification.classList.add('show');
+        formContainer.style.display = 'block';
+        if (sendContainer) sendContainer.style.display = 'none';
+        if (spinButton) spinButton.style.display = 'block';
+        if (submitBtn) submitBtn.style.display = 'none';
+    }
+
+    async handleSpinButtonClick() {
+        const spinButton = document.getElementById('spinButton');
+        if (!spinButton || spinButton.disabled) return;
+
+        const nameInput = document.getElementById('winNotificationName');
+        const emailInput = document.getElementById('winNotificationEmail');
+        const phoneInput = document.getElementById('winNotificationPhone');
+        const agreementCheckbox = document.getElementById('winNotificationAgreement');
+
+        if (!nameInput || !emailInput || !phoneInput) {
+            console.error('[LuckyWheel] Form inputs not found');
+            return;
+        }
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const phone = phoneInput.value.trim();
+
+        if (!name || !email || !phone) {
+            alert('Пожалуйста, заполните все поля формы');
+            return;
+        }
+
+        if (agreementCheckbox && !agreementCheckbox.checked) {
+            alert('Необходимо дать согласие на обработку персональных данных');
+            return;
+        }
+
+        if (!this.config.guestId) {
+            console.error('[LuckyWheel] Guest ID not found');
+            this.controller.showError(this.config.getText('error_init_guest'));
+            return;
+        }
+
+        spinButton.disabled = true;
+        const originalText = spinButton.textContent;
+        spinButton.textContent = this.config.getText('form_submit_loading');
+
+        try {
+            const formData = this.formHandler.getFormData();
+            await this.api.updateGuest(this.config.guestId, formData);
+            
+            spinButton.textContent = originalText;
+            await this.controller.spin();
+        } catch (error) {
+            console.error('[LuckyWheel] Error saving guest data:', error);
+            this.controller.showError(this.config.getText('error_general') + ' ' + error.message);
+            spinButton.disabled = false;
+            spinButton.textContent = originalText;
         }
     }
 }
