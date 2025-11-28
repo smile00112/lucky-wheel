@@ -15,11 +15,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \App\Http\Middleware\WidgetCors::class,
         ]);
-        
+
         // Применяем CORS для веб-маршрута embed
         $middleware->web(append: [
             \App\Http\Middleware\WidgetCors::class,
         ]);
+
+        $middleware->append(\App\Http\Middleware\Cors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
