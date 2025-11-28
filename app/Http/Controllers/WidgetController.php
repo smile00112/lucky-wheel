@@ -159,7 +159,14 @@ class WidgetController extends Controller
             $guest = Guest::find((int) $guestId);
         }
 
-        return view('widget.wheel-v3', compact('wheel', 'guest'));
+        // Проверяем, нужен ли только контент (без HTML структуры)
+        $contentOnly = request()->query('content_only', false);
+
+        if ($contentOnly) {
+            return view('widget.wheel-v3', compact('wheel', 'guest'));
+        }
+
+        return view('widget.wheel-v3-page', compact('wheel', 'guest'));
     }
 
     /**

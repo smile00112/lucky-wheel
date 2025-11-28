@@ -34,6 +34,7 @@
             floatingIcon: null,
             isModalOpen: false,
             open: false,
+            version: 'v3',
             callbacks: {
                 onSpin: null,
                 onWin: null,
@@ -553,8 +554,11 @@
          */
         loadWheelContent: function (container) {
             return new Promise((resolve, reject) => {
-                const embedUrl = this.config.apiUrl.replace('/api/widget', '/widget/embed');
-                const url = `${embedUrl}/${this.config.slug}?guest_id=${this.config.guestId}`;
+                const version = this.config.version || 'v3';
+                const embedPath = version === 'v3' ? '/widget/embed-v3' : '/widget/embed';
+                const embedUrl = this.config.apiUrl.replace('/api/widget', embedPath);
+                const guestParam = this.config.guestId ? `&guest_id=${this.config.guestId}` : '';
+                const url = `${embedUrl}/${this.config.slug}?content_only=true${guestParam}`;
 
                 fetch(url)
                     .then(response => {

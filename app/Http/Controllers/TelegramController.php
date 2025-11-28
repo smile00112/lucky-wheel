@@ -41,7 +41,7 @@ class TelegramController extends Controller
             $guest = Guest::find((int) $guestId);
         }
 
-        return view('telegram.webapp', compact('wheel', 'guest'));
+        return view('telegram.webapp-v3', compact('wheel', 'guest'));
     }
 
     public function auth(Request $request)
