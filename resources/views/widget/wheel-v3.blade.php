@@ -42,9 +42,7 @@
     ] : null;
 @endphp
 
-<style>
-{!! file_get_contents(resource_path('css/widget/wheel-v3.css')) !!}
-</style>
+
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 
@@ -56,7 +54,10 @@
 </style>
 
 <div class="lucky-wheel-content">
-<div class="lucky-wheel-container">
+    <style>
+        {!! file_get_contents(resource_path('css/widget/wheel-v3.css')) !!}
+    </style>
+<div class="lucky-wheel-container 222">
     <div id="loading" class="loading">{{ $texts['loading_text'] }}</div>
 
     <div id="wheelContent" class="wheel-content-contener"  style="display: none;">
