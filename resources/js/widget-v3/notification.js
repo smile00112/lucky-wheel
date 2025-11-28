@@ -47,18 +47,14 @@ export class NotificationManager {
         await this.setupPdfLink(pdfLink, hasData);
 
         notification.style.display = 'block';
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
+        notification.classList.add('show');
     }
 
     hide() {
         const notification = document.getElementById('winNotification');
         if (notification) {
             notification.classList.remove('show');
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 500);
+            notification.style.display = 'none';
         }
     }
 
@@ -121,9 +117,14 @@ export class NotificationManager {
             }
         }
 
+        const spinButton = document.getElementById('spinButton');
+        const submitBtn = document.getElementById('winNotificationSubmitBtn');
+
         if (guestHasData === true) {
             if (formContainer) formContainer.style.display = 'none';
-            if (sendContainer) sendContainer.style.display = 'block';
+            if (sendContainer) sendContainer.style.display = 'none';
+            if (spinButton) spinButton.style.display = 'none';
+            if (submitBtn) submitBtn.style.display = 'none';
         } else {
             // Всегда получаем данные гостя для заполнения формы
             let guestInfo = null;
@@ -135,6 +136,8 @@ export class NotificationManager {
 
             if (formContainer) formContainer.style.display = 'block';
             if (sendContainer) sendContainer.style.display = 'none';
+            if (spinButton) spinButton.style.display = 'block';
+            if (submitBtn) submitBtn.style.display = 'none';
 
             const phoneInput = document.getElementById('winNotificationPhone');
             if (phoneInput) {

@@ -3,79 +3,23 @@ import { Utils } from './utils.js';
 export class WheelRenderer {
     constructor(state) {
         this.state = state;
+        this.arrowImage = null;
+        this.loadArrowImage();
     }
 
-    calculateOptimalTextSize(text, sectorWidth, sectorHeight, minFontSize = 10, maxFontSize = 95) {
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-
-        let bestFontSize = minFontSize;
-        let bestLines = [];
-
-        while (maxFontSize - minFontSize > 1) {
-            const fontSize = Math.floor((minFontSize + maxFontSize) / 2);
-            tempCtx.font = `bold ${fontSize}px Arial`;
-
-            const singleLineMetrics = tempCtx.measureText(text);
-            let lines = [];
-
-            if (singleLineMetrics.width <= sectorWidth * 0.9) {
-                lines = [text];
-            } else {
-                const words = text.split(' ');
-                let firstLine = '';
-                let secondLine = '';
-
-                for (let i = 0; i < words.length; i++) {
-                    const testFirstLine = firstLine ? firstLine + ' ' + words[i] : words[i];
-                    const testMetrics = tempCtx.measureText(testFirstLine);
-
-                    if (testMetrics.width > sectorWidth * 0.9 && firstLine) {
-                        secondLine = words.slice(i).join(' ');
-                        break;
-                    }
-                    firstLine = testFirstLine;
-                }
-
-                if (!secondLine && words.length > 1) {
-                    const midPoint = Math.floor(words.length / 2);
-                    firstLine = words.slice(0, midPoint).join(' ');
-                    secondLine = words.slice(midPoint).join(' ');
-                }
-
-                const firstMetrics = tempCtx.measureText(firstLine);
-                const secondMetrics = tempCtx.measureText(secondLine);
-
-                if (firstMetrics.width <= sectorWidth * 0.9 && secondMetrics.width <= sectorWidth * 0.9) {
-                    lines = [firstLine, secondLine];
-                } else {
-                    lines = [text];
-                }
-            }
-
-            const lineHeight = fontSize * 1.2;
-            const totalHeight = lines.length * lineHeight;
-
-            if (totalHeight <= sectorHeight * 0.8 && lines.every(line => tempCtx.measureText(line).width <= sectorWidth * 0.9)) {
-                bestFontSize = fontSize;
-                bestLines = lines;
-                minFontSize = fontSize;
-            } else {
-                maxFontSize = fontSize;
-            }
-        }
-
-        if (bestLines.length === 0) {
-            bestFontSize = minFontSize;
-            tempCtx.font = `bold ${bestFontSize}px Arial`;
-            const words = text.split(' ');
-            const midPoint = Math.floor(words.length / 2);
-            const firstLine = words.slice(0, midPoint).join(' ');
-            const secondLine = words.slice(midPoint).join(' ');
-            bestLines = secondLine ? [firstLine, secondLine] : [firstLine];
-        }
-
-        return { fontSize: bestFontSize, lines: bestLines };
+    async loadArrowImage() {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                this.arrowImage = img;
+                resolve(img);
+            };
+            img.onerror = () => {
+                console.warn('Failed to load arrow image');
+                reject();
+            };
+            img.src = window.APP_URL + '/images/wheel/wheel-arrow.png';
+        });
     }
 
     drawSector(ctx, centerX, centerY, radius, startAngle, angle, color) {
@@ -85,81 +29,83 @@ export class WheelRenderer {
         ctx.closePath();
         ctx.fillStyle = color;
         ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 0.5;
         ctx.stroke();
     }
 
-    drawPrizeImage(ctx, prizeImage, angle, radius) {
-        const midRadius = radius * 0.65;
-        const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
-        const sectorHeight = radius * 0.8;
+    drawPrizeImage(ctx, prizeImage, angle, radius, sectorIndex) {
+        if (!prizeImage) return false;
 
-        const imageAspectRatio = prizeImage.width / prizeImage.height;
-        const sectorAspectRatio = sectorWidth / sectorHeight;
+        const imageRadius = radius * 1.02;
+        const imageAngle = angle / 2;
 
-        let imageWidth, imageHeight;
-        if (imageAspectRatio > sectorAspectRatio) {
-            imageWidth = sectorWidth * 0.95;
-            imageHeight = imageWidth / imageAspectRatio;
-        } else {
-            imageHeight = sectorHeight * 0.95;
-            imageWidth = imageHeight * imageAspectRatio;
-        }
+        // Вычисляем длину внешней дуги секции
+        const arcLength = radius * angle;
+        // Размер изображения = 30% от длины внешней дуги
+        const imageSize = arcLength * 0.3;
 
-        const imageDistance = midRadius;
-        const imageX = imageDistance;
+        const imageX = Math.cos(imageAngle) * imageRadius;
         const imageY = 0;
 
         ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius * 0.98, -angle / 2 - 0.05, angle / 2 + 0.05);
-        ctx.closePath();
-        ctx.clip();
-
-        ctx.save();
         ctx.translate(imageX, imageY);
-        ctx.rotate(1.5);
+        ctx.rotate(Math.PI * 1.5);
 
-        try {
-            ctx.drawImage(
-                prizeImage,
-                -imageWidth / 2,
-                -imageHeight / 2,
-                imageWidth,
-                imageHeight
-            );
-        } catch (e) {
-            console.warn('Error drawing image:', e);
-            ctx.restore();
-            ctx.restore();
-            return false;
-        }
+        const imageAspectRatio = prizeImage.width / prizeImage.height;
+        let drawHeight = imageSize;
+        let drawWidth = drawHeight * imageAspectRatio;
 
-        ctx.restore();
+        const whiteCircleRadius = Math.max(drawWidth, drawHeight) / 2 * 1.9;
+
+        // Смещение фона от центра (положительное значение = дальше от центра)
+        const backgroundOffset = 15; // пикселей, можно настроить
+        //ctx.save(); // сохраняем текущее состояние
+        //ctx.translate(0, -backgroundOffset); // смещаем только для белого круга (отрицательное Y = дальше от центра
+
+        ctx.beginPath();
+        ctx.arc(0, whiteCircleRadius * 0.4, whiteCircleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+
+        ctx.drawImage(
+            prizeImage,
+            -drawWidth / 2,
+            -drawHeight / 2,
+            drawWidth,
+            drawHeight
+        );
+
         ctx.restore();
         return true;
     }
 
     drawPrizeText(ctx, prize, angle, radius) {
-        const midRadius = radius * 0.65;
-        const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
-        const sectorHeight = radius * 0.8;
-
-        const textConfig = this.calculateOptimalTextSize(prize.name, sectorWidth, sectorHeight);
+        const isMobile = this.state.get('isMobile') || window.innerWidth <= 768;
+        const fontSize = isMobile ? 12 : 13;
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#fff';
-        ctx.font = `bold ${textConfig.fontSize}px Arial`;
+        ctx.fillStyle = prize.text_color || '#fff';
+        ctx.font = `bold ${fontSize}px Arial`;
 
-        const lineHeight = textConfig.fontSize * 1.2;
-        const startY = -(textConfig.lines.length - 1) * lineHeight / 2;
-        textConfig.lines.forEach((line, index) => {
-            ctx.fillText(line, radius * 0.6, startY + index * lineHeight);
-        });
+        const lineHeight = fontSize * 1.3;
+        let yOffset = 0;
+        //отступ текска от центра
+        const textRadius = radius * 0.6;
+
+        ctx.fillText(prize.name, textRadius, yOffset);
+
+        if (prize.description && !isMobile) {
+            yOffset += lineHeight;
+            ctx.font = `${fontSize - 1}px Arial`;
+            ctx.fillText(prize.description, textRadius, yOffset);
+        }
     }
+
 
     draw(rotation = 0) {
         const ctx = this.state.get('ctx');
@@ -177,6 +123,13 @@ export class WheelRenderer {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Рисуем белый круглый фон колеса
+        const backgroundRadius = canvas.width / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, backgroundRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
         const totalAngle = 2 * Math.PI;
         const equalAngle = totalAngle / prizes.length;
         let currentAngle = -Math.PI / 2 + rotation;
@@ -191,17 +144,28 @@ export class WheelRenderer {
 
             const prizeImage = prizeImages[prize.id];
             if (prizeImage && prize.image) {
-                const imageDrawn = this.drawPrizeImage(ctx, prizeImage, equalAngle, radius);
-                if (!imageDrawn) {
-                    this.drawPrizeText(ctx, prize, equalAngle, radius);
-                }
-            } else {
-                this.drawPrizeText(ctx, prize, equalAngle, radius);
+                this.drawPrizeImage(ctx, prizeImage, equalAngle, radius, index);
             }
+            this.drawPrizeText(ctx, prize, equalAngle, radius);
 
             ctx.restore();
             currentAngle += equalAngle;
         });
+
+        if (this.arrowImage) {
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            const arrowWidth = this.arrowImage.width;
+            const arrowHeight = this.arrowImage.height;
+            ctx.drawImage(
+                this.arrowImage,
+                -arrowWidth / 2,
+                -arrowHeight / 2,
+                arrowWidth,
+                arrowHeight
+            );
+            ctx.restore();
+        }
     }
 
     init(canvasElement) {
@@ -210,32 +174,32 @@ export class WheelRenderer {
             return;
         }
 
-        const container = canvasElement.parentElement;
-        if (!container) {
-            console.error('Canvas container not found');
-            return;
+        const isMobile = window.innerWidth <= 768;
+        let canvasSize;
+
+        if (isMobile) {
+            // На мобильных используем размер контейнера
+            const container = canvasElement.closest('.wheel-container');
+            const containerWidth = container ? container.clientWidth : 286;
+            // Учитываем padding контейнера (примерно 40px с обеих сторон)
+            canvasSize = Math.min(containerWidth, window.innerWidth - 40);
+        } else {
+            canvasSize = 600;
         }
 
-        // Получаем размеры контейнера, если они еще не установлены, используем минимальные
-        let containerWidth = container.clientWidth;
-        if (!containerWidth || containerWidth === 0) {
-            containerWidth = 400; // Значение по умолчанию
-        }
+        canvasElement.width = canvasSize;
+        canvasElement.height = canvasSize;
 
-        const size = Math.max(Math.min(containerWidth - 20, 400), 200); // Минимум 200px
-
-        canvasElement.width = size;
-        canvasElement.height = size;
-
-        const centerX = size / 2;
-        const centerY = size / 2;
-        const radius = Math.max(Math.min(centerX, centerY) - 10, 50); // Минимум 50px радиуса
+        const centerX = canvasSize / 2;
+        const centerY = canvasSize / 2;
+        const radius = canvasSize * 0.46;
 
         this.state.set('canvas', canvasElement);
         this.state.set('ctx', canvasElement.getContext('2d'));
         this.state.set('centerX', centerX);
         this.state.set('centerY', centerY);
         this.state.set('radius', radius);
+        this.state.set('isMobile', isMobile);
     }
 
     findPrizeIndex(prizeId) {
@@ -271,4 +235,3 @@ export class WheelRenderer {
         return Utils.normalizeAngle(rotation);
     }
 }
-

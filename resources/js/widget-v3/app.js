@@ -57,7 +57,6 @@ class LuckyWheelApp {
             Utils.applyPhoneMask(phoneInput);
         }
 
-        // Заполнение формы данными гостя, если они переданы
         this.fillGuestForm();
 
         console.log('[LuckyWheel] Checking today win...');
@@ -74,7 +73,6 @@ class LuckyWheelApp {
             console.log('[LuckyWheel] controller.init() completed');
         } catch (error) {
             console.error('[LuckyWheel] Error in controller.init():', error);
-            // Убеждаемся, что контент показан даже при ошибке
             this.controller.showWheelContent();
         }
 
@@ -140,16 +138,6 @@ class LuckyWheelApp {
     }
 
     setupEventListeners() {
-        const spinButton = document.getElementById('spinButton');
-        if (spinButton) {
-            spinButton.addEventListener('click', () => this.controller.spin());
-        }
-
-        const closeButton = document.querySelector('.win-notification-close');
-        if (closeButton) {
-            closeButton.addEventListener('click', () => this.notification.hide());
-        }
-
         const copyButton = document.querySelector('[onclick*="copyPrizeCode"]');
         if (copyButton) {
             copyButton.removeAttribute('onclick');
@@ -159,7 +147,19 @@ class LuckyWheelApp {
         const form = document.getElementById('winNotificationForm');
         if (form) {
             form.removeAttribute('onsubmit');
-            form.addEventListener('submit', (e) => this.formHandler.submit(e));
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.formHandler.submit(e);
+            });
+        }
+
+        const spinButton = document.getElementById('spinButton');
+        if (spinButton) {
+            spinButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.controller.spin();
+            });
         }
 
         const submitBtn2 = document.getElementById('winNotificationSubmitBtn2');
@@ -201,7 +201,6 @@ class LuckyWheelApp {
         }
         if (phoneInput && guestData.phone) {
             phoneInput.value = guestData.phone;
-            // Применяем маску к телефону после заполнения
             if (Utils.applyPhoneMask) {
                 Utils.applyPhoneMask(phoneInput);
             }
@@ -222,4 +221,3 @@ if (document.readyState === 'loading') {
     const app = new LuckyWheelApp();
     app.init();
 }
-

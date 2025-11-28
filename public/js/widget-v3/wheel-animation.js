@@ -12,10 +12,10 @@ export class WheelAnimation {
             if (prizeIndex >= 0 && prizeIndex < prizes.length) {
                 finalAngle = this.renderer.getPrizeCenterAngle(prizeIndex);
             } else {
-                finalAngle = -Math.PI / 2 + Math.random() * 2 * Math.PI;
+                finalAngle = 0 + Math.random() * 2 * Math.PI;
             }
 
-            const targetRotation = -Math.PI / 2 - finalAngle;
+            const targetRotation = 0 - finalAngle;
             const currentRotation = this.state.get('currentRotation');
             const finalRotation = currentRotation + (spins * 2 * Math.PI) + targetRotation;
 

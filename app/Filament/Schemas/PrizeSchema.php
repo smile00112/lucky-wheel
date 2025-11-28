@@ -102,6 +102,10 @@ class PrizeSchema
             Forms\Components\ColorPicker::make('color')
                 ->label(__('filament.prize.color'))
                 ->helperText(__('filament.prize.color_hint')),
+            Forms\Components\ColorPicker::make('text_color')
+                ->label('Цвет текста в секции')
+                ->helperText('Цвет текста приза на колесе (по умолчанию белый)')
+                ->default('#ffffff'),
 
             Forms\Components\TextInput::make('sort')
                 ->label(__('filament.prize.sort'))

@@ -4,8 +4,8 @@
         'spin_button_text' => 'Крутить колесо!',
         'spin_button_blocked_text' => 'Вы уже выиграли сегодня. Попробуйте завтра!',
         'won_prize_label' => 'Выиграно сегодня:',
-        'win_notification_title' => '🎉 Поздравляем с выигрышем!',
-        'win_notification_win_text' => 'Вы выиграли:',
+        'win_notification_title' => 'Ваш подарок',
+        'win_notification_win_text' => 'Скопируйте промокод или покажите QR-код на ресепшене',
         'copy_code_button_title' => 'Копировать код',
         'code_not_specified' => 'Код не указан',
         'download_pdf_text' => 'Скачать сертификат PDF',
@@ -41,43 +41,33 @@
     ] : null;
 @endphp
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url('css/widget/wheel-v3.css') }}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 
 <style>
-{!! $wheel->generateStyleCss() !!}
+{{--{!! $wheel->generateStyleCss() !!}--}}
+    body{
+        margin: 0;
+    }
 </style>
 
 <div class="lucky-wheel-content">
 <div class="lucky-wheel-container">
-    <h1>🎡 {{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>
-    @if($wheel->description)
-        <div class="description">{{ $wheel->description }}</div>
-    @endif
-
     <div id="loading" class="loading">{{ $texts['loading_text'] }}</div>
 
-    <div id="wheelContent" style="display: none;">
-        <div class="wheel-container">
-            <div class="pointer"></div>
-            <canvas id="wheelCanvas" class="wheel"></canvas>
-            <div id="wonPrizeBlock" class="won-prize-block" style="display: none;">
-                <div class="won-prize-label">{{ $texts['won_prize_label'] }}</div>
-                <div class="won-prize-name" id="wonPrizeCode"></div>
+    <div id="wheelContent" class="wheel-content-contener"  style="display: none;">
+        <div class="wheel-content-wrapper">
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" class="wheel"></canvas>
+                <div id="wonPrizeBlock" class="won-prize-block" style="display: none;">
+                    <div class="won-prize-label">{{ $texts['won_prize_label'] }}</div>
+                    <div class="won-prize-name" id="wonPrizeCode"></div>
+                </div>
             </div>
+            <div id="spinsInfo" class="spins-info"></div>
         </div>
 
-        <button id="spinButton" class="spin-button">{{ $texts['spin_button_text'] }}</button>
-        <div id="spinsInfo" class="spins-info"></div>
-    </div>
-
-    <div id="error" class="error"></div>
-</div>
-
 <div id="winNotification" class="win-notification" style="display: none;">
-    <button class="win-notification-close">&times;</button>
     <h3>{{ $texts['win_notification_title'] }}</h3>
     <div class="win-notification-message" id="winNotificationMessage"></div>
     <div class="win-notification-code" id="winNotificationCodeContainer">
@@ -97,7 +87,11 @@
     </a>
 
     <div class="win-notification-form" id="winNotificationFormContainer" style="display: none;">
-        <p class="win-notification-form-text">{{ $texts['form_description'] }}</p>
+        <h1>{{ $wheel->name ?? $texts['wheel_default_name'] }}</h1>
+        @if($wheel->description)
+            <div class="description">{{ $wheel->description }}</div>
+        @endif
+{{--        <p class="win-notification-form-text">{{ $texts['form_description'] }}</p>--}}
         <form id="winNotificationForm">
             <div class="win-notification-form-group">
                 <input type="text" id="winNotificationName" name="name" placeholder="{{ $texts['form_name_placeholder'] }}" required>
@@ -108,7 +102,14 @@
             <div class="win-notification-form-group">
                 <input type="tel" id="winNotificationPhone" name="phone" placeholder="{{ $texts['form_phone_placeholder'] }}" required maxlength="18">
             </div>
-            <button type="submit" class="win-notification-submit-btn" id="winNotificationSubmitBtn">
+            <div class="win-notification-form-group checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="winNotificationAgreement" name="agreement" required>
+                    <span class="checkbox-text">Я даю согласие на обработку персональных данных и принимаю условия пользовательского соглашения</span>
+                </label>
+            </div>
+            <button type="button" id="spinButton" class="spin-button">{{ $texts['spin_button_text'] }}</button>
+            <button type="submit" class="win-notification-submit-btn" id="winNotificationSubmitBtn" style="display: none;">
                 {{ $texts['form_submit_text'] }}
             </button>
         </form>
@@ -123,7 +124,10 @@
     <div class="win-notification-image-container" id="winNotificationImageContainer" style="display: none;">
         <img id="winNotificationImage" src="" alt="{{ $texts['prize_image_alt'] }}">
     </div>
-</div>
+        </div>
+    </div>
+
+    <div id="error" class="error"></div>
 </div>
 
 <script>
@@ -135,4 +139,3 @@
 </script>
 
 <script type="module" src="{{ route('widget.assets', ['path' => 'widget-v3/app.js']) }}"></script>
-

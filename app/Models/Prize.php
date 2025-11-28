@@ -22,12 +22,17 @@ class Prize extends Model
         'image',
         'email_image',
         'color',
+        'text_color',
         'is_active',
         'sort',
         'quantity_limit',
         'quantity_day_limit',
         'quantity_guest_limit',
         'quantity_used',
+    ];
+
+    protected $attributes = [
+        'text_color' => '#ffffff',
     ];
 
     protected $casts = [

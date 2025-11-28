@@ -86,13 +86,14 @@ export class WheelRenderer {
         ctx.fillStyle = color;
         ctx.fill();
         ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 0;
         ctx.stroke();
     }
 
     drawPrizeImage(ctx, prizeImage, angle, radius) {
-        const midRadius = radius * 0.65;
-        const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
+        // Увеличиваем расстояние до края
+        const imageDistance = radius * 0.55;
+        const sectorWidth = 2 * Math.sin(angle / 2) * imageDistance;
         const sectorHeight = radius * 0.8;
 
         const imageAspectRatio = prizeImage.width / prizeImage.height;
@@ -100,27 +101,31 @@ export class WheelRenderer {
 
         let imageWidth, imageHeight;
         if (imageAspectRatio > sectorAspectRatio) {
-            imageWidth = sectorWidth * 0.95;
+            // Увеличиваем размер картинки, чтобы она выходила за край
+            imageWidth = sectorWidth * 1.2;
             imageHeight = imageWidth / imageAspectRatio;
         } else {
-            imageHeight = sectorHeight * 0.95;
+            imageHeight = sectorHeight * 1.2;
             imageWidth = imageHeight * imageAspectRatio;
         }
 
-        const imageDistance = midRadius;
         const imageX = imageDistance;
         const imageY = 0;
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.arc(0, 0, radius * 0.98, -angle / 2 - 0.05, angle / 2 + 0.05);
-        ctx.closePath();
-        ctx.clip();
-
+        // Убираем клиппинг, чтобы картинка могла выходить за границы секции
         ctx.save();
         ctx.translate(imageX, imageY);
         ctx.rotate(1.5);
+
+        // Рисуем белый круглый фон
+        const circleRadius = Math.max(imageWidth, imageHeight) / 2 + 5;
+        ctx.beginPath();
+        ctx.arc(0, 0, circleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
         try {
             ctx.drawImage(
@@ -133,11 +138,9 @@ export class WheelRenderer {
         } catch (e) {
             console.warn('Error drawing image:', e);
             ctx.restore();
-            ctx.restore();
             return false;
         }
 
-        ctx.restore();
         ctx.restore();
         return true;
     }
@@ -202,6 +205,13 @@ export class WheelRenderer {
             ctx.restore();
             currentAngle += equalAngle;
         });
+
+        // Рисуем общую внешнюю границу колеса
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
 
     init(canvasElement) {
@@ -247,7 +257,7 @@ export class WheelRenderer {
         const prizes = this.state.get('prizes');
         const totalAngle = 2 * Math.PI;
         const equalAngle = totalAngle / prizes.length;
-        let cumulativeAngle = -Math.PI / 2;
+        let cumulativeAngle = 0;
 
         for (let i = 0; i < prizes.length; i++) {
             if (i === prizeIndex) {
@@ -267,7 +277,7 @@ export class WheelRenderer {
         }
 
         const prizeCenterAngle = this.getPrizeCenterAngle(prizeIndex);
-        const rotation = -Math.PI / 2 - prizeCenterAngle;
+        const rotation = 0 - prizeCenterAngle;
         return Utils.normalizeAngle(rotation);
     }
 }

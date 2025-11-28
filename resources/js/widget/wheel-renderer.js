@@ -151,7 +151,7 @@ export class WheelRenderer {
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = prize.text_color || '#fff';
         ctx.font = `bold ${textConfig.fontSize}px Arial`;
 
         const lineHeight = textConfig.fontSize * 1.2;

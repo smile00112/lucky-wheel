@@ -19,6 +19,14 @@ export class FormHandler {
 
         if (!submitBtn) return;
 
+        if (formContainer && formContainer.style.display !== 'none') {
+            const agreementCheckbox = document.getElementById('winNotificationAgreement');
+            if (agreementCheckbox && !agreementCheckbox.checked) {
+                alert('Необходимо дать согласие на обработку персональных данных');
+                return;
+            }
+        }
+
         this.setButtonLoading(submitBtn, true);
 
         try {

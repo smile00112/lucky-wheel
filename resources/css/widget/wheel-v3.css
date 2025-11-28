@@ -1,8 +1,16 @@
+.wheel-content-contener{
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+}
 .lucky-wheel-content {
-    font-family: 'Arial', sans-serif;
+    /*font-family: 'Arial', sans-serif;*/
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     width: 100%;
     min-height: 100vh;
@@ -11,17 +19,17 @@
 }
 
 .lucky-wheel-container {
-    font-family: 'Roboto', sans-serif;
-    background: white;
+    /*background: white;*/
     border-radius: 20px;
     padding: 30px 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    /*box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);*/
     text-align: center;
-    max-width: 450px;
+    max-width: 1200px;
     width: 100%;
     max-height: 100%;
     margin: 0 auto;
     box-sizing: border-box;
+    position: relative;
 }
 
 .lucky-wheel-container h1 {
@@ -36,39 +44,48 @@
     font-size: 14px;
 }
 
+.wheel-content-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+@media (min-width: 768px) {
+    .wheel-content-wrapper {
+        min-width: 600px;
+    }
+}
+
 .wheel-container {
     position: relative;
     width: 100%;
-    max-width: 400px;
-    margin: 0 auto 20px;
+    max-width: 600px;
+    margin: 0 auto;
     aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
 }
 
 .wheel {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
+    max-width: 600px;
+    max-height: 600px;
     position: relative;
     overflow: hidden;
-    border: 10px solid #fff;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    border-radius: 300px;
 }
 
 .pointer {
-    position: absolute;
-    top: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-top: 30px solid #ff4444;
-    z-index: 10;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    display: none;
 }
 
 .won-prize-block {
+    display: none !important;
     position: absolute;
     top: 20px;
     left: 50%;
@@ -142,7 +159,7 @@
 .loading {
     text-align: center;
     padding: 20px;
-    color: #666;
+    color: #ffffff;
 }
 
 .spins-info {
@@ -192,25 +209,54 @@
 }
 
 .win-notification {
-    position: absolute;
-    bottom: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px 20px;
-    border-radius: 15px 15px 0 0;
+    box-sizing: border-box;
+    /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+    background: white;
+    color: #000000;
+    padding: 25px;
+    border-radius: 15px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    z-index: 10000;
-    max-width: 420px;
-    width: calc(100% - 40px);
-    min-height: 44%;
-    transition: bottom 0.5s ease;
-    animation: slideUpNotification 0.5s ease forwards;
+    width: 380px;
+    max-width: 100%;
+    flex-shrink: 0;
+    transition: opacity 0.3s ease;
+
+    width: 700px;
+    border-radius: 16px;
+    opacity: 1;
+    gap: 24px;
+    padding-top: 40px;
+    padding-right: 40px;
+    padding-bottom: 40px;
+    padding-left: 236px;
+
+}
+@media (min-width: 768px) {
+    .win-notification {
+        position: relative;
+        left: -200px;
+        height: 465px;
+        width: auto;
+        min-width: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    .win-notification {
+        position: relative;
+        width: 100%;
+        height: 518px;
+        top: -200px;
+        padding-top: 210px;
+
+        padding-right: 12px;
+        padding-bottom: 12px;
+        padding-left: 12px;
+    }
 }
 
 .win-notification.show {
-    bottom: 20px;
+    opacity: 1;
 }
 
 .win-notification h3 {
@@ -235,6 +281,7 @@
     border-radius: 8px;
     padding: 12px;
     flex-direction: row;
+    border: 1px dotted #B0B0B0;
 }
 
 .win-notification-code input {
@@ -245,9 +292,8 @@
     border-radius: 6px;
     font-size: 16px;
     font-weight: bold;
-    text-align: center;
     color: #333;
-    font-family: 'Courier New', monospace;
+    text-align: left;
 }
 
 .win-notification-code input:focus {
@@ -288,34 +334,18 @@
 }
 
 .win-notification-close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    line-height: 1;
-    transition: all 0.3s ease;
-    padding: 0;
-}
-
-.win-notification-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
+    display: none;
 }
 
 .win-notification-form {
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.win-notification-form .spin-button {
+    margin-top: 15px;
+    margin-bottom: 0;
 }
 
 .win-notification-form-text {
@@ -350,6 +380,40 @@
     color: #999;
 }
 
+.checkbox-group {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+    accent-color: #667eea;
+    flex-shrink: 0;
+}
+
+.checkbox-text {
+    flex: 1;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background-color: white;
+}
+
 .win-notification-submit-btn {
     width: 100%;
     padding: 14px;
@@ -379,6 +443,7 @@
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.3);
+    display: none;
 }
 
 .win-notification-image-container {
@@ -403,8 +468,8 @@
     gap: 8px;
     margin-top: 15px;
     padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: #4396CF;
+    /*border: 2px solid rgba(255, 255, 255, 0.3);*/
     border-radius: 8px;
     color: white;
     text-decoration: none;
@@ -415,8 +480,8 @@
 }
 
 .win-notification-pdf-link:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: #4396cfb3;
+    /*border-color: rgba(255, 255, 255, 0.5);*/
     transform: translateY(-2px);
 }
 
@@ -460,9 +525,20 @@
         margin: 0 10px;
     }
 
+    .wheel-content-wrapper {
+        flex-direction: column;
+        align-items: center;
+        min-width: 300px;
+    }
+
     .wheel-container {
+        width: 100%;
+    }
+
+    .wheel {
         max-width: 100%;
-        margin: 0 auto 15px;
+        max-height: 100%;
+        border-radius: 250px;
     }
 
     .won-prize-block {
@@ -478,6 +554,7 @@
     .won-prize-name {
         font-size: 12px;
     }
+
 
     .spin-button {
         padding: 12px 30px;
@@ -501,14 +578,19 @@
     }
 
     .wheel-container {
-        max-width: 300px;
+        max-width: 100%;
     }
 
-    .win-notification {
-        width: calc(100% - 20px);
-        padding: 15px 20px;
-        bottom: 10px;
+    .wheel {
+        max-width: 100%;
+        max-height: 100%;
     }
+
+    /*.win-notification {*/
+    /*    width: 100%;*/
+    /*    padding: 15px 20px;*/
+    /*    border-radius: 20px 20px 0 0;*/
+    /*}*/
 
     .win-notification h3 {
         font-size: 1.1em;
@@ -516,6 +598,10 @@
 
     .win-notification-code {
         flex-direction: row;
+    }
+
+    .checkbox-label {
+        font-size: 11px;
     }
 }
 

@@ -9,6 +9,8 @@ export class WheelController {
         this.animation = animation;
         this.imageLoader = imageLoader;
         this.notification = notification;
+        this.canvas = null;
+        this.resizeHandler = null;
     }
 
     async init() {
@@ -37,7 +39,7 @@ export class WheelController {
             try {
                 await Promise.race([
                     this.imageLoader.loadPrizeImages(prizes),
-                    new Promise((_, reject) => 
+                    new Promise((_, reject) =>
                         setTimeout(() => reject(new Error('Image loading timeout')), 20000)
                     )
                 ]);
@@ -54,12 +56,14 @@ export class WheelController {
             const canvas = document.getElementById('wheelCanvas');
             console.log('[LuckyWheel] Canvas element:', canvas ? 'found' : 'not found');
             if (canvas) {
+                this.canvas = canvas;
                 // Небольшая задержка для гарантии, что DOM обновился
                 setTimeout(() => {
                     console.log('[LuckyWheel] Initializing canvas...');
                     this.renderer.init(canvas);
                     this.renderer.draw(0);
                     console.log('[LuckyWheel] Canvas initialized and drawn');
+                    this.setupResizeHandler();
                 }, 50);
             }
             this.updateSpinsInfo();
@@ -90,9 +94,9 @@ export class WheelController {
         } else {
             console.warn('[LuckyWheel] Loading element not found!');
         }
-        
+
         if (content) {
-            content.style.display = 'block';
+            content.style.display = 'flex';
             console.log('[LuckyWheel] Content shown');
         } else {
             console.warn('[LuckyWheel] Content element not found!');
@@ -151,7 +155,6 @@ console.log('applyWonPrize', winData);
         }
 
         this.notification.show(prize, code, winData.guest_has_data);
-        this.notification.showWonPrizeBlock(code);
 
         const rotation = this.renderer.calculateRotationForPrize(prize.id);
         this.state.set('currentRotation', rotation);
@@ -204,7 +207,6 @@ console.log('applyWonPrize', winData);
 
                 setTimeout(() => {
                     this.notification.show(data.prize, data.code, data.guest_has_data);
-                    this.notification.showWonPrizeBlock(data.code);
                 }, 500);
 
                 this.blockSpinning();
@@ -217,7 +219,6 @@ console.log('applyWonPrize', winData);
                 if (winData) {
                     setTimeout(() => {
                         this.notification.show(winData.prize, winData.code, winData.guest_has_data);
-                        this.notification.showWonPrizeBlock(winData.code);
                     }, 100);
                     this.blockSpinning();
                 }
@@ -284,6 +285,28 @@ console.log('applyWonPrize', winData);
         if (errorEl) {
             errorEl.classList.remove('show', 'error-overlay');
         }
+    }
+
+    setupResizeHandler() {
+        // Удаляем предыдущий обработчик, если он есть
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
+
+        // Создаем новый обработчик с debounce
+        let resizeTimeout;
+        this.resizeHandler = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth <= 768 && this.canvas) {
+                    const currentRotation = this.state.get('currentRotation') || 0;
+                    this.renderer.init(this.canvas);
+                    this.renderer.draw(currentRotation);
+                }
+            }, 250);
+        };
+
+        window.addEventListener('resize', this.resizeHandler);
     }
 }
 

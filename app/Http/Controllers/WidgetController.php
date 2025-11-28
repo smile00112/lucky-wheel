@@ -215,6 +215,7 @@ class WidgetController extends Controller
                 'name' => $prize->name,
                 'description' => $prize->description,
                 'color' => $prize->color,
+                'text_color' => $prize->text_color,
                 'probability' => (float) $prize->probability,
                 'type' => $prize->type,
                 'value' => $prize->value,
