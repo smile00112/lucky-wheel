@@ -60,6 +60,11 @@ export class ApiService {
                 console.error('[LuckyWheel] API request timeout:', url);
                 throw new Error('Request timeout');
             }
+            // Обработка ошибки "Failed to fetch" (нет сети, CORS и т.д.)
+            if (error.message === 'Failed to fetch' || error.message.includes('Failed to fetch')) {
+                console.error('[LuckyWheel] API request failed (network error):', url);
+                throw new Error(this.config.getText('error_failed_to_fetch'));
+            }
             console.error('[LuckyWheel] API request failed:', url, error);
             throw error;
         }
@@ -133,7 +138,7 @@ export class ApiService {
 
     async updateGuest(guestId, formData) {
         return this.request(`/guest/${guestId}`, {
-            method: 'PUT',
+            method: 'POST',
             body: JSON.stringify(formData),
         });
     }

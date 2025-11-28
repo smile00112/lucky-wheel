@@ -7,7 +7,7 @@ use App\Http\Controllers\TelegramController;
 
 Route::prefix('widget')->group(function () {
     // OPTIONS для CORS preflight
-    //Route::options('/{any}', [WidgetController::class, 'options'])->where('any', '.*');
+    Route::options('/{any}', [WidgetController::class, 'options'])->where('any', '.*');
 
     // API для получения данных колеса
     Route::get('/wheel/{slug}', [WidgetController::class, 'getWheel'])
@@ -38,7 +38,7 @@ Route::prefix('widget')->group(function () {
         ->name('widget.guest.info');
 
     // API для обновления данных гостя
-    Route::put('/guest/{guestId}', [WidgetController::class, 'updateGuest'])
+    Route::post('/guest/{guestId}', [WidgetController::class, 'updateGuest'])
         ->name('widget.guest.update');
 
     // API для сохранения данных гостя и отправки приза

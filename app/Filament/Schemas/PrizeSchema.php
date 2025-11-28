@@ -99,9 +99,23 @@ class PrizeSchema
                 ->directory('prizes')
                 ->visibility('public')
                 ->columns(1),
+            Forms\Components\Toggle::make('use_gradient')
+                ->label('Использовать градиент')
+                ->default(false)
+                ->live()
+                ->columnSpanFull(),
             Forms\Components\ColorPicker::make('color')
                 ->label(__('filament.prize.color'))
-                ->helperText(__('filament.prize.color_hint')),
+                ->helperText(__('filament.prize.color_hint'))
+                ->visible(fn ($get) => !$get('use_gradient')),
+            Forms\Components\ColorPicker::make('gradient_start')
+                ->label('Цвет начала градиента')
+                ->helperText('Цвет в центре секции')
+                ->visible(fn ($get) => $get('use_gradient')),
+            Forms\Components\ColorPicker::make('gradient_end')
+                ->label('Цвет конца градиента')
+                ->helperText('Цвет на краю секции')
+                ->visible(fn ($get) => $get('use_gradient')),
             Forms\Components\ColorPicker::make('text_color')
                 ->label('Цвет текста в секции')
                 ->helperText('Цвет текста приза на колесе (по умолчанию белый)')

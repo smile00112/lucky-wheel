@@ -22,12 +22,24 @@ export class WheelRenderer {
         });
     }
 
-    drawSector(ctx, centerX, centerY, radius, startAngle, angle, color) {
+    drawSector(ctx, centerX, centerY, radius, startAngle, angle, color, useGradient = false, gradientStart = null, gradientEnd = null) {
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, startAngle + angle);
         ctx.closePath();
-        ctx.fillStyle = color;
+        
+        if (useGradient && gradientStart && gradientEnd) {
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, radius
+            );
+            gradient.addColorStop(0, gradientStart);
+            gradient.addColorStop(1, gradientEnd);
+            ctx.fillStyle = gradient;
+        } else {
+            ctx.fillStyle = color;
+        }
+        
         ctx.fill();
         ctx.strokeStyle = color;
         ctx.lineWidth = 0.5;
@@ -94,15 +106,32 @@ export class WheelRenderer {
 
         const lineHeight = fontSize * 1.3;
         let yOffset = 0;
-        //отступ текска от центра
         const textRadius = radius * 0.6;
 
-        ctx.fillText(prize.name, textRadius, yOffset);
+        // Поддержка переносов строк: \n и <br> / <br />
+        const processText = (text) => {
+            if (!text) return [];
+            return text
+                .replace(/<br\s*\/?>/gi, '\n')
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+        };
+
+        const nameLines = processText(prize.name);
+        nameLines.forEach((line, index) => {
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.fillText(line, textRadius, yOffset);
+            yOffset += lineHeight;
+        });
 
         if (prize.description && !isMobile) {
-            yOffset += lineHeight;
-            ctx.font = `${fontSize - 1}px Arial`;
-            ctx.fillText(prize.description, textRadius, yOffset);
+            const descLines = processText(prize.description);
+            descLines.forEach((line) => {
+                ctx.font = `${fontSize - 1}px Arial`;
+                ctx.fillText(line, textRadius, yOffset);
+                yOffset += lineHeight;
+            });
         }
     }
 
@@ -136,7 +165,10 @@ export class WheelRenderer {
 
         prizes.forEach((prize, index) => {
             const color = prize.color || Utils.getColorByIndex(index);
-            this.drawSector(ctx, centerX, centerY, radius, currentAngle, equalAngle, color);
+            const useGradient = prize.use_gradient || false;
+            const gradientStart = prize.gradient_start || null;
+            const gradientEnd = prize.gradient_end || null;
+            this.drawSector(ctx, centerX, centerY, radius, currentAngle, equalAngle, color, useGradient, gradientStart, gradientEnd);
 
             ctx.save();
             ctx.translate(centerX, centerY);

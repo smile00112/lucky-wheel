@@ -1,6 +1,7 @@
 export const ru = {
     // Общие ошибки
     error_request_failed: 'Ошибка запроса',
+    error_failed_to_fetch: 'Ошибка сети. Проверьте подключение к интернету.',
     error_failed_to_get_guest: 'Не удалось получить ID гостя',
     error_spin_id_not_found: 'ID вращения не найден',
     error_already_claimed: 'Приз уже получен',

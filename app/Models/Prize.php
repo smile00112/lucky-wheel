@@ -22,6 +22,9 @@ class Prize extends Model
         'image',
         'email_image',
         'color',
+        'use_gradient',
+        'gradient_start',
+        'gradient_end',
         'text_color',
         'is_active',
         'sort',
@@ -38,6 +41,7 @@ class Prize extends Model
     protected $casts = [
         'probability' => 'decimal:2',
         'is_active' => 'boolean',
+        'use_gradient' => 'boolean',
         'sort' => 'integer',
         'quantity_limit' => 'integer',
         'quantity_day_limit' => 'integer',
