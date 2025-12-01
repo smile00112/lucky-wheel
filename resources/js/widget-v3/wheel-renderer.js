@@ -27,7 +27,7 @@ export class WheelRenderer {
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, startAngle + angle);
         ctx.closePath();
-        
+
         if (useGradient && gradientStart && gradientEnd) {
             const gradient = ctx.createRadialGradient(
                 centerX, centerY, 0,
@@ -39,14 +39,14 @@ export class WheelRenderer {
         } else {
             ctx.fillStyle = color;
         }
-        
+
         ctx.fill();
         ctx.strokeStyle = color;
         ctx.lineWidth = 0.5;
         ctx.stroke();
     }
 
-    drawPrizeImage(ctx, prizeImage, angle, radius, sectorIndex) {
+    drawPrizeImage(ctx, prizeImage, angle, radius, sectorIndex, offsetY = 0) {
         if (!prizeImage) return false;
 
         const imageRadius = radius * 1.02;
@@ -58,7 +58,7 @@ export class WheelRenderer {
         const imageSize = arcLength * 0.3;
 
         const imageX = Math.cos(imageAngle) * imageRadius;
-        const imageY = 0;
+        const imageY = offsetY;
 
         ctx.save();
         ctx.translate(imageX, imageY);
@@ -69,11 +69,6 @@ export class WheelRenderer {
         let drawWidth = drawHeight * imageAspectRatio;
 
         const whiteCircleRadius = Math.max(drawWidth, drawHeight) / 2 * 1.9;
-
-        // Смещение фона от центра (положительное значение = дальше от центра)
-        const backgroundOffset = 15; // пикселей, можно настроить
-        //ctx.save(); // сохраняем текущее состояние
-        //ctx.translate(0, -backgroundOffset); // смещаем только для белого круга (отрицательное Y = дальше от центра
 
         ctx.beginPath();
         ctx.arc(0, whiteCircleRadius * 0.4, whiteCircleRadius, 0, 2 * Math.PI);
@@ -118,8 +113,11 @@ export class WheelRenderer {
                 .filter(line => line.length > 0);
         };
 
-        const nameLines = processText(prize.name);
-        const descLines = (prize.description && !isMobile) ? processText(prize.description) : [];
+        // Используем mobile_name для мобильной версии, если заполнено
+        const prizeName = (isMobile && prize.mobile_name) ? prize.mobile_name : prize.name;
+        const nameLines = processText(prizeName);
+        //const descLines = (prize.description && !isMobile) ? processText(prize.description) : [];
+        const descLines = (prize.description) ? processText(prize.description) : [];
         const totalLines = nameLines.length + descLines.length;
 
         // Вычисляем начальный yOffset для центрирования всего блока текста
@@ -179,10 +177,24 @@ export class WheelRenderer {
             ctx.rotate(currentAngle + equalAngle / 2);
 
             const prizeImage = prizeImages[prize.id];
-            if (prizeImage && prize.image) {
-                this.drawPrizeImage(ctx, prizeImage, equalAngle, radius, index);
+            const sectorView = prize.sector_view || 'text_with_image';
+            const hasImage = prizeImage && prize.image;
+
+            // Определяем, что показывать в зависимости от sector_view
+            if (sectorView === 'only_image' && hasImage) {
+                // Только изображение - смещаем выше центра
+                const imageOffsetY = -radius * 0.15; // Смещение выше центра
+                this.drawPrizeImage(ctx, prizeImage, equalAngle, radius, index, imageOffsetY);
+            } else if (sectorView === 'only_text') {
+                // Только текст
+                this.drawPrizeText(ctx, prize, equalAngle, radius);
+            } else {
+                // text_with_image (по умолчанию) - показываем и изображение и текст
+                if (hasImage) {
+                    this.drawPrizeImage(ctx, prizeImage, equalAngle, radius, index);
+                }
+                this.drawPrizeText(ctx, prize, equalAngle, radius);
             }
-            this.drawPrizeText(ctx, prize, equalAngle, radius);
 
             ctx.restore();
             currentAngle += equalAngle;

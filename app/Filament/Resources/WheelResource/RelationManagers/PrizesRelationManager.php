@@ -45,6 +45,11 @@ class PrizesRelationManager extends RelationManager
         // Устанавливаем wheel_id автоматически
         $data['wheel_id'] = $this->ownerRecord->id;
 
+        // Устанавливаем sector_view по умолчанию, если не указано
+        if (!isset($data['sector_view'])) {
+            $data['sector_view'] = 'text_with_image';
+        }
+
         return $this->getRelationship()->create($data);
     }
 

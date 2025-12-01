@@ -220,6 +220,8 @@ class WidgetController extends Controller
             return [
                 'id' => $prize->id,
                 'name' => $prize->name,
+                'mobile_name' => $prize->mobile_name,
+                'sector_view' => $prize->sector_view ?? 'text_with_image',
                 'description' => $prize->description,
                 'color' => $prize->color,
                 'use_gradient' => (bool) $prize->use_gradient,

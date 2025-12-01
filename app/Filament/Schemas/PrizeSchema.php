@@ -51,7 +51,7 @@ class PrizeSchema
                 ->label(__('filament.prize.mobile_name'))
                 ->helperText(__('filament.prize.mobile_name_hint'))
                 ->maxLength(255)
-                ->columnSpanFull(),
+                ,
             Forms\Components\Select::make('sector_view')
                 ->label(__('filament.prize.sector_view'))
                 ->helperText(__('filament.prize.sector_view_hint'))
@@ -62,7 +62,8 @@ class PrizeSchema
                 ])
                 ->default('text_with_image')
                 ->required()
-                ->columnSpanFull(),
+                ->columnSpanFull()
+                ->hidden(),
             Forms\Components\TextInput::make('value')
                 ->label(__('filament.prize.value'))
                 ->maxLength(255)
