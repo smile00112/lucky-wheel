@@ -60,7 +60,7 @@
     <style>
         {!! file_get_contents(resource_path('css/widget/wheel-v3.css')) !!}
     </style>
-<div class="lucky-wheel-container 222">
+<div class="lucky-wheel-container">
     <div id="loading" class="loading">{{ $texts['loading_text'] }}</div>
 
     <div id="wheelContent" class="wheel-content-contener"  style="display: none;">

@@ -719,7 +719,7 @@
 
 .wheel-content-wrapper {
     @media (max-width: 768px) {
-        width: 90%;
+        width: 100%;
     }
 }
 .win-notification-image-container {

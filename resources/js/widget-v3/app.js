@@ -1,7 +1,7 @@
 import { Config } from './config.js';
 import { ApiService } from './api.js';
 import { StateManager } from './state.js';
-import { WheelRenderer } from './wheel-renderer.js';
+import { WheelRenderer } from './wheel-renderer-v2.js';
 import { WheelAnimation } from './wheel-animation.js';
 import { ImageLoader } from './image-loader.js';
 import { NotificationManager } from './notification.js';
