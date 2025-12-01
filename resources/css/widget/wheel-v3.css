@@ -305,9 +305,10 @@
 
 .win-notification-code {
     display: flex;
+    flex: 1;
     align-items: center;
     gap: 10px;
-    margin-bottom: 15px;
+    /*margin-bottom: 15px;*/
     background: rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     padding: 12px;
@@ -361,7 +362,7 @@
 .win-notification-code button svg {
     width: 20px;
     height: 20px;
-    fill: #667eea;
+    /*fill: #667eea;*/
 }
 
 .win-notification-close {
@@ -486,19 +487,21 @@
     display: none;
     text-align: center;
     /*width: 100%;*/
-    margin-bottom: 15px;
+    /*margin-bottom: 15px;*/
+    padding: 5px;
+    border: 1px dotted #B0B0B0;
+    border-radius: 10px;
 }
 
 .win-notification-image-container img {
     height: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /*box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);*/
     max-height: 300px;
     max-width: 290px;
-    width: 64px;
-    border-radius: 8px;
-    border: 1px dotted #B0B0B0;
-    padding: 2px;
+    width: 55px;
+    /*border-radius: 8px;*/
+    /*border: 1px dotted #B0B0B0;*/
+    /*padding: 2px;*/
 }
 
 .win-notification-pdf-link {
@@ -559,6 +562,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    margin-bottom: 15px;
 }
 
 .wheel-info-block .description{
@@ -723,14 +727,14 @@
     }
 }
 .win-notification-image-container {
-    @media (max-width: 480px) {
-        width: 100%;
-    }
-    img {
-        @media (max-width: 480px) {
-            width: auto;
-        }
-    }
+    /*@media (max-width: 480px) {*/
+    /*    width: 100%;*/
+    /*}*/
+    /*img {*/
+    /*    @media (max-width: 480px) {*/
+    /*        width: auto;*/
+    /*    }*/
+    /*}*/
 }
 #lucky-wheel-modal-close {
     font-size: 90px;

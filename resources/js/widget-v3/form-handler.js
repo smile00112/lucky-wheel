@@ -8,6 +8,57 @@ export class FormHandler {
         this.notification = notification;
     }
 
+    validateFormFields() {
+        const nameInput = document.getElementById('winNotificationName');
+        const emailInput = document.getElementById('winNotificationEmail');
+        const phoneInput = document.getElementById('winNotificationPhone');
+
+        let isValid = true;
+
+        const highlightField = (input) => {
+            if (input) {
+                input.style.backgroundColor = '#FFF0F0';
+                input.style.borderColor = '#ef4444';
+            }
+        };
+
+        const clearHighlight = (input) => {
+            if (input) {
+                input.style.backgroundColor = '';
+                input.style.borderColor = '';
+            }
+        };
+
+        if (!nameInput || !emailInput || !phoneInput) {
+            return false;
+        }
+
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
+        const phone = phoneInput.value.trim();
+
+        clearHighlight(nameInput);
+        clearHighlight(emailInput);
+        clearHighlight(phoneInput);
+
+        if (!name) {
+            highlightField(nameInput);
+            isValid = false;
+        }
+
+        if (!email) {
+            highlightField(emailInput);
+            isValid = false;
+        }
+
+        if (!phone) {
+            highlightField(phoneInput);
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     async submit(event) {
         if (event) {
             event.preventDefault();
@@ -20,6 +71,10 @@ export class FormHandler {
         if (!submitBtn) return;
 
         if (formContainer && formContainer.style.display !== 'none') {
+            if (!this.validateFormFields()) {
+                return;
+            }
+
             const agreementCheckbox = document.getElementById('winNotificationAgreement');
             if (agreementCheckbox && !agreementCheckbox.checked) {
                 alert('Необходимо дать согласие на обработку персональных данных');

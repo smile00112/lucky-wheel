@@ -64,7 +64,7 @@ export class WheelRenderer {
 
         ctx.save();
         ctx.translate(imageX, imageY);
-        ctx.rotate(Math.PI * 1.5);
+        ctx.rotate(Math.PI); // Поворачиваем на 180°, чтобы верх был направлен к центру
 
         const imageAspectRatio = prizeImage.width / prizeImage.height;
         let drawHeight = imageSize;

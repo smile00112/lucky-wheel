@@ -58,6 +58,7 @@ class LuckyWheelApp {
         }
 
         this.fillGuestForm();
+        this.setupFieldValidationListeners();
 
         console.log('[LuckyWheel] Checking today win...');
         let hasWin = false;
@@ -339,29 +340,95 @@ class LuckyWheelApp {
         wheelInfoBlock.style.display = 'block';
     }
 
-    async handleSpinButtonClick() {
-        const spinButton = document.getElementById('spinButton');
-        if (!spinButton || spinButton.disabled) return;
-
+    validateFormFields() {
         const nameInput = document.getElementById('winNotificationName');
         const emailInput = document.getElementById('winNotificationEmail');
         const phoneInput = document.getElementById('winNotificationPhone');
         const agreementCheckbox = document.getElementById('winNotificationAgreement');
 
+        let isValid = true;
+
+        const highlightField = (input) => {
+            if (input) {
+                input.style.backgroundColor = '#FFF0F0';
+                input.style.borderColor = '#ef4444';
+            }
+        };
+
+        const clearHighlight = (input) => {
+            if (input) {
+                input.style.backgroundColor = '';
+                input.style.borderColor = '';
+            }
+        };
+
         if (!nameInput || !emailInput || !phoneInput) {
             console.error('[LuckyWheel] Form inputs not found');
-            return;
+            return false;
         }
 
         const name = nameInput.value.trim();
         const email = emailInput.value.trim();
         const phone = phoneInput.value.trim();
 
-        if (!name || !email || !phone) {
-            alert('Пожалуйста, заполните все поля формы');
+        clearHighlight(nameInput);
+        clearHighlight(emailInput);
+        clearHighlight(phoneInput);
+
+        if (!name) {
+            highlightField(nameInput);
+            isValid = false;
+        }
+
+        if (!email) {
+            highlightField(emailInput);
+            isValid = false;
+        }
+
+        if (!phone) {
+            highlightField(phoneInput);
+            isValid = false;
+        }
+
+        if (agreementCheckbox && !agreementCheckbox.checked) {
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    setupFieldValidationListeners() {
+        const nameInput = document.getElementById('winNotificationName');
+        const emailInput = document.getElementById('winNotificationEmail');
+        const phoneInput = document.getElementById('winNotificationPhone');
+
+        const clearHighlight = (input) => {
+            if (input) {
+                input.style.backgroundColor = '';
+                input.style.borderColor = '';
+            }
+        };
+
+        if (nameInput) {
+            nameInput.addEventListener('input', () => clearHighlight(nameInput));
+        }
+        if (emailInput) {
+            emailInput.addEventListener('input', () => clearHighlight(emailInput));
+        }
+        if (phoneInput) {
+            phoneInput.addEventListener('input', () => clearHighlight(phoneInput));
+        }
+    }
+
+    async handleSpinButtonClick() {
+        const spinButton = document.getElementById('spinButton');
+        if (!spinButton || spinButton.disabled) return;
+
+        if (!this.validateFormFields()) {
             return;
         }
 
+        const agreementCheckbox = document.getElementById('winNotificationAgreement');
         if (agreementCheckbox && !agreementCheckbox.checked) {
             alert('Необходимо дать согласие на обработку персональных данных');
             return;

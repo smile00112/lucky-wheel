@@ -85,8 +85,8 @@
             <div class="win-notification-code" id="winNotificationCodeContainer">
                 <input type="text" id="winNotificationCode" readonly value="">
                 <button title="{{ $texts['copy_code_button_title'] }}">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0H18C18.5303 0 19.0391 0.210693 19.4141 0.585815C19.7891 0.960815 20 1.4696 20 2V12C20 12.5304 19.7891 13.0392 19.4141 13.4142C19.0391 13.7893 18.5303 14 18 14H16V6C16 5.4696 15.7891 4.96082 15.4141 4.58582C15.0391 4.21069 14.5303 4 14 4H6V2C6 1.4696 6.21094 0.960815 6.58594 0.585815C6.96094 0.210693 7.46973 0 8 0ZM2 6H12C13.1025 6 14 6.89697 14 8V18C14 19.103 13.1025 20 12 20H2C0.897461 20 0 19.103 0 18V8C0 6.89697 0.897461 6 2 6Z" fill="#E8E8E8"/>
                     </svg>
                 </button>
 
@@ -99,8 +99,8 @@
 
                 <input type="text" id="winNotificationPromoCode" readonly value="">
                 <button title="{{ $texts['copy_code_button_title'] }}">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M8 0H18C18.5303 0 19.0391 0.210693 19.4141 0.585815C19.7891 0.960815 20 1.4696 20 2V12C20 12.5304 19.7891 13.0392 19.4141 13.4142C19.0391 13.7893 18.5303 14 18 14H16V6C16 5.4696 15.7891 4.96082 15.4141 4.58582C15.0391 4.21069 14.5303 4 14 4H6V2C6 1.4696 6.21094 0.960815 6.58594 0.585815C6.96094 0.210693 7.46973 0 8 0ZM2 6H12C13.1025 6 14 6.89697 14 8V18C14 19.103 13.1025 20 12 20H2C0.897461 20 0 19.103 0 18V8C0 6.89697 0.897461 6 2 6Z" fill="#E8E8E8"/>
                     </svg>
                 </button>
 
@@ -146,17 +146,17 @@
 {{--        <p class="win-notification-form-text">{{ $texts['form_description'] }}</p>--}}
         <form id="winNotificationForm">
             <div class="win-notification-form-group">
-                <input type="text" id="winNotificationName" name="name" placeholder="{{ $texts['form_name_placeholder'] }}" required>
+                <input type="text" id="winNotificationName" name="name" placeholder="{{ $texts['form_name_placeholder'] }}">
             </div>
             <div class="win-notification-form-group">
-                <input type="email" id="winNotificationEmail" name="email" placeholder="{{ $texts['form_email_placeholder'] }}" required>
+                <input type="email" id="winNotificationEmail" name="email" placeholder="{{ $texts['form_email_placeholder'] }}">
             </div>
             <div class="win-notification-form-group">
-                <input type="tel" id="winNotificationPhone" name="phone" placeholder="{{ $texts['form_phone_placeholder'] }}" required maxlength="18">
+                <input type="tel" id="winNotificationPhone" name="phone" placeholder="{{ $texts['form_phone_placeholder'] }}" maxlength="18">
             </div>
             <div class="win-notification-form-group checkbox-group">
                 <label class="checkbox-label">
-                    <input type="checkbox" id="winNotificationAgreement" name="agreement" required>
+                    <input type="checkbox" id="winNotificationAgreement" name="agreement">
                     <span class="checkbox-text">Я даю согласие на обработку персональных данных и принимаю условия пользовательского соглашения</span>
                 </label>
             </div>
