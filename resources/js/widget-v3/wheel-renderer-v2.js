@@ -229,7 +229,7 @@ export class WheelRenderer {
 
         const centerX = canvasSize / 2;
         const centerY = canvasSize / 2;
-        const radius = canvasSize * 0.46;
+        const radius = canvasSize * 0.5;
 
         this.state.set('canvas', canvasElement);
         this.state.set('ctx', canvasElement.getContext('2d'));
