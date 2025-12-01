@@ -26,7 +26,19 @@ class PrizeSchema
         if ($includeWheelId) {
             $components[] = Forms\Components\Select::make('wheel_id')
                 ->label(__('filament.prize.wheel_id'))
-                ->relationship('wheel', 'name')
+                ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if (!$user || $user->isAdmin()) {
+                        return $query;
+                    }
+                    $companyId = $user->company_id;
+                    if (!$companyId) {
+                        return $query->whereRaw('1 = 0');
+                    }
+                    return $query->whereHas('user', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    });
+                })
                 ->required()
                 ->searchable()
                 ->preload()
@@ -279,11 +291,16 @@ class PrizeSchema
                     $user = auth()->user();
                     $query = $record->spins();
 
-                    // Фильтрация по ролям (как в виджетах)
-                    if ($user && $user->isManager()) {
-                        $query->whereHas('wheel', function ($q) use ($user) {
-                            $q->where('user_id', $user->id);
-                        });
+                    // Фильтрация по компании
+                    if ($user && !$user->isAdmin()) {
+                        $companyId = $user->company_id;
+                        if ($companyId) {
+                            $query->whereHas('wheel.user', function ($q) use ($companyId) {
+                                $q->where('company_id', $companyId);
+                            });
+                        } else {
+                            $query->whereRaw('1 = 0');
+                        }
                     }
 
                     // Фильтрация по датам из фильтра таблицы
@@ -308,11 +325,16 @@ class PrizeSchema
                     $user = auth()->user();
                     $query = $record->spins()->where('status', 'claimed');
 
-                    // Фильтрация по ролям (как в виджетах)
-                    if ($user && $user->isManager()) {
-                        $query->whereHas('wheel', function ($q) use ($user) {
-                            $q->where('user_id', $user->id);
-                        });
+                    // Фильтрация по компании
+                    if ($user && !$user->isAdmin()) {
+                        $companyId = $user->company_id;
+                        if ($companyId) {
+                            $query->whereHas('wheel.user', function ($q) use ($companyId) {
+                                $q->where('company_id', $companyId);
+                            });
+                        } else {
+                            $query->whereRaw('1 = 0');
+                        }
                     }
 
                     // Фильтрация по датам из фильтра таблицы
@@ -378,7 +400,19 @@ class PrizeSchema
         if ($includeWheelColumn) {
             $filters[] = Tables\Filters\SelectFilter::make('wheel_id')
                 ->label(__('filament.prize.wheel_id'))
-                ->relationship('wheel', 'name')
+                ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if (!$user || $user->isAdmin()) {
+                        return $query;
+                    }
+                    $companyId = $user->company_id;
+                    if (!$companyId) {
+                        return $query->whereRaw('1 = 0');
+                    }
+                    return $query->whereHas('user', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    });
+                })
                 ->searchable()
                 ->preload();
         }

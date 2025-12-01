@@ -20,20 +20,7 @@ class ListSpins extends ListRecords
 
     protected function getTableQuery(): Builder
     {
-        $query = parent::getTableQuery();
-        $user = auth()->user();
-
-        if (!$user) {
-            return $query->whereRaw('1 = 0');
-        }
-
-        if ($user->isOwner()) {
-            return $query;
-        }
-
-        return $query->whereHas('wheel', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        });
+        return parent::getTableQuery()->forCompany();
     }
 }
 

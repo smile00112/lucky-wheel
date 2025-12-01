@@ -46,12 +46,43 @@ class UserResource extends Resource
                     ->unique(ignoreRecord: true),
                 Forms\Components\Select::make('role')
                     ->label('Роль')
-                    ->options([
-                        User::ROLE_OWNER => 'Владелец',
-                        User::ROLE_MANAGER => 'Менеджер',
-                    ])
+                    ->options(function () {
+                        $options = [
+                            User::ROLE_OWNER => 'Владелец',
+                            User::ROLE_MANAGER => 'Менеджер',
+                        ];
+                        if (auth()->user()?->isAdmin()) {
+                            $options[User::ROLE_ADMIN] = 'Администратор';
+                        }
+                        return $options;
+                    })
                     ->required()
-                    ->default(User::ROLE_MANAGER),
+                    ->default(User::ROLE_MANAGER)
+                    ->reactive()
+                    ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('owner_id', $state === User::ROLE_OWNER ? null : null)),
+                Forms\Components\Select::make('owner_id')
+                    ->label('Владелец')
+                    ->relationship('owner', 'name', function ($query) {
+                        $user = auth()->user();
+                        $query = $query->where('role', User::ROLE_OWNER);
+                        if ($user && $user->isOwner()) {
+                            $query->where('company_id', $user->company_id);
+                        }
+                        return $query;
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (Forms\Get $get) => $get('role') === User::ROLE_MANAGER)
+                    ->required(fn (Forms\Get $get) => $get('role') === User::ROLE_MANAGER)
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        if ($state) {
+                            $owner = \App\Models\User::find($state);
+                            if ($owner && $owner->company_id) {
+                                $set('company_id', $owner->company_id);
+                            }
+                        }
+                    }),
                 Forms\Components\TextInput::make('password')
                     ->label('Пароль')
                     ->password()
@@ -59,6 +90,7 @@ class UserResource extends Resource
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                     ->required(fn (string $context): bool => $context === 'create')
                     ->minLength(8),
+                Forms\Components\Hidden::make('company_id'),
             ]);
     }
 
@@ -78,16 +110,23 @@ class UserResource extends Resource
                     ->label('Роль')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => match ($state) {
+                        User::ROLE_ADMIN => 'Администратор',
                         User::ROLE_OWNER => 'Владелец',
                         User::ROLE_MANAGER => 'Менеджер',
                         default => $state,
                     })
                     ->color(fn (string $state): string => match ($state) {
+                        User::ROLE_ADMIN => 'warning',
                         User::ROLE_OWNER => 'danger',
                         User::ROLE_MANAGER => 'info',
                         default => 'gray',
                     })
                     ->sortable(),
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Компания')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn () => auth()->user()?->isAdmin() ?? false),
                 Tables\Columns\TextColumn::make('wheels_count')
                     ->label('Колёс')
                     ->counts('wheels')
@@ -101,10 +140,16 @@ class UserResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
                     ->label('Роль')
-                    ->options([
-                        User::ROLE_OWNER => 'Владелец',
-                        User::ROLE_MANAGER => 'Менеджер',
-                    ]),
+                    ->options(function () {
+                        $options = [
+                            User::ROLE_OWNER => 'Владелец',
+                            User::ROLE_MANAGER => 'Менеджер',
+                        ];
+                        if (auth()->user()?->isAdmin()) {
+                            $options[User::ROLE_ADMIN] = 'Администратор';
+                        }
+                        return $options;
+                    }),
             ])
             ->actions([
                 EditAction::make(),
@@ -136,12 +181,14 @@ class UserResource extends Resource
 
     public static function canViewAny(): bool
     {
-        return auth()->user()?->isOwner() ?? false;
+        $user = auth()->user();
+        return $user?->isOwner() || $user?->isAdmin() ?? false;
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()?->isOwner() ?? false;
+        $user = auth()->user();
+        return $user?->isOwner() || $user?->isAdmin() ?? false;
     }
 }
 

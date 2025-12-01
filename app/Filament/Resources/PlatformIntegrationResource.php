@@ -59,10 +59,16 @@ class PlatformIntegrationResource extends Resource
                     ->label('Колесо')
                     ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
                         $user = auth()->user();
-                        if ($user && $user->isManager()) {
-                            $query->where('user_id', $user->id);
+                        if (!$user || $user->isAdmin()) {
+                            return $query;
                         }
-                        return $query;
+                        $companyId = $user->company_id;
+                        if (!$companyId) {
+                            return $query->whereRaw('1 = 0');
+                        }
+                        return $query->whereHas('user', function ($q) use ($companyId) {
+                            $q->where('company_id', $companyId);
+                        });
                     })
                     ->searchable()
                     ->preload()

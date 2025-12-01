@@ -21,8 +21,9 @@ class SpaPrizeWinModernMail extends Mailable
 
     public function __construct(Spin $spin)
     {
-        $this->spin = $spin->load(['prize', 'guest']);
-        $this->settings = Setting::getInstance();
+        $this->spin = $spin->load(['prize', 'guest', 'wheel.user']);
+        $user = $this->spin->wheel->user;
+        $this->settings = Setting::getForUser($user);
         $this->qrCodeDataUri = $this->generateQrCode();
     }
 
@@ -59,9 +60,11 @@ class SpaPrizeWinModernMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $settings = Setting::getInstance();
+        $user = $this->spin->wheel->user;
+        $settings = Setting::getForUser($user);
+        $smtpConfig = $settings->getSmtpConfig();
         $companyName = $settings->company_name ?: 'Спа-комплекс';
-        $fromAddress = config('mail.from.address', 'hello@example.com');
+        $fromAddress = $smtpConfig['from']['address'];
 
         return new Envelope(
             from: new Address($fromAddress, $companyName),

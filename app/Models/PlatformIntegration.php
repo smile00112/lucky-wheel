@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -69,5 +70,27 @@ class PlatformIntegration extends Model
             'telegram.button_spin' => __('telegram.button_spin', [], $locale),
             'telegram.button_history' => __('telegram.button_history', [], $locale),
         ];
+    }
+
+    /**
+     * Scope для фильтрации по компании пользователя
+     */
+    public function scopeForCompany(Builder $query, ?int $companyId = null): Builder
+    {
+        if (!$companyId) {
+            $user = auth()->user();
+            if (!$user || $user->isAdmin()) {
+                return $query;
+            }
+            $companyId = $user->company_id;
+        }
+
+        if (!$companyId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('wheel.user', function ($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
     }
 }

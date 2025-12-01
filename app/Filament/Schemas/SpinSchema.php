@@ -36,10 +36,16 @@ class SpinSchema
                 ->label(__('filament.spin.wheel_id'))
                 ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
                     $user = auth()->user();
-                    if ($user && $user->isManager()) {
-                        $query->where('user_id', $user->id);
+                    if (!$user || $user->isAdmin()) {
+                        return $query;
                     }
-                    return $query;
+                    $companyId = $user->company_id;
+                    if (!$companyId) {
+                        return $query->whereRaw('1 = 0');
+                    }
+                    return $query->whereHas('user', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    });
                 })
                 ->required()
                 ->searchable()
@@ -49,7 +55,19 @@ class SpinSchema
         if ($includeGuestId) {
             $components[] = Forms\Components\Select::make('guest_id')
                 ->label(__('filament.spin.guest_id'))
-                ->relationship('guest', 'name')
+                ->relationship('guest', 'name', modifyQueryUsing: function ($query) {
+                    $user = auth()->user();
+                    if (!$user || $user->isAdmin()) {
+                        return $query;
+                    }
+                    $companyId = $user->company_id;
+                    if (!$companyId) {
+                        return $query->whereRaw('1 = 0');
+                    }
+                    return $query->whereHas('spins.wheel.user', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    });
+                })
                 ->getOptionLabelFromRecordUsing(fn ($record) => ($record->name ?: $record->email ?: $record->phone) . ' (ID: ' . $record->id . ')')
                 ->searchable(['name', 'email', 'phone'])
                 ->required()
@@ -61,12 +79,16 @@ class SpinSchema
                 ->label(__('filament.spin.prize_id'))
                 ->relationship('prize', 'name', modifyQueryUsing: function ($query) {
                     $user = auth()->user();
-                    if ($user && $user->isManager()) {
-                        $query->whereHas('wheel', function ($q) use ($user) {
-                            $q->where('user_id', $user->id);
-                        });
+                    if (!$user || $user->isAdmin()) {
+                        return $query;
                     }
-                    return $query;
+                    $companyId = $user->company_id;
+                    if (!$companyId) {
+                        return $query->whereRaw('1 = 0');
+                    }
+                    return $query->whereHas('wheel.user', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    });
                 })
                 ->searchable()
                 ->preload()
@@ -239,10 +261,16 @@ class SpinSchema
                 ->label(__('filament.spin.wheel_id'))
                 ->relationship('wheel', 'name', modifyQueryUsing: function ($query) {
                     $user = auth()->user();
-                    if ($user && $user->isManager()) {
-                        $query->where('user_id', $user->id);
+                    if (!$user || $user->isAdmin()) {
+                        return $query;
                     }
-                    return $query;
+                    $companyId = $user->company_id;
+                    if (!$companyId) {
+                        return $query->whereRaw('1 = 0');
+                    }
+                    return $query->whereHas('user', function ($q) use ($companyId) {
+                        $q->where('company_id', $companyId);
+                    });
                 })
                 ->searchable()
                 ->preload();

@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Колесо Фортуны - Получите больше продаж и заявок</title>
 
         <!-- Fonts -->
@@ -52,11 +53,9 @@
                             <a href="{{ route('login') }}" class="text-gray-700 hover:text-gray-900 px-4 py-2 rounded-md text-sm font-medium">
                                 Войти
                             </a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
-                                    Регистрация
-                                </a>
-                            @endif
+                            <button onclick="openRegisterModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                Регистрация
+                            </button>
                         @endauth
                     @endif
                 </div>
@@ -75,9 +74,9 @@
                     Универсальный попап, который привлекает посетителей сайта<br>и улучшает результаты распродажи
                 </p>
                 <div class="flex justify-center space-x-4">
-                    <a href="{{ Route::has('register') ? route('register') : '#' }}" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition duration-200">
+                    <button onclick="openRegisterModal()" class="bg-white text-purple-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition duration-200">
                         Попробовать бесплатно
-                    </a>
+                    </button>
                     <a href="#features" class="bg-purple-700 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-purple-800 transition duration-200">
                         Узнать больше
                     </a>
@@ -367,9 +366,9 @@
             <p class="text-xl mb-8 text-purple-100">
                 Начните использовать колесо фортуны уже сегодня и получите первые лиды уже завтра
             </p>
-            <a href="{{ Route::has('register') ? route('register') : '#' }}" class="inline-block bg-white text-purple-600 px-10 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition duration-200 shadow-lg">
+            <button onclick="openRegisterModal()" class="inline-block bg-white text-purple-600 px-10 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition duration-200 shadow-lg">
                 Начать бесплатно
-            </a>
+            </button>
         </div>
     </section>
 
@@ -383,5 +382,225 @@
             </div>
         </div>
     </footer>
+
+    <!-- Registration Modal -->
+    <div id="registerModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Регистрация</h2>
+                    <button onclick="closeRegisterModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="mb-4">
+                        <label for="company_name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Название компании
+                        </label>
+                        <input type="text" id="company_name" name="company_name" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                        <div id="company_name_error" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email
+                        </label>
+                        <input type="email" id="email" name="email" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                        <div id="email_error" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Пароль
+                        </label>
+                        <input type="password" id="password" name="password" required minlength="8"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                        <div id="password_error" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
+                            Подтверждение пароля
+                        </label>
+                        <input type="password" id="password_confirmation" name="password_confirmation" required minlength="8"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                    </div>
+
+                    @if (!app()->environment('local'))
+                    <div class="mb-4">
+                        <div id="yandex-captcha"></div>
+                        <div id="captcha_error" class="text-red-500 text-sm mt-1 hidden"></div>
+                    </div>
+                    @endif
+
+                    <div id="form_message" class="mb-4 hidden"></div>
+
+                    <button type="submit" id="submitBtn"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md font-medium transition duration-200">
+                        Зарегистрироваться
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Yandex SmartCaptcha Script -->
+    @if (!app()->environment('local'))
+    <script src="https://smartcaptcha.yandexcloud.net/captcha.js" defer></script>
+    @endif
+
+    <script>
+        const isLocal = {{ app()->environment('local') ? 'true' : 'false' }};
+        const yandexCaptchaClientKey = '{{ config("services.yandex.captcha_client_key") }}';
+        let captchaToken = null;
+        let captchaWidgetId = null;
+
+        function openRegisterModal() {
+            document.getElementById('registerModal').classList.remove('hidden');
+            if (!isLocal) {
+                initYandexCaptcha();
+            }
+        }
+
+        function closeRegisterModal() {
+            document.getElementById('registerModal').classList.add('hidden');
+            document.getElementById('registerForm').reset();
+            clearErrors();
+            if (!isLocal && captchaWidgetId) {
+                window.smartCaptcha.reset(captchaWidgetId);
+                captchaToken = null;
+            }
+        }
+
+        function initYandexCaptcha() {
+            if (isLocal) {
+                return;
+            }
+
+            if (!yandexCaptchaClientKey) {
+                console.error('Yandex Captcha client key not configured');
+                return;
+            }
+
+            if (window.smartCaptcha && !captchaWidgetId) {
+                captchaWidgetId = window.smartCaptcha.render('yandex-captcha', {
+                    sitekey: yandexCaptchaClientKey,
+                    callback: function(token) {
+                        captchaToken = token;
+                        const errorEl = document.getElementById('captcha_error');
+                        if (errorEl) {
+                            errorEl.classList.add('hidden');
+                        }
+                    },
+                    'error-callback': function() {
+                        captchaToken = null;
+                    }
+                });
+            }
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('[id$="_error"]').forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+            const formMessage = document.getElementById('form_message');
+            formMessage.classList.add('hidden');
+            formMessage.textContent = '';
+        }
+
+        function showError(field, message) {
+            const errorEl = document.getElementById(field + '_error');
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function showFormMessage(message, isSuccess = false) {
+            const formMessage = document.getElementById('form_message');
+            formMessage.textContent = message;
+            formMessage.classList.remove('hidden');
+            formMessage.className = isSuccess 
+                ? 'mb-4 p-3 bg-green-100 text-green-700 rounded-md' 
+                : 'mb-4 p-3 bg-red-100 text-red-700 rounded-md';
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            clearErrors();
+
+            if (!isLocal && !captchaToken) {
+                showError('captcha', 'Пожалуйста, пройдите проверку капчи');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Регистрация...';
+
+            const formData = new FormData(event.target);
+            if (!isLocal && captchaToken) {
+                formData.append('captcha_token', captchaToken);
+            }
+
+            try {
+                const response = await fetch('{{ route("register.submit") }}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showFormMessage(data.message, true);
+                    setTimeout(() => {
+                        closeRegisterModal();
+                        window.location.href = '{{ url("/admin") }}';
+                    }, 2000);
+                } else {
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(field => {
+                            const errors = data.errors[field];
+                            showError(field, Array.isArray(errors) ? errors[0] : errors);
+                        });
+                    } else {
+                        showFormMessage(data.message || 'Произошла ошибка при регистрации');
+                    }
+                    if (!isLocal && captchaWidgetId) {
+                        window.smartCaptcha.reset(captchaWidgetId);
+                        captchaToken = null;
+                    }
+                }
+            } catch (error) {
+                showFormMessage('Произошла ошибка при отправке формы. Пожалуйста, попробуйте еще раз.');
+                if (!isLocal && captchaWidgetId) {
+                    window.smartCaptcha.reset(captchaWidgetId);
+                    captchaToken = null;
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        // Закрытие модального окна при клике вне его
+        document.getElementById('registerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRegisterModal();
+            }
+        });
+    </script>
     </body>
 </html>

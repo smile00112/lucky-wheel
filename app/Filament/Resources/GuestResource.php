@@ -145,8 +145,20 @@ class GuestResource extends Resource
                     ->default('-'),
                 Tables\Columns\TextColumn::make('spins_count')
                     ->label(__('filament.guest.spins_count'))
-                    ->counts('spins')
-                    ->sortable(),
+                    ->getStateUsing(function ($record) {
+                        $user = auth()->user();
+                        if (!$user || $user->isAdmin()) {
+                            return $record->spins()->count();
+                        }
+                        $companyId = $user->company_id;
+                        if (!$companyId) {
+                            return 0;
+                        }
+                        return $record->spins()->whereHas('wheel.user', function ($q) use ($companyId) {
+                            $q->where('company_id', $companyId);
+                        })->count();
+                    })
+                    ->sortable(false),
 //                Tables\Columns\TextColumn::make('wins_count')
 //                    ->label(__('filament.guest.wins_count'))
 //                    ->counts('wins')

@@ -24,6 +24,19 @@ class EditUser extends EditRecord
             unset($data['password']);
         }
 
+        $user = auth()->user();
+
+        if ($user && $user->isOwner() && isset($data['role']) && $data['role'] === \App\Models\User::ROLE_MANAGER) {
+            $data['company_id'] = $user->company_id;
+        }
+
+        if (isset($data['owner_id']) && $data['owner_id']) {
+            $owner = \App\Models\User::find($data['owner_id']);
+            if ($owner && $owner->company_id) {
+                $data['company_id'] = $owner->company_id;
+            }
+        }
+
         return $data;
     }
 }

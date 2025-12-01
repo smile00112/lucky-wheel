@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -59,5 +60,27 @@ class Guest extends Model
     public function getSpinsCountForWheel(int $wheelId): int
     {
         return $this->spins()->where('wheel_id', $wheelId)->count();
+    }
+
+    /**
+     * Scope для фильтрации по компании пользователя
+     */
+    public function scopeForCompany(Builder $query, ?int $companyId = null): Builder
+    {
+        if (!$companyId) {
+            $user = auth()->user();
+            if (!$user || $user->isAdmin()) {
+                return $query;
+            }
+            $companyId = $user->company_id;
+        }
+
+        if (!$companyId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('spins.wheel.user', function ($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
     }
 }

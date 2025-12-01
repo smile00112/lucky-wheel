@@ -12,12 +12,13 @@ class ListSettings extends ListRecords
 
     public function mount(): void
     {
-        // Редиректим на страницу редактирования единственной записи
-        $setting = Setting::getInstance();
-        
-        if (!$setting->exists) {
-            $setting->save();
+        $user = auth()->user();
+        if (!$user) {
+            abort(403);
         }
+
+        $owner = $user->getOwner();
+        $setting = Setting::getForUser($owner);
         
         redirect(SettingResource::getUrl('edit', ['record' => $setting->id]));
     }

@@ -5,11 +5,15 @@ use App\Http\Controllers\WidgetController;
 use App\Http\Controllers\WidgetAssetController;
 use App\Http\Controllers\StorageFileController;
 use App\Http\Controllers\ImageProxyController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Middleware\WidgetCors;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/register', [RegistrationController::class, 'register'])
+    ->name('register.submit');
 //if (app()->environment('local')){}
 Route::get('/wheel', [WidgetController::class, 'show'])
     ->name('wheel.show');

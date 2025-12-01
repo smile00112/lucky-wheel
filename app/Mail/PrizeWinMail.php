@@ -26,8 +26,9 @@ class PrizeWinMail extends Mailable
     public function __construct(Spin $spin)
     {
         // Загружаем связи для использования в шаблоне
-        $this->spin = $spin->load(['prize', 'guest']);
-        $this->settings = Setting::getInstance();
+        $this->spin = $spin->load(['prize', 'guest', 'wheel.user']);
+        $user = $this->spin->wheel->user;
+        $this->settings = Setting::getForUser($user);
         $this->html = $this->buildEmailHtml();
     }
 
@@ -426,10 +427,11 @@ class PrizeWinMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        // Перезагружаем настройки, чтобы получить актуальные данные
-        $settings = Setting::getInstance();
+        $user = $this->spin->wheel->user;
+        $settings = Setting::getForUser($user);
+        $smtpConfig = $settings->getSmtpConfig();
         $companyName = $settings->company_name ?: 'Колесо фортуны';
-        $fromAddress = config('mail.from.address', 'hello@example.com');
+        $fromAddress = $smtpConfig['from']['address'];
 
         return new Envelope(
             from: new Address($fromAddress, $companyName),

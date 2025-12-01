@@ -6,6 +6,7 @@ namespace App\Listeners;
 
 use App\Events\PrizeWon;
 use App\Mail\PrizeWinMail;
+use App\Services\MailConfigService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -31,6 +32,12 @@ class SendPrizeWinEmail
         }
 
         try {
+            $spin->load('wheel.user');
+            $user = $spin->wheel->user;
+            
+            $mailConfigService = app(MailConfigService::class);
+            $mailConfigService->configureForUser($user);
+            
             Mail::to($guest->email)->send(new PrizeWinMail($spin));
             
             $spin->update(['email_notification' => true]);

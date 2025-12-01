@@ -86,8 +86,8 @@ class Wheel extends Model
     }
 
     /**
-     * Scope для фильтрации по ролям пользователя
-     * Владелец видит все колеса, менеджер - только свои
+     * Scope для фильтрации по компании пользователя
+     * Показывает только колеса, принадлежащие компании пользователя
      */
     public function scopeForUser(Builder $query, ?User $user = null): Builder
     {
@@ -97,11 +97,18 @@ class Wheel extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        if ($user->isOwner()) {
+        if ($user->isAdmin()) {
             return $query;
         }
 
-        return $query->where('user_id', $user->id);
+        $companyId = $user->company_id;
+        if (!$companyId) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->whereHas('user', function ($q) use ($companyId) {
+            $q->where('company_id', $companyId);
+        });
     }
 
     /**

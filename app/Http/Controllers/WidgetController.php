@@ -1226,7 +1226,7 @@ class WidgetController extends Controller
      */
     public function downloadWinPdf(Request $request, int $spinId)
     {
-        $spin = Spin::with(['prize', 'guest', 'wheel'])->find($spinId);
+        $spin = Spin::with(['prize', 'guest', 'wheel.user'])->find($spinId);
 
         if (!$spin) {
             abort(404, 'Spin not found');
@@ -1265,7 +1265,8 @@ class WidgetController extends Controller
      */
     protected function buildPdfHtml(Spin $spin): string
     {
-        $settings = Setting::getInstance();
+        $user = $spin->wheel->user;
+        $settings = Setting::getForUser($user);
         $template = $settings->pdf_template;
 
         // Если шаблона нет, используем шаблон по умолчанию

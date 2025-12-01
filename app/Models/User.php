@@ -6,7 +6,9 @@ namespace App\Models;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -15,6 +17,7 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    public const ROLE_ADMIN = 'admin';
     public const ROLE_OWNER = 'owner';
     public const ROLE_MANAGER = 'manager';
 
@@ -32,6 +35,8 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'owner_id',
+        'company_id',
     ];
 
     /**
@@ -66,6 +71,51 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Владелец (для managers)
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Менеджеры (для owner)
+     */
+    public function managers(): HasMany
+    {
+        return $this->hasMany(User::class, 'owner_id');
+    }
+
+    /**
+     * Компания пользователя
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Настройки пользователя
+     */
+    public function settings(): HasOne
+    {
+        return $this->hasOne(Setting::class);
+    }
+
+    /**
+     * Получить owner пользователя
+     * Для owner возвращает себя, для manager - своего owner
+     */
+    public function getOwner(): self
+    {
+        if ($this->isOwner()) {
+            return $this;
+        }
+
+        return $this->owner ?? $this;
+    }
+
+    /**
      * Проверка, является ли пользователь владельцем
      */
     public function isOwner(): bool
@@ -79,5 +129,13 @@ class User extends Authenticatable implements FilamentUser
     public function isManager(): bool
     {
         return $this->role === self::ROLE_MANAGER;
+    }
+
+    /**
+     * Проверка, является ли пользователь администратором
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
     }
 }
