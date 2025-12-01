@@ -27,6 +27,13 @@ return [
     'prize' => [
         'wheel_id' => 'Wheel',
         'name' => 'Name',
+        'mobile_name' => 'Prize Name for Mobile Version',
+        'mobile_name_hint' => 'Prize name that will be displayed on mobile devices',
+        'sector_view' => 'Prize Sector View',
+        'sector_view_hint' => 'Select how the prize sector is displayed on the wheel',
+        'sector_view_text_with_image' => 'Text with Image',
+        'sector_view_only_image' => 'Only Image',
+        'sector_view_only_text' => 'Only Text',
         'description' => 'Description',
         'text_for_winner' => 'Text for Winner',
         'text_for_winner_hint' => 'Text that will be shown to the winner after winning',

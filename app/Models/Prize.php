@@ -11,6 +11,8 @@ class Prize extends Model
     protected $fillable = [
         'wheel_id',
         'name',
+        'mobile_name',
+        'sector_view',
         'email_name',
         'email_text_after_congratulation',
         'email_coupon_after_code_text',
@@ -37,6 +39,7 @@ class Prize extends Model
 
     protected $attributes = [
         'text_color' => '#ffffff',
+        'sector_view' => 'text_with_image',
     ];
 
     protected $casts = [

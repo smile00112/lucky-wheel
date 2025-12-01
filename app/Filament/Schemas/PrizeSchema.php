@@ -47,6 +47,22 @@ class PrizeSchema
                 ->helperText(__('filament.prize.name_hint'))
                 ->required()
                 ->maxLength(255),
+            Forms\Components\TextInput::make('mobile_name')
+                ->label(__('filament.prize.mobile_name'))
+                ->helperText(__('filament.prize.mobile_name_hint'))
+                ->maxLength(255)
+                ->columnSpanFull(),
+            Forms\Components\Select::make('sector_view')
+                ->label(__('filament.prize.sector_view'))
+                ->helperText(__('filament.prize.sector_view_hint'))
+                ->options([
+                    'text_with_image' => __('filament.prize.sector_view_text_with_image'),
+                    'only_image' => __('filament.prize.sector_view_only_image'),
+                    'only_text' => __('filament.prize.sector_view_only_text'),
+                ])
+                ->default('text_with_image')
+                ->required()
+                ->columnSpanFull(),
             Forms\Components\TextInput::make('value')
                 ->label(__('filament.prize.value'))
                 ->maxLength(255)

@@ -20,3 +20,4 @@ class EditPlatformIntegration extends EditRecord
 
 
 
+
