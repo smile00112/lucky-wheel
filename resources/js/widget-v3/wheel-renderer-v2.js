@@ -46,40 +46,55 @@ export class WheelRenderer {
         ctx.stroke();
     }
 
-    drawPrizeImage(ctx, prizeImage, angle, radius, sectorIndex, offsetY = 0) {
-        if (!prizeImage) return false;
-
-        // Изображение по центру сегмента возле внешней дуги
-        // Контекст уже повернут на центр сегмента, поэтому размещаем по оси Y
+    drawPrizeImage(ctx, prizeImage, angle, radius, offsetY=0) {
+        const midRadius = radius * 0.88;
+        const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
+        const sectorHeight = radius * 0.8;
         const imageRadius = radius * 0.9;
 
-        // Вычисляем длину внешней дуги секции
-        const arcLength = radius * angle;
-        // Размер изображения = 30% от длины внешней дуги
-        const imageSize = arcLength * 0.3;
+        const imageAspectRatio = prizeImage.width / prizeImage.height;
+        const sectorAspectRatio = sectorWidth / sectorHeight;
 
-        // Позиция по центру сегмента (X=0) на радиусе близком к внешней дуге
-        const imageX = 0;
-        const imageY = -imageRadius + offsetY;
+        let imageWidth, imageHeight;
+        if (imageAspectRatio > sectorAspectRatio) {
+            imageWidth = sectorWidth * 0.3;
+            imageHeight = imageWidth / imageAspectRatio;
+        } else {
+            imageHeight = sectorHeight * 0.3;
+            imageWidth = imageHeight * imageAspectRatio;
+        }
+
+        const imageDistance = midRadius;
+        const imageX = imageDistance;
+        const imageY = 0.0;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius * 0.98, -angle / 2 - 0.05, angle / 2 + 0.05);
+        ctx.closePath();
+        ctx.clip();
 
         ctx.save();
         ctx.translate(imageX, imageY);
-        ctx.rotate(Math.PI); // Поворачиваем на 180°, чтобы верх был направлен к центру
+        ctx.rotate(1.5);
 
-        const imageAspectRatio = prizeImage.width / prizeImage.height;
-        let drawHeight = imageSize;
-        let drawWidth = drawHeight * imageAspectRatio;
+        try {
+            ctx.drawImage(
+                prizeImage,
+                -imageWidth / 2,
+                -imageHeight / 2,
+                imageWidth,
+                imageHeight
+            );
+        } catch (e) {
+            console.warn('Error drawing image:', e);
+            ctx.restore();
+            ctx.restore();
+            return false;
+        }
 
-        // Убрали белый круг вокруг изображения
-
-        ctx.drawImage(
-            prizeImage,
-            -drawWidth / 2,
-            -drawHeight / 2,
-            drawWidth,
-            drawHeight
-        );
-
+        ctx.restore();
         ctx.restore();
         return true;
     }
@@ -127,8 +142,12 @@ export class WheelRenderer {
         let yOffset = -totalHeight / 2 + lineHeight / 2;
 
         nameLines.forEach((line, index) => {
+            ctx.save();
+            ctx.translate(15, 0);
             ctx.font = `${fontBold} ${fontSize}px Arial`;
+            //ctx.font = `bold clamp(12px, 2vw, 16px) Arial`;
             ctx.fillText(line, textRadius, yOffset);
+            ctx.restore();
             yOffset += lineHeight;
         });
 
