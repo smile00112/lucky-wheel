@@ -87,12 +87,20 @@ export class WheelRenderer {
     drawPrizeText(ctx, prize, angle, radius) {
         const isMobile = this.state.get('isMobile') || window.innerWidth <= 768;
         const baseFontSize = prize.font_size || 18;
-        const fontSize = isMobile ? Math.round(baseFontSize * 0.8) : baseFontSize;
+        const fontBold = isMobile ? '' : 'bold';
+        let fontSize;
+        if (isMobile && prize.mobile_font_size) {
+            fontSize = prize.mobile_font_size;
+        } else if (isMobile) {
+            fontSize = Math.round(baseFontSize * 0.8);
+        } else {
+            fontSize = baseFontSize;
+        }
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = prize.text_color || '#fff';
-        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.font = `${fontBold} ${fontSize}px Arial`;
 
         const lineHeight = fontSize * 1.3;
         const textRadius = radius * 0.5;
@@ -119,10 +127,14 @@ export class WheelRenderer {
         let yOffset = -totalHeight / 2 + lineHeight / 2;
 
         nameLines.forEach((line, index) => {
-            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.font = `${fontBold} ${fontSize}px Arial`;
             ctx.fillText(line, textRadius, yOffset);
             yOffset += lineHeight;
         });
+
+        //для  мобилок уменьшаем промежуток между названием и описанием приза
+        if(isMobile)
+            yOffset -= lineHeight * 0.3;
 
         descLines.forEach((line) => {
             ctx.font = `${fontSize - 1}px Arial`;
@@ -138,8 +150,11 @@ export class WheelRenderer {
         const prizes = this.state.get('prizes');
         const centerX = this.state.get('centerX');
         const centerY = this.state.get('centerY');
-        const radius = this.state.get('radius');
+        var radius = this.state.get('radius');
         const prizeImages = this.state.get('prizeImages');
+
+        //уменьшим максимальный радиус для прорисовки окантовки колеса
+        radius = radius - 5;
 
         if (!ctx || !canvas) return;
         if (!prizes || prizes.length === 0) return;
@@ -149,6 +164,12 @@ export class WheelRenderer {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // Убрали белый круглый фон колеса
+        // Рисуем белый круглый фон колеса
+        const backgroundRadius = canvas.width / 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, backgroundRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
 
         const totalAngle = 2 * Math.PI;
         const equalAngle = totalAngle / prizes.length;

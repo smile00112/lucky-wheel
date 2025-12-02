@@ -229,6 +229,7 @@ class WidgetController extends Controller
                 'gradient_end' => $prize->gradient_end,
                 'text_color' => $prize->text_color,
                 'font_size' => $prize->font_size,
+                'mobile_font_size' => $prize->mobile_font_size,
                 'probability' => (float) $prize->probability,
                 'type' => $prize->type,
                 'value' => $prize->value,

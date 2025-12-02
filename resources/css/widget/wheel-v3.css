@@ -148,15 +148,17 @@
 
 .spin-button {
     /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 130%;
+    text-align: center;
+
     color: white;
     border: none;
     padding: 15px 40px;
-    font-size: 16px;
-    font-weight: bold;
     /* border-radius: 50px; */
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     width: 100%;
     /* max-width: 300px; */
     background: #4396CF;

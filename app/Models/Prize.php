@@ -29,6 +29,7 @@ class Prize extends Model
         'gradient_end',
         'text_color',
         'font_size',
+        'mobile_font_size',
         'is_active',
         'sort',
         'quantity_limit',
@@ -52,6 +53,7 @@ class Prize extends Model
         'quantity_guest_limit' => 'integer',
         'quantity_used' => 'integer',
         'font_size' => 'integer',
+        'mobile_font_size' => 'integer',
     ];
 
     /**

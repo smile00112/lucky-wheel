@@ -149,7 +149,14 @@ export class WheelRenderer {
         const sectorHeight = radius * 0.8;
 
         const baseMaxFontSize = prize.font_size || 95;
-        const maxFontSize = isMobile ? Math.round(baseMaxFontSize * 0.8) : baseMaxFontSize;
+        let maxFontSize;
+        if (isMobile && prize.mobile_font_size) {
+            maxFontSize = prize.mobile_font_size;
+        } else if (isMobile) {
+            maxFontSize = Math.round(baseMaxFontSize * 0.8);
+        } else {
+            maxFontSize = baseMaxFontSize;
+        }
         const textConfig = this.calculateOptimalTextSize(prize.name, sectorWidth, sectorHeight, 10, maxFontSize);
 
         ctx.textAlign = 'center';

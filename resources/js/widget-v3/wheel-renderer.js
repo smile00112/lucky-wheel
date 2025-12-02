@@ -93,7 +93,14 @@ export class WheelRenderer {
     drawPrizeText(ctx, prize, angle, radius) {
         const isMobile = this.state.get('isMobile') || window.innerWidth <= 768;
         const baseFontSize = prize.font_size || 18;
-        const fontSize = isMobile ? Math.round(baseFontSize * 0.8) : baseFontSize;
+        let fontSize;
+        if (isMobile && prize.mobile_font_size) {
+            fontSize = prize.mobile_font_size;
+        } else if (isMobile) {
+            fontSize = Math.round(baseFontSize * 0.8);
+        } else {
+            fontSize = baseFontSize;
+        }
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';

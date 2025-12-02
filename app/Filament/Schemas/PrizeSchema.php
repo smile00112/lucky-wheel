@@ -118,34 +118,6 @@ class PrizeSchema
                 ->directory('prizes')
                 ->visibility('public')
                 ->columns(1),
-            Forms\Components\Toggle::make('use_gradient')
-                ->label('Использовать градиент')
-                ->default(false)
-                ->live()
-                ->columnSpanFull(),
-            Forms\Components\ColorPicker::make('color')
-                ->label(__('filament.prize.color'))
-                ->helperText(__('filament.prize.color_hint'))
-                ->visible(fn ($get) => !$get('use_gradient')),
-            Forms\Components\ColorPicker::make('gradient_start')
-                ->label('Цвет начала градиента')
-                ->helperText('Цвет в центре секции')
-                ->visible(fn ($get) => $get('use_gradient')),
-            Forms\Components\ColorPicker::make('gradient_end')
-                ->label('Цвет конца градиента')
-                ->helperText('Цвет на краю секции')
-                ->visible(fn ($get) => $get('use_gradient')),
-            Forms\Components\ColorPicker::make('text_color')
-                ->label('Цвет текста в секции')
-                ->helperText('Цвет текста приза на колесе (по умолчанию белый)')
-                ->default('#ffffff'),
-            Forms\Components\TextInput::make('font_size')
-                ->label('Размер шрифта')
-                ->numeric()
-                ->minValue(8)
-                ->maxValue(72)
-                ->helperText('Размер шрифта текста приза на колесе (в пикселях. По умолчанию - 18px)')
-                ->default(18),
 
             Forms\Components\TextInput::make('sort')
                 ->label(__('filament.prize.sort'))
@@ -171,6 +143,51 @@ class PrizeSchema
                 ->minValue(1)
                 ->helperText(__('filament.prize.quantity_guest_limit_hint'))
                 ->hidden(),
+
+            Section::make('Внешний вид секции')
+                ->description('Настройки цветов и размеров текста для секции приза на колесе')
+                ->columnSpanFull()
+                ->collapsible()
+                ->collapsed(false)
+                ->schema([
+                    Forms\Components\Toggle::make('use_gradient')
+                        ->label('Использовать градиент')
+                        ->default(false)
+                        ->live()
+                        ->columnSpanFull(),
+                    Forms\Components\ColorPicker::make('color')
+                        ->label(__('filament.prize.color'))
+                        ->helperText(__('filament.prize.color_hint'))
+                        ->visible(fn ($get) => !$get('use_gradient')),
+                    Forms\Components\ColorPicker::make('gradient_start')
+                        ->label('Цвет начала градиента')
+                        ->helperText('Цвет в центре секции')
+                        ->visible(fn ($get) => $get('use_gradient')),
+                    Forms\Components\ColorPicker::make('gradient_end')
+                        ->label('Цвет конца градиента')
+                        ->helperText('Цвет на краю секции')
+                        ->visible(fn ($get) => $get('use_gradient')),
+                    Forms\Components\ColorPicker::make('text_color')
+                        ->label('Цвет текста в секции')
+                        ->helperText('Цвет текста приза на колесе (по умолчанию белый)')
+                        ->default('#ffffff')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('font_size')
+                        ->label('Размер шрифта')
+                        ->numeric()
+                        ->minValue(8)
+                        ->maxValue(72)
+                        ->helperText('Размер шрифта текста приза на колесе (в пикселях. По умолчанию - 18px)')
+                        ->default(18),
+                    Forms\Components\TextInput::make('mobile_font_size')
+                        ->label('Размер шрифта для мобильных устройств')
+                        ->numeric()
+                        ->minValue(8)
+                        ->maxValue(72)
+                        ->helperText('Размер шрифта текста приза на колесе для мобильных устройств (в пикселях. Если не указано, используется 80% от основного размера)')
+                        ->default(null),
+                ]),
+
             Section::make('Данные для email')
                 ->description('Настройки для отправки приза по email')
                 ->columnSpanFull()
