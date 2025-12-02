@@ -47,7 +47,7 @@ export class WheelRenderer {
     }
 
     drawPrizeImage(ctx, prizeImage, angle, radius, offsetY=0) {
-        const midRadius = radius * 0.88;
+        const midRadius = radius * 0.87;
         const sectorWidth = 2 * Math.sin(angle / 2) * midRadius;
         const sectorHeight = radius * 0.8;
         const imageRadius = radius * 0.9;
@@ -57,10 +57,10 @@ export class WheelRenderer {
 
         let imageWidth, imageHeight;
         if (imageAspectRatio > sectorAspectRatio) {
-            imageWidth = sectorWidth * 0.3;
+            imageWidth = sectorWidth * 0.2;
             imageHeight = imageWidth / imageAspectRatio;
         } else {
-            imageHeight = sectorHeight * 0.3;
+            imageHeight = sectorHeight * 0.2;
             imageWidth = imageHeight * imageAspectRatio;
         }
 
@@ -153,7 +153,7 @@ export class WheelRenderer {
 
         //для  мобилок уменьшаем промежуток между названием и описанием приза
         if(isMobile)
-            yOffset -= lineHeight * 0.3;
+            yOffset -= lineHeight * 0.1;
 
         descLines.forEach((line) => {
             ctx.font = `${fontSize - 1}px Arial`;
@@ -264,15 +264,27 @@ export class WheelRenderer {
             canvasSize = 600;
         }
 
-        canvasElement.width = canvasSize;
-        canvasElement.height = canvasSize;
+        // Получаем device pixel ratio для четкого рендеринга на Retina дисплеях
+        const dpr = window.devicePixelRatio || 1;
+
+        // Устанавливаем CSS размер canvas
+        canvasElement.style.width = canvasSize + 'px';
+        canvasElement.style.height = canvasSize + 'px';
+
+        // Устанавливаем внутреннее разрешение canvas с учетом DPR
+        canvasElement.width = canvasSize * dpr;
+        canvasElement.height = canvasSize * dpr;
+
+        const ctx = canvasElement.getContext('2d');
+        // Масштабируем контекст для правильного отображения
+        ctx.scale(dpr, dpr);
 
         const centerX = canvasSize / 2;
         const centerY = canvasSize / 2;
         const radius = canvasSize * 0.5;
 
         this.state.set('canvas', canvasElement);
-        this.state.set('ctx', canvasElement.getContext('2d'));
+        this.state.set('ctx', ctx);
         this.state.set('centerX', centerX);
         this.state.set('centerY', centerY);
         this.state.set('radius', radius);
