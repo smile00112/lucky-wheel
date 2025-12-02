@@ -102,7 +102,7 @@ export class WheelRenderer {
     drawPrizeText(ctx, prize, angle, radius) {
         const isMobile = this.state.get('isMobile') || window.innerWidth <= 768;
         const baseFontSize = prize.font_size || 18;
-        const fontBold = isMobile ? '' : 'bold';
+        const fontBold = isMobile ? 'bold' : 'bold'; //ублюдки, мать вашу
         let fontSize;
         if (isMobile && prize.mobile_font_size) {
             fontSize = prize.mobile_font_size;
@@ -118,7 +118,7 @@ export class WheelRenderer {
         ctx.font = `${fontBold} ${fontSize}px Arial`;
 
         const lineHeight = fontSize * 1.3;
-        const textRadius = radius * 0.5;
+        const textRadius = radius * 0.4;
 
         // Поддержка переносов строк: \n и <br> / <br />
         const processText = (text) => {
