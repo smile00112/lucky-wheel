@@ -56,7 +56,8 @@ export class NotificationManager {
             }
             if (formMessage) {
                 const winText = this.config.getText('win_notification_win_text');
-                const cleanName = this.cleanPrizeName(prize.name);
+                const prizeName = prize.full_name || prize.name;
+                const cleanName = this.cleanPrizeName(prizeName);
                 const prizeNameHtml = this.processTextForHtml(cleanName);
                 let messageText = `<strong>${prizeNameHtml}</strong>`;
                 // if (prize.text_for_winner) {
@@ -93,7 +94,8 @@ export class NotificationManager {
 
         // Показываем секцию с результатами
         const winText = this.config.getText('win_notification_win_text');
-        const cleanName = this.cleanPrizeName(prize.name);
+        const prizeName = prize.full_name || prize.name;
+        const cleanName = this.cleanPrizeName(prizeName);
         const prizeNameHtml = this.processTextForHtml(cleanName);
         let messageText = `<strong>${prizeNameHtml}</strong>`;
         // if (prize.text_for_winner) {
@@ -109,11 +111,11 @@ export class NotificationManager {
                 winNotificationMessageDop.textContent = prize.full_name;
             }
         }
-
+alert(prize.value);
         // Заполняем поле value приза
         if (codeInput) {
-            if (code && code.toString().trim()) {
-                codeInput.value = code.toString().trim();
+            if (prize.value && prize.value.toString().trim()) {
+                codeInput.value = prize.value.toString().trim();
                 codeInput.placeholder = '';
             } else {
                 codeInput.value = '';
