@@ -111,7 +111,7 @@ export class NotificationManager {
                 winNotificationMessageDop.textContent = prize.full_name;
             }
         }
-alert(prize.value);
+
         // Заполняем поле value приза
         if (codeInput) {
             if (prize.value && prize.value.toString().trim()) {
