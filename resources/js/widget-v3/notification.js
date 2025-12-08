@@ -112,8 +112,8 @@ export class NotificationManager {
 
         // Заполняем поле value приза
         if (codeInput) {
-            if (prize.value && prize.value.toString().trim()) {
-                codeInput.value = prize.value.toString().trim();
+            if (code && code.toString().trim()) {
+                codeInput.value = code.toString().trim();
                 codeInput.placeholder = '';
             } else {
                 codeInput.value = '';
