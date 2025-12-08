@@ -526,6 +526,7 @@ class WidgetController extends Controller
                 'prize' => $prize ? [
                     'id' => $prize->id,
                     'name' => $prize->name,
+                    'full_name' => $prize->full_name,
                     'description' => $prize->description,
                     'text_for_winner' => $prize->text_for_winner,
                     'type' => $prize->type,
@@ -686,6 +687,7 @@ class WidgetController extends Controller
                     'prize' => [
                         'id' => $lastWin->prize->id,
                         'name' => $lastWin->prize->name,
+                        'full_name' => $lastWin->prize->full_name,
                         'text_for_winner' => $lastWin->prize->text_for_winner,
                         'type' => $lastWin->prize->type,
                         'email_image' => $lastWin->prize->email_image,

@@ -178,7 +178,8 @@ export class FormHandler {
             const message = document.getElementById('winNotificationMessage');
             if (message) {
                 const winText = this.config.getText('win_notification_win_text');
-                const cleanName = this.cleanPrizeName(winData?.prize?.name || '');
+                const prizeName = winData?.prize?.full_name || winData?.prize?.name || '';
+                const cleanName = this.cleanPrizeName(prizeName);
                 const prizeNameHtml = this.processTextForHtml(cleanName);
                 let messageText = `<strong>${winText} ${prizeNameHtml}</strong>`;
                 if (winData?.prize?.text_for_winner) {

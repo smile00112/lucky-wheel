@@ -106,9 +106,9 @@ export class NotificationManager {
         // Обновляем winNotificationMessageDop с полным наименованием приза
         const winNotificationMessageDop = document.getElementById('winNotificationMessageDop');
         if (winNotificationMessageDop) {
-            if (prize.full_name) {
+            if (prize.text_for_winner) {
                 // Если есть полное наименование, используем его вместо статического текста
-                winNotificationMessageDop.textContent = prize.full_name;
+                winNotificationMessageDop.textContent = prize.text_for_winner;
             }
         }
 
