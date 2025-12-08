@@ -105,7 +105,7 @@ export class NotificationManager {
         }
         // const successMsg = this.config.getText('form_success_message');
         // messageText += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
-        // message.innerHTML = messageText;
+        message.innerHTML = messageText;
 
         // Обновляем winNotificationMessageDop с полным наименованием приза
         // const winNotificationMessageDop = document.getElementById('winNotificationMessageDop');

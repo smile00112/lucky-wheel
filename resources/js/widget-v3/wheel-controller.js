@@ -149,7 +149,7 @@ export class WheelController {
 
     applyWonPrize(winData) {
         const { prize, code } = winData;
-console.log('applyWonPrize', winData);
+
         if (prize?.email_image) {
             this.notification.showPrizeImage(prize.email_image);
         }
