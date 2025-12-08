@@ -63,19 +63,19 @@ export class NotificationManager {
                 if (prize.text_for_winner) {
                     messageText += `<br>${prize.text_for_winner}`;
                 }
-                const successMsg = this.config.getText('form_success_message');
-                messageText += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
+                // const successMsg = this.config.getText('form_success_message');
+                // messageText += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
                 formMessage.innerHTML = messageText;
             }
 
             // Обновляем winNotificationFormMessageDop с полным наименованием приза
-            const winNotificationFormMessageDop = document.getElementById('winNotificationFormMessageDop');
-            if (winNotificationFormMessageDop) {
-                if (prize.full_name) {
-                    // Если есть полное наименование, используем его вместо статического текста
-                    winNotificationFormMessageDop.textContent = prize.full_name;
-                }
-            }
+            // const winNotificationFormMessageDop = document.getElementById('winNotificationFormMessageDop');
+            // if (winNotificationFormMessageDop) {
+            //     if (prize.full_name) {
+            //         // Если есть полное наименование, используем его вместо статического текста
+            //         winNotificationFormMessageDop.textContent = prize.full_name;
+            //     }
+            // }
 
             // Показываем кнопку отправки формы вместо кнопки вращения
             const spinButton = document.getElementById('spinButton');
