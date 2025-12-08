@@ -59,10 +59,12 @@ export class NotificationManager {
                 const prizeName = prize.full_name || prize.name;
                 const cleanName = this.cleanPrizeName(prizeName);
                 const prizeNameHtml = this.processTextForHtml(cleanName);
-                let messageText = `<strong>${prizeNameHtml}</strong>`;
-                // if (prize.text_for_winner) {
-                //     messageText += `<br>${prize.text_for_winner}`;
-                //}
+                let messageText = `<strong>${winText} ${prizeNameHtml}</strong>`;
+                if (prize.text_for_winner) {
+                    messageText += `<br>${prize.text_for_winner}`;
+                }
+                const successMsg = this.config.getText('form_success_message');
+                messageText += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
                 formMessage.innerHTML = messageText;
             }
 
