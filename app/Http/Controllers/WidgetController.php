@@ -474,8 +474,9 @@ class WidgetController extends Controller
                             'name' => $prize->name,
                             'text_for_winner' => $prize->text_for_winner,
                             'type' => $prize->type,
+                            'value' => $prize->value,
                         ],
-                        'code' => $lastWin->code, // Код из spin
+                        'code' =>$prize->value, // $lastWin->code, // Код из spin
                     ],
                 ], 403);
             }
@@ -533,7 +534,7 @@ class WidgetController extends Controller
                     'email_image' => $prize->email_image,
                     'value' => $prize->value,
                 ] : null,
-                'code' => $spin->code, // Код из spin, а не value из prize
+                'code' => $prize->value, //$spin->code, // Код из spin, а не value из prize
                 'has_prize' => $prize !== null,
                 'spins_count' => $guestSpinsCount + 1,
                 'spins_limit' => $wheel->spins_limit,
@@ -678,7 +679,7 @@ class WidgetController extends Controller
                 $winGuest = $lastWin->guest;
                 $hasData = false;
                 if ($winGuest) {
-                    $hasData = !empty($winGuest->email) && !empty($winGuest->phone) && !empty($winGuest->name);
+                    $hasData = !empty($winGuest->email) /*&& !empty($winGuest->phone) */ && !empty($winGuest->name);
                 }
 
                 return response()->json([
@@ -733,7 +734,7 @@ class WidgetController extends Controller
                         'name' => $spin->prize->name,
                         'type' => $spin->prize->type,
                     ] : null,
-                    'code' => $spin->code, // Код из spin
+                    'code' => $prize->value, //$spin->code, // Код из spin
                     'has_prize' => $spin->isWin(),
                     'status' => $spin->status,
                     'created_at' => $spin->created_at->toISOString(),
@@ -836,7 +837,7 @@ class WidgetController extends Controller
         ]);
 
         // Проверяем, заполнены ли основные данные
-        $hasData = !empty($guest->email) || !empty($guest->phone) || !empty($guest->name);
+        $hasData = !empty($guest->email) || /*!empty($guest->phone) ||*/ !empty($guest->name);
 
         return response()->json([
             'id' => $guest->id,
@@ -1366,7 +1367,7 @@ class WidgetController extends Controller
             '{prize_email_image_url}' => $prizeImageUrl,
             '{code_html}' => $codeHtml,
             '{code_note_html}' => $codeNoteHtml,
-            '{code}' => $spin->code ?: 'не указан',
+            '{code}' =>  $prize->value ?: 'не указан', //  $spin->code ?: 'не указан',
             '{date}' => $date,
         ];
     }

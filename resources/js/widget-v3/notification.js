@@ -97,20 +97,22 @@ export class NotificationManager {
         const prizeName = prize.full_name || prize.name;
         const cleanName = this.cleanPrizeName(prizeName);
         const prizeNameHtml = this.processTextForHtml(cleanName);
-        let messageText = `<strong>${prizeNameHtml}</strong>`;
-        // if (prize.text_for_winner) {
-        //     messageText += `<br>${winText}`;
-        // }
+        let messageText = `<strong>${winText} ${prizeNameHtml}</strong>`;
+        if (prize.text_for_winner) {
+            messageText += `<br>${prize.text_for_winner}`;
+        }
+        const successMsg = this.config.getText('form_success_message');
+        messageText += '<br><br><strong style="color: #4caf50;">' + successMsg + '</strong>';
         message.innerHTML = messageText;
 
         // Обновляем winNotificationMessageDop с полным наименованием приза
-        const winNotificationMessageDop = document.getElementById('winNotificationMessageDop');
-        if (winNotificationMessageDop) {
-            if (prize.text_for_winner) {
-                // Если есть полное наименование, используем его вместо статического текста
-                winNotificationMessageDop.textContent = prize.text_for_winner;
-            }
-        }
+        // const winNotificationMessageDop = document.getElementById('winNotificationMessageDop');
+        // if (winNotificationMessageDop) {
+        //     if (prize.text_for_winner) {
+        //         // Если есть полное наименование, используем его вместо статического текста
+        //         winNotificationMessageDop.textContent = prize.text_for_winner;
+        //     }
+        // }
 
         // Заполняем поле value приза
         if (codeInput) {
