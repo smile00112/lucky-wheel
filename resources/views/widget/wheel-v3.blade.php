@@ -151,7 +151,7 @@
             <div class="win-notification-form-group">
                 <input type="email" id="winNotificationEmail" name="email" placeholder="{{ $texts['form_email_placeholder'] }}">
             </div>
-            <div class="win-notification-form-group">
+            <div class="win-notification-form-group" style="display: none;">
                 <input type="tel" id="winNotificationPhone" name="phone" placeholder="{{ $texts['form_phone_placeholder'] }}" maxlength="18">
             </div>
             <div class="win-notification-form-group checkbox-group">

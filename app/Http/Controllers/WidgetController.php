@@ -220,6 +220,7 @@ class WidgetController extends Controller
             return [
                 'id' => $prize->id,
                 'name' => $prize->name,
+                'full_name' => $prize->full_name,
                 'mobile_name' => $prize->mobile_name,
                 'sector_view' => $prize->sector_view ?? 'text_with_image',
                 'description' => $prize->description,
@@ -1341,6 +1342,9 @@ class WidgetController extends Controller
         // Дата
         $date = $spin->created_at->format('d.m.Y H:i');
 
+        // Полное наименование приза
+        $prizeFullName = ($prize && $prize->full_name) ? $prize->full_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '');
+
         return [
             '{company_name}' => $settings->company_name ?: 'Колесо фортуны',
             '{wheel_name}' => ($wheel && $wheel->name) ? $wheel->name : 'Колесо Фортуны',
@@ -1349,6 +1353,7 @@ class WidgetController extends Controller
             '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
             '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
             '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
+            '{prize_full_name}' => $prizeFullName,
             '{prize_description_html}' => $prizeDescriptionHtml,
             '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
             '{prize_text_for_winner_html}' => $prizeTextForWinnerHtml,

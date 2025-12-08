@@ -11,6 +11,7 @@ class Prize extends Model
     protected $fillable = [
         'wheel_id',
         'name',
+        'full_name',
         'mobile_name',
         'sector_view',
         'email_name',
@@ -151,6 +152,22 @@ class Prize extends Model
     public function getWinsAttribute(): int
     {
         return $this->spins()->count();
+    }
+
+    /**
+     * Заменить переменные в тексте полей email
+     * 
+     * @param string $text Текст с переменными
+     * @param array $replacements Массив замен [ключ => значение]
+     * @return string Текст с замененными переменными
+     */
+    public function replaceEmailVariables(string $text, array $replacements): string
+    {
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $text
+        );
     }
 
     /**

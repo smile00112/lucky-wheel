@@ -37,7 +37,7 @@ class PrizeWinMail extends Mailable
     protected function buildEmailHtml(): string
     {
         $template = $this->settings->email_template;
-        
+
         // Если шаблона нет, используем шаблон по умолчанию
         if (empty($template)) {
             $template = $this->getDefaultTemplate();
@@ -115,23 +115,57 @@ class PrizeWinMail extends Mailable
             $codeNoteHtml = "<div class=\"code-note\">Примечание: Код выигрыша {$spin->code}</div>";
         }
 
+        // Полное наименование приза
+        $prizeFullName = ($prize && $prize->full_name) ? $prize->full_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '');
+
+        // Подготовка базовых замен для полей email приза
+        $prizeEmailReplacements = [
+            '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
+            '{prize_full_name}' => $prizeFullName,
+            '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
+            '{prize_type}' => ($prize && $prize->type) ? $prize->type : '',
+            '{prize_value}' => ($prize && $prize->value) ? $prize->value : '',
+            '{prize_text_for_winner}' => ($prize && $prize->text_for_winner) ? $prize->text_for_winner : '',
+            '{guest_name}' => $guestName,
+            '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
+            '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
+            '{code}' => $spin->code ?: 'не указан',
+            '{company_name}' => $settings->company_name ?: 'Колесо фортуны',
+        ];
+
         // Название приза для email
-        $prizeEmailName = ($prize && $prize->email_name) ? $prize->email_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '');
+        $prizeEmailName = ($prize && $prize->email_name) ? $prize->email_name : (($prize && $prize->full_name) ? $prize->full_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : ''));
+        
+        // Замена переменных в email_name
+        if ($prize && $prize->email_name) {
+            $prizeEmailName = $prize->replaceEmailVariables($prize->email_name, $prizeEmailReplacements);
+        }
+        
         $prizeEmailNameHtml = '';
         if ($prizeEmailName) {
             $prizeEmailNameHtml = "<div class=\"prize-email-name\">{$prizeEmailName}</div>";
         }
 
         // Текст после поздравления
+        $prizeEmailTextAfterCongratulation = '';
         $prizeEmailTextAfterCongratulationHtml = '';
         if ($prize && $prize->email_text_after_congratulation) {
-            $prizeEmailTextAfterCongratulationHtml = "<div class=\"prize-email-text-after-congratulation\">{$prize->email_text_after_congratulation}</div>";
+            $prizeEmailTextAfterCongratulation = $prize->replaceEmailVariables(
+                $prize->email_text_after_congratulation,
+                $prizeEmailReplacements
+            );
+            $prizeEmailTextAfterCongratulationHtml = "<div class=\"prize-email-text-after-congratulation\">{$prizeEmailTextAfterCongratulation}</div>";
         }
 
         // Текст после кода купона
+        $prizeEmailCouponAfterCodeText = '';
         $prizeEmailCouponAfterCodeTextHtml = '';
         if ($prize && $prize->email_coupon_after_code_text) {
-            $prizeEmailCouponAfterCodeTextHtml = "<div class=\"prize-email-coupon-after-code-text\">{$prize->email_coupon_after_code_text}</div>";
+            $prizeEmailCouponAfterCodeText = $prize->replaceEmailVariables(
+                $prize->email_coupon_after_code_text,
+                $prizeEmailReplacements
+            );
+            $prizeEmailCouponAfterCodeTextHtml = "<div class=\"prize-email-coupon-after-code-text\">{$prizeEmailCouponAfterCodeText}</div>";
         }
 
         return [
@@ -143,15 +177,16 @@ class PrizeWinMail extends Mailable
             '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
             '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
             '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
+            '{prize_full_name}' => $prizeFullName,
             '{prize_email_name}' => $prizeEmailName,
             '{prize_email_name_html}' => $prizeEmailNameHtml,
             '{prize_description_html}' => $prizeDescriptionHtml,
             '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
             '{prize_text_for_winner_html}' => $prizeTextForWinnerHtml,
             '{prize_text_for_winner}' => ($prize && $prize->text_for_winner) ? $prize->text_for_winner : '',
-            '{prize_email_text_after_congratulation}' => ($prize && $prize->email_text_after_congratulation) ? $prize->email_text_after_congratulation : '',
+            '{prize_email_text_after_congratulation}' => $prizeEmailTextAfterCongratulation,
             '{prize_email_text_after_congratulation_html}' => $prizeEmailTextAfterCongratulationHtml,
-            '{prize_email_coupon_after_code_text}' => ($prize && $prize->email_coupon_after_code_text) ? $prize->email_coupon_after_code_text : '',
+            '{prize_email_coupon_after_code_text}' => $prizeEmailCouponAfterCodeText,
             '{prize_email_coupon_after_code_text_html}' => $prizeEmailCouponAfterCodeTextHtml,
             '{prize_type}' => ($prize && $prize->type) ? $prize->type : '',
             '{prize_value}' => ($prize && $prize->value) ? $prize->value : '',
@@ -403,7 +438,7 @@ class PrizeWinMail extends Mailable
 
             <div class="content-text">
                 <p>Уважаемый{guest_name}!</p>
-                <p>Поздравляем вас с выигрышем приза <strong>{prize_email_name}</strong>!</p>
+                <p>Поздравляем вас с выигрышем приза <strong>{prize_full_name}</strong>!</p>
                 {prize_email_text_after_congratulation_html}
                 <p>Спасибо за участие в нашей акции!</p>
             </div>

@@ -742,3 +742,7 @@
     font-size: 90px;
     color: #fff;
 }
+
+#winNotificationPromoCodeContainer {
+    display: none!important;
+}

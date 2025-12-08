@@ -343,7 +343,6 @@ class LuckyWheelApp {
     validateFormFields() {
         const nameInput = document.getElementById('winNotificationName');
         const emailInput = document.getElementById('winNotificationEmail');
-        const phoneInput = document.getElementById('winNotificationPhone');
         const agreementCheckbox = document.getElementById('winNotificationAgreement');
 
         let isValid = true;
@@ -362,18 +361,16 @@ class LuckyWheelApp {
             }
         };
 
-        if (!nameInput || !emailInput || !phoneInput) {
+        if (!nameInput || !emailInput) {
             console.error('[LuckyWheel] Form inputs not found');
             return false;
         }
 
         const name = nameInput.value.trim();
         const email = emailInput.value.trim();
-        const phone = phoneInput.value.trim();
 
         clearHighlight(nameInput);
         clearHighlight(emailInput);
-        clearHighlight(phoneInput);
 
         if (!name) {
             highlightField(nameInput);
@@ -382,11 +379,6 @@ class LuckyWheelApp {
 
         if (!email) {
             highlightField(emailInput);
-            isValid = false;
-        }
-
-        if (!phone) {
-            highlightField(phoneInput);
             isValid = false;
         }
 
@@ -400,7 +392,6 @@ class LuckyWheelApp {
     setupFieldValidationListeners() {
         const nameInput = document.getElementById('winNotificationName');
         const emailInput = document.getElementById('winNotificationEmail');
-        const phoneInput = document.getElementById('winNotificationPhone');
 
         const clearHighlight = (input) => {
             if (input) {
@@ -414,9 +405,6 @@ class LuckyWheelApp {
         }
         if (emailInput) {
             emailInput.addEventListener('input', () => clearHighlight(emailInput));
-        }
-        if (phoneInput) {
-            phoneInput.addEventListener('input', () => clearHighlight(phoneInput));
         }
     }
 

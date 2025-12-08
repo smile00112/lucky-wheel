@@ -11,7 +11,6 @@ export class FormHandler {
     validateFormFields() {
         const nameInput = document.getElementById('winNotificationName');
         const emailInput = document.getElementById('winNotificationEmail');
-        const phoneInput = document.getElementById('winNotificationPhone');
 
         let isValid = true;
 
@@ -29,17 +28,15 @@ export class FormHandler {
             }
         };
 
-        if (!nameInput || !emailInput || !phoneInput) {
+        if (!nameInput || !emailInput) {
             return false;
         }
 
         const name = nameInput.value.trim();
         const email = emailInput.value.trim();
-        const phone = phoneInput.value.trim();
 
         clearHighlight(nameInput);
         clearHighlight(emailInput);
-        clearHighlight(phoneInput);
 
         if (!name) {
             highlightField(nameInput);
@@ -48,11 +45,6 @@ export class FormHandler {
 
         if (!email) {
             highlightField(emailInput);
-            isValid = false;
-        }
-
-        if (!phone) {
-            highlightField(phoneInput);
             isValid = false;
         }
 

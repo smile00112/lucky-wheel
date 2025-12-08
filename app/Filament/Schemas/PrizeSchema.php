@@ -47,6 +47,11 @@ class PrizeSchema
                 ->helperText(__('filament.prize.name_hint'))
                 ->required()
                 ->maxLength(255),
+            Forms\Components\TextInput::make('full_name')
+                ->label('Полное наименование приза')
+                ->helperText('Полное наименование приза, которое будет использоваться в уведомлениях и письмах')
+                ->maxLength(255)
+                ->columnSpanFull(),
             Forms\Components\TextInput::make('mobile_name')
                 ->label(__('filament.prize.mobile_name'))
                 ->helperText(__('filament.prize.mobile_name_hint'))
@@ -197,19 +202,19 @@ class PrizeSchema
                     Forms\Components\TextInput::make('email_name')
                         ->label('Название приза для email')
                         ->maxLength(255)
-                        ->helperText('Название приза, которое будет использоваться в email')
+                        ->helperText('Название приза для email. Доступные переменные: {prize_name}, {prize_full_name}, {prize_description}, {prize_type}, {prize_value}, {prize_text_for_winner}, {guest_name}, {guest_email}, {guest_phone}, {code}, {company_name}')
                         ->required()
                         ->columnSpanFull(),
                     Forms\Components\Textarea::make('email_text_after_congratulation')
                         ->label('Текст после поздравления')
                         ->rows(3)
-                        ->helperText('Текст, который будет отображаться после поздравления в email')
+                        ->helperText('Текст после поздравления в email. Доступные переменные: {prize_name}, {prize_full_name}, {prize_description}, {prize_type}, {prize_value}, {prize_text_for_winner}, {guest_name}, {guest_email}, {guest_phone}, {code}, {company_name}')
                         ->required()
                         ->columnSpanFull(),
                     Forms\Components\Textarea::make('email_coupon_after_code_text')
                         ->label('Текст поля кода купона')
                         ->rows(3)
-                        ->helperText('Текст, который будет отображаться после кода купона в email')
+                        ->helperText('Текст после кода купона в email. Доступные переменные: {prize_name}, {prize_full_name}, {prize_description}, {prize_type}, {prize_value}, {prize_text_for_winner}, {guest_name}, {guest_email}, {guest_phone}, {code}, {company_name}')
                         ->required()
                         ->columnSpanFull(),
                 ]),

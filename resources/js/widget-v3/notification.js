@@ -65,6 +65,15 @@ export class NotificationManager {
                 formMessage.innerHTML = messageText;
             }
 
+            // Обновляем winNotificationFormMessageDop с полным наименованием приза
+            const winNotificationFormMessageDop = document.getElementById('winNotificationFormMessageDop');
+            if (winNotificationFormMessageDop) {
+                if (prize.full_name) {
+                    // Если есть полное наименование, используем его вместо статического текста
+                    winNotificationFormMessageDop.textContent = prize.full_name;
+                }
+            }
+
             // Показываем кнопку отправки формы вместо кнопки вращения
             const spinButton = document.getElementById('spinButton');
             const submitBtn = document.getElementById('winNotificationSubmitBtn');
@@ -91,6 +100,15 @@ export class NotificationManager {
         //     messageText += `<br>${winText}`;
         // }
         message.innerHTML = messageText;
+
+        // Обновляем winNotificationMessageDop с полным наименованием приза
+        const winNotificationMessageDop = document.getElementById('winNotificationMessageDop');
+        if (winNotificationMessageDop) {
+            if (prize.full_name) {
+                // Если есть полное наименование, используем его вместо статического текста
+                winNotificationMessageDop.textContent = prize.full_name;
+            }
+        }
 
         // Заполняем поле value приза
         if (codeInput) {
