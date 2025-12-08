@@ -1,7 +1,9 @@
 * {
     font-family: 'Roboto', sans-serif;
 }
-
+#lucky-wheel-modal-overlay.open{
+    z-index: 9999999;
+}
 .wheel-content-contener{
     flex-direction: row;
     flex-wrap: wrap;
@@ -52,7 +54,7 @@
 
 .lucky-wheel-container h1 {
     margin-bottom: 20px;
-    font-size: 30px;
+    font-size: 24px;
     color: #000000;
 }
 
@@ -257,7 +259,7 @@
 @media (min-width: 1024px) {
     .win-notification {
         position: relative;
-        left: -200px;
+        left: -240px;
         /*height: 465px;*/
         width: auto;
         /*min-width: 500px;*/
@@ -271,7 +273,7 @@
     .win-notification {
         position: relative;
         width: 100%;
-        min-height: 518px;
+        min-height: 420px;
         top: -200px;
         padding-top: 210px;
 
@@ -294,7 +296,7 @@
 .win-notification-message {
     margin-bottom: 15px;
     text-align: center;
-    font-size: 14px;
+    font-size: 20px;
     line-height: 1.5;
 }
 
@@ -378,12 +380,14 @@
 .win-notification-form .spin-button {
     margin-top: 15px;
     margin-bottom: 0;
+    width: fit-content;
 }
 
 .wheel-info-block .spin-button {
     margin-top: 20px;
     margin-bottom: 0;
     border-radius: 8px;
+    width: fit-content;
 }
 
 .win-notification-form-text {
@@ -493,6 +497,7 @@
     padding: 5px;
     border: 1px dotted #B0B0B0;
     border-radius: 10px;
+    display: none !important;
 }
 
 .win-notification-image-container img {
@@ -573,6 +578,7 @@
     line-height: 130%;
     text-align: center;
     color: #666666;
+    margin-bottom: 0;
 }
 .wheel-info-block .wheel-info-image-container img{
     width: 100%;

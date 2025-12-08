@@ -35,6 +35,8 @@
             isModalOpen: false,
             open: false,
             version: 'v3',
+            scrollPosition: undefined,
+            preventScrollHandler: null,
             callbacks: {
                 onSpin: null,
                 onWin: null,
@@ -557,7 +559,7 @@
             // Показываем модальное окно
             this.config.modal.classList.add('open');
             this.config.isModalOpen = true;
-            document.body.style.overflow = 'hidden'; // Блокируем скролл страницы
+            this.lockBodyScroll(); // Блокируем скролл страницы (включая iOS)
 
             // Сохраняем состояние открытия в localStorage
             localStorage.setItem('lucky_wheel_modal_open', 'true');
@@ -780,7 +782,7 @@
             if (this.config.modal) {
                 this.config.modal.classList.remove('open');
                 this.config.isModalOpen = false;
-                document.body.style.overflow = ''; // Восстанавливаем скролл
+                this.unlockBodyScroll(); // Восстанавливаем скролл
 
                 // Очищаем контент при закрытии
                 const content = document.getElementById('lucky-wheel-modal-content');
@@ -790,6 +792,61 @@
 
                 // Сохраняем состояние закрытия в localStorage
                 localStorage.setItem('lucky_wheel_modal_open', 'false');
+            }
+        },
+
+        /**
+         * Заблокировать скролл страницы (включая iOS)
+         */
+        lockBodyScroll: function () {
+            const scrollY = window.scrollY || window.pageYOffset;
+            const body = document.body;
+            
+            // Сохраняем позицию скролла
+            this.config.scrollPosition = scrollY;
+            
+            // Блокируем скролл через CSS
+            body.style.overflow = 'hidden';
+            body.style.position = 'fixed';
+            body.style.top = `-${scrollY}px`;
+            body.style.width = '100%';
+            
+            // Блокируем touchmove на iOS
+            const preventScroll = (e) => {
+                // Разрешаем скролл внутри модального окна
+                const modal = this.config.modal;
+                if (modal && modal.contains(e.target)) {
+                    return;
+                }
+                e.preventDefault();
+            };
+            
+            this.config.preventScrollHandler = preventScroll;
+            document.addEventListener('touchmove', preventScroll, { passive: false });
+        },
+
+        /**
+         * Разблокировать скролл страницы
+         */
+        unlockBodyScroll: function () {
+            const body = document.body;
+            
+            // Восстанавливаем стили
+            body.style.overflow = '';
+            body.style.position = '';
+            body.style.top = '';
+            body.style.width = '';
+            
+            // Удаляем обработчик touchmove
+            if (this.config.preventScrollHandler) {
+                document.removeEventListener('touchmove', this.config.preventScrollHandler);
+                this.config.preventScrollHandler = null;
+            }
+            
+            // Восстанавливаем позицию скролла
+            if (this.config.scrollPosition !== undefined) {
+                window.scrollTo(0, this.config.scrollPosition);
+                this.config.scrollPosition = undefined;
             }
         },
 
@@ -868,7 +925,7 @@
             this.config.modal = null;
             this.config.floatingIcon = null;
             this.config.isModalOpen = false;
-            document.body.style.overflow = '';
+            this.unlockBodyScroll();
         }
     };
 
