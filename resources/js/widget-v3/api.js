@@ -81,7 +81,7 @@ export class ApiService {
             const savedGuestId = localStorage.getItem(storageKey);
 
         }
-alert(savedGuestId);
+
         if (savedGuestId) {
             return savedGuestId;
         }
