@@ -159,6 +159,15 @@ export class FormHandler {
             const winningFormContainer = document.getElementById('winningFormContainer');
             if (formContainer) formContainer.style.display = 'none';
             if (sendContainer) sendContainer.style.display = 'none';
+            // const winNotificationFormMessageDop = document.getElementById('winNotificationFormMessageDop');
+            // if (winNotificationFormMessageDop) {
+            //     winNotificationFormMessageDop.style.display = 'block';
+            // }
+            // const winNotificationMessageDopBeforeContactForm = document.getElementById('winNotificationMessageDopBeforeContactForm');
+            // if (winNotificationMessageDopBeforeContactForm) {
+            //     winNotificationMessageDopBeforeContactForm.style.display = 'none';
+            // }
+
 
             const winData = this.state.getWinData();
             if (winData?.prize?.email_image) {

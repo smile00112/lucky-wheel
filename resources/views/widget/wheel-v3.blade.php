@@ -31,6 +31,7 @@
         'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
         'wheel_default_name' => 'Колесо Фортуны',
         'win_notification_message_dop' => 'Скопируйте промокод или покажите QR-код на ресепшене',
+        'win_notification_before_contact_form' => 'Заполните форму, чтобы получить приз',
     ];
     $settings = $wheel->settings ?? [];
     $texts = array_merge($defaultTexts, $settings);
@@ -81,6 +82,8 @@
         <h3>{{ $texts['win_notification_title'] }}</h3>
         <div class="win-notification-message" id="winNotificationMessage"></div>
         <div class="win-notification-message_dop" id="winNotificationMessageDop">{{ $texts['win_notification_message_dop'] }}</div>
+{{--        <div class="win-notification-message_dop" id="winNotificationMessageDopBeforeContactForm" style="display: none">{{ $texts['win_notification_before_contact_form'] }}</div>--}}
+
         <div class="win-notification-code-input-wrapper">
             <div class="win-notification-code" id="winNotificationCodeContainer">
                 <input type="text" id="winNotificationCode" readonly value="">
@@ -133,7 +136,7 @@
         <div class="win-notification-form-header" id="winNotificationFormHeader" style="display: none;">
             <h3>{{ $texts['win_notification_title'] }}</h3>
             <div class="win-notification-message" id="winNotificationFormMessage"></div>
-            <div class="win-notification-message_dop" id="winNotificationFormMessageDop">{{ $texts['win_notification_message_dop'] }}</div>
+            <div class="win-notification-message_dop" id="winNotificationFormMessageDop">{{ $texts['win_notification_before_contact_form'] }}</div>
         </div>
         <div class="win-notification-form-initial" id="winNotificationFormInitial">
             <h1>Крути колесо!</h1>

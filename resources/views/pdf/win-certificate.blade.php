@@ -133,7 +133,7 @@
 
         @if($prize->value)
         <div style="margin: 30px 0;">
-            <div class="prize-code-label">Идентификационный номер</div>
+            <div class="prize-code-label">Промокод</div>
             <div class="prize-code">{{ $prize->value }}</div>
         </div>
         @endif

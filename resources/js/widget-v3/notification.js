@@ -71,10 +71,12 @@ export class NotificationManager {
             // Обновляем winNotificationFormMessageDop с полным наименованием приза
             // const winNotificationFormMessageDop = document.getElementById('winNotificationFormMessageDop');
             // if (winNotificationFormMessageDop) {
-            //     if (prize.full_name) {
-            //         // Если есть полное наименование, используем его вместо статического текста
-            //         winNotificationFormMessageDop.textContent = prize.full_name;
-            //     }
+            //     winNotificationFormMessageDop.style.display = 'none';
+            // }
+            //
+            // const winNotificationMessageDopBeforeContactForm = document.getElementById('winNotificationMessageDopBeforeContactForm');
+            // if (winNotificationMessageDopBeforeContactForm) {
+            //     winNotificationMessageDopBeforeContactForm.style.display = 'block';
             // }
 
             // Показываем кнопку отправки формы вместо кнопки вращения
@@ -91,6 +93,7 @@ export class NotificationManager {
 
             notification.style.display = 'block';
             notification.classList.add('show');
+            this.hideIOSAddressBar();
             return;
         }
 
@@ -173,6 +176,7 @@ export class NotificationManager {
 
         notification.style.display = 'block';
         notification.classList.add('show');
+        this.hideIOSAddressBar();
     }
 
     hide() {
@@ -338,6 +342,21 @@ export class NotificationManager {
             }
         }
         return name;
+    }
+
+    hideIOSAddressBar() {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+            const scrollY = window.scrollY || window.pageYOffset;
+
+            setTimeout(() => {
+                window.scrollTo(0, scrollY + 1);
+                setTimeout(() => {
+                    window.scrollTo(0, scrollY);
+                }, 10);
+            }, 100);
+        }
     }
 }
 

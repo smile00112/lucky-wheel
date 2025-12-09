@@ -49,6 +49,8 @@ class CreateWheel extends CreateRecord
             'error_send' => 'Ошибка при отправке',
             'error_copy_code' => 'Не удалось скопировать код. Пожалуйста, скопируйте вручную:',
             'wheel_default_name' => 'Колесо Фортуны',
+            'win_notification_message_dop' => 'Скопируйте промокод или покажите QR-код на ресепшене',
+            'win_notification_before_contact_form' => 'Заполните форму, чтобы получить приз',
         ];
 
         $data['settings'] = array_merge($defaultSettings, $data['settings']);

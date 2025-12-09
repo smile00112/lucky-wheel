@@ -457,6 +457,12 @@
                             padding: 0;
                         }
                     }
+                    @media screen and (max-width: 768px) {
+                        #lucky-wheel-modal-overlay.open {
+                            height: 100vh;
+                            height: -webkit-fill-available;
+                        }
+                    }
                   @media (max-width: 480px) {
                     #lucky-wheel-modal-content {
                         min-height: auto !important;
@@ -560,6 +566,7 @@
             this.config.modal.classList.add('open');
             this.config.isModalOpen = true;
             this.lockBodyScroll(); // Блокируем скролл страницы (включая iOS)
+            this.hideIOSAddressBar(); // Скрываем адресную строку на iOS
 
             // Сохраняем состояние открытия в localStorage
             localStorage.setItem('lucky_wheel_modal_open', 'true');
@@ -847,6 +854,36 @@
             if (this.config.scrollPosition !== undefined) {
                 window.scrollTo(0, this.config.scrollPosition);
                 this.config.scrollPosition = undefined;
+            }
+        },
+
+        /**
+         * Скрыть адресную строку на iOS
+         */
+        hideIOSAddressBar: function () {
+            // Проверяем, что это iOS устройство
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            
+            if (isIOS) {
+                // Сохраняем текущую позицию скролла
+                const scrollY = window.scrollY || window.pageYOffset;
+                
+                // Принудительно скрываем адресную строку через небольшой скролл
+                setTimeout(() => {
+                    // Метод 1: Используем scrollTo для скрытия адресной строки
+                    window.scrollTo(0, scrollY + 1);
+                    setTimeout(() => {
+                        window.scrollTo(0, scrollY);
+                    }, 10);
+                    
+                    // Метод 2: Альтернативный способ через visualViewport (если доступен)
+                    if (window.visualViewport) {
+                        window.scrollTo(0, window.visualViewport.height);
+                        setTimeout(() => {
+                            window.scrollTo(0, scrollY);
+                        }, 10);
+                    }
+                }, 100);
             }
         },
 

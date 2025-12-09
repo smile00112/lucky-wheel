@@ -4,6 +4,12 @@
 #lucky-wheel-modal-overlay.open{
     z-index: 9999999;
 }
+@media screen and (max-width: 768px) {
+    #lucky-wheel-modal-overlay.open {
+        height: 100vh;
+        height: -webkit-fill-available;
+    }
+}
 .wheel-content-contener{
     flex-direction: row;
     flex-wrap: wrap;
@@ -407,7 +413,7 @@
     border-radius: 8px;
     background: #F2F4F7;
     color: #000000;
-    font-size: 14px;
+    font-size: 16px;
     transition: all 0.3s ease;
     border: 1px solid #E2E8F0;
 }
@@ -728,6 +734,18 @@
         margin-top: -230px;
     }
 }
+/*@media screen and (max-width: 768px) {*/
+/*    #winNotification.show {*/
+/*        position: fixed;*/
+/*        top: 0;*/
+/*        left: 0;*/
+/*        width: 100%;*/
+/*        height: 100vh;*/
+/*        height: -webkit-fill-available;*/
+/*        overflow-y: auto;*/
+/*        -webkit-overflow-scrolling: touch;*/
+/*    }*/
+/*}*/
 
 .wheel-content-wrapper {
     @media (max-width: 768px) {
@@ -757,3 +775,28 @@
     height: 100vh;
     overflow-y: hidden;
 }
+
+/*@media screen and (max-width: 768px) {*/
+/*    #lucky-wheel-modal-overlay.open {*/
+/*        position: fixed;*/
+/*        top: 0;*/
+/*        left: 0;*/
+/*        width: 100%;*/
+/*        height: 100vh;*/
+/*        height: -webkit-fill-available; !* Для iOS *!*/
+/*        overflow: hidden;*/
+/*    }*/
+/*}*/
+
+/*@media screen and (max-width: 768px) {*/
+/*    #winNotification.show {*/
+/*        position: fixed;*/
+/*        top: 0;*/
+/*        left: 0;*/
+/*        width: 100%;*/
+/*        height: 100vh;*/
+/*        height: -webkit-fill-available;*/
+/*        overflow-y: auto;*/
+/*        -webkit-overflow-scrolling: touch;*/
+/*    }*/
+/*}*/
