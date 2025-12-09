@@ -696,7 +696,7 @@ class WidgetController extends Controller
                         'email_image' => $lastWin->prize->email_image,
                         'value' => $lastWin->prize->value,
                     ],
-                    'code' => $lastWin->code, // Код из spin
+                    'code' => $lastWin->value, //$lastWin->code, // Код из spin
                     'win_date' => $lastWin->created_at->toIso8601String(),
                     'guest_has_data' => $hasData, // Флаг, заполнены ли данные у гостя, который выиграл
                     'win_guest_id' => $winGuest ? $winGuest->id : null, // ID гостя, который выиграл
@@ -736,7 +736,7 @@ class WidgetController extends Controller
                         'name' => $spin->prize->name,
                         'type' => $spin->prize->type,
                     ] : null,
-                    'code' => $prize->value, //$spin->code, // Код из spin
+                    'code' => $spin->prize->value, //$spin->code, // Код из spin
                     'has_prize' => $spin->isWin(),
                     'status' => $spin->status,
                     'created_at' => $spin->created_at->toISOString(),
