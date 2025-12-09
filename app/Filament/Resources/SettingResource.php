@@ -4,11 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\SettingResource\Pages;
 use App\Models\Setting;
+use App\Support\DefaultTemplates;
 use Filament\Forms;
 use Filament\Forms\Components\CodeEditor\Enums\Language;
+use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
@@ -51,7 +54,12 @@ class SettingResource extends Resource
                             ->label('Код шаблона email')
                             ->helperText(__('filament.setting.email_template_hint'))
                             ->language(Language::Html)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+//                            ->extraActions([
+//                                FormAction::make('fill_default_email_template')
+//                                    ->label('Вставить шаблон по умолчанию')
+//                                    ->action(fn (Set $set) => $set('email_template', DefaultTemplates::email())),
+//                            ]),
                     ])
                     ,
                 Section::make(__('filament.setting.pdf_template'))
@@ -64,7 +72,12 @@ class SettingResource extends Resource
                             ->label('Код шаблона PDF')
                             ->helperText(__('filament.setting.pdf_template_hint'))
                             ->language(Language::Html)
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+//                            ->extraActions([
+//                                FormAction::make('fill_default_pdf_template')
+//                                    ->label('Вставить шаблон по умолчанию')
+//                                    ->action(fn (Set $set) => $set('pdf_template', DefaultTemplates::pdf())),
+//                            ]),
                     ])
 
                     ,

@@ -19,14 +19,25 @@ class SpaPrizeWinMail extends Mailable
     use Queueable, SerializesModels;
 
     public Spin $spin;
-    public Setting $settings;
+    public $emailSettings;
     public ?string $qrCodeDataUri = null;
 
     public function __construct(Spin $spin)
     {
-        $this->spin = $spin->load(['prize', 'guest']);
-        $this->settings = Setting::getInstance();
+        $this->spin = $spin->load(['prize', 'guest', 'wheel']);
+        $this->emailSettings = $this->resolveEmailSettings();
         $this->qrCodeDataUri = $this->generateQrCode();
+    }
+
+    protected function resolveEmailSettings()
+    {
+        $wheel = $this->spin->wheel;
+
+        if ($wheel && $wheel->use_wheel_email_settings) {
+            return $wheel;
+        }
+
+        return Setting::getInstance();
     }
 
     protected function generateQrCode(): ?string
@@ -80,7 +91,7 @@ class SpaPrizeWinMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $settings = Setting::getInstance();
+        $settings = $this->emailSettings ?? Setting::getInstance();
         $companyName = $settings->company_name ?: 'Спа-комплекс';
         $fromAddress = config('mail.from.address', 'hello@example.com');
 
@@ -96,7 +107,7 @@ class SpaPrizeWinMail extends Mailable
             view: 'emails.spa-prize-win',
             with: [
                 'spin' => $this->spin,
-                'settings' => $this->settings,
+                'settings' => $this->emailSettings,
                 'qrCodeDataUri' => $this->qrCodeDataUri,
             ],
         );

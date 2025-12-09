@@ -25,6 +25,11 @@ class Wheel extends Model
         'starts_at',
         'ends_at',
         'image',
+        'company_name',
+        'logo',
+        'email_template',
+        'pdf_template',
+        'use_wheel_email_settings',
     ];
 
     protected $casts = [
@@ -35,6 +40,7 @@ class Wheel extends Model
         'spins_limit' => 'integer',
         'starts_at' => 'datetime',
         'ends_at' => 'datetime',
+        'use_wheel_email_settings' => 'boolean',
     ];
 
     /**

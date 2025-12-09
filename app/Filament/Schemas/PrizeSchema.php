@@ -46,7 +46,8 @@ class PrizeSchema
                 ->label(__('filament.prize.name'))
                 ->helperText(__('filament.prize.name_hint'))
                 ->required()
-                ->maxLength(255),
+                ->maxLength(255)
+                ->columnSpanFull(),
             Forms\Components\TextInput::make('full_name')
                 ->label('Полное наименование приза')
                 ->helperText('Полное наименование приза, которое будет использоваться в уведомлениях и письмах')
@@ -56,6 +57,7 @@ class PrizeSchema
                 ->label(__('filament.prize.mobile_name'))
                 ->helperText(__('filament.prize.mobile_name_hint'))
                 ->maxLength(255)
+                ->columnSpanFull()
                 ,
             Forms\Components\Select::make('sector_view')
                 ->label(__('filament.prize.sector_view'))

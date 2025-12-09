@@ -4,15 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\WheelResource\Pages;
 use App\Models\Wheel;
+use App\Support\DefaultTemplates;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action as FormAction;
 use Filament\Forms\Components\CodeEditor\Enums\Language;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
@@ -103,6 +106,8 @@ class WheelResource extends Resource
                     ->native(false)
                     ,
 
+
+
                 Section::make('Настройки текстов')
                     ->description('')
                     ->columnSpanFull()
@@ -190,6 +195,52 @@ class WheelResource extends Resource
                                 })
                                 ,
                 ]),
+                Section::make('Настройки писем')
+                    ->description('Локальные email/PDF настройки для этого колеса')
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\Toggle::make('use_wheel_email_settings')
+                            ->label('Использовать настройки этого колеса для писем')
+                            ->default(false)
+                            ->live(),
+                        Forms\Components\TextInput::make('company_name')
+                            ->label('Компания (email)')
+                            ->maxLength(255)
+                            ->visible(fn (Get $get) => (bool) $get('use_wheel_email_settings')),
+                        Forms\Components\FileUpload::make('logo')
+                            ->label('Логотип для писем')
+                            ->image()
+                            ->disk('public')
+                            ->directory('wheels/email-logos')
+                            ->visibility('public')
+                            ->visible(fn (Get $get) => (bool) $get('use_wheel_email_settings')),
+                        Forms\Components\CodeEditor::make('email_template')
+                            ->label('HTML шаблон письма')
+                            ->language(Language::Html)
+                            ->helperText(__('filament.setting.email_template_hint'))
+                            ->columnSpanFull()
+//                            ->extraActions([
+//                                FormAction::make('fill_default_email_template')
+//                                    ->label('Вставить шаблон по умолчанию')
+//                                    ->action(fn (Set $set) => $set('email_template', DefaultTemplates::email())),
+//                            ])
+                            ->visible(fn (Get $get) => (bool) $get('use_wheel_email_settings')),
+                        Forms\Components\CodeEditor::make('pdf_template')
+                            ->label('HTML шаблон PDF')
+                            ->language(Language::Html)
+                            ->columnSpanFull()
+                            ->helperText(__('filament.setting.pdf_template_hint'))
+
+                            //                            ->extraActions([
+//                                FormAction::make('fill_default_pdf_template')
+//                                    ->label('Вставить шаблон по умолчанию')
+//                                    ->action(fn (Set $set) => $set('pdf_template', DefaultTemplates::pdf())),
+//                            ])
+                            ->visible(fn (Get $get) => (bool) $get('use_wheel_email_settings')),
+                    ]),
+
                 Forms\Components\CodeEditor::make('widget_embed_code')
                     ->label(__('filament.wheel.widget_embed_code'))
                     ->language(Language::Html)
