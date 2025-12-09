@@ -345,7 +345,7 @@ class DefaultTemplates
         <div class="description">{prize_text_for_winner_html}</div>
 
         <div class="code-block">
-            <div class="code-label">Промокод</div>
+            <div class="code-label">Промокод 2</div>
             <div class="code-value">{prize_value}</div>
             {code_note_html}
         </div>

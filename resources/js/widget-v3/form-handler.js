@@ -218,11 +218,24 @@ export class FormHandler {
                 await this.notification.setupPdfLink(pdfLink, true);
             }
 
-            // Обновляем guest_id в localStorage, если он пришел в ответе
-            if (data.guest_id && !data.error) {
-                Utils.updateGuestIdInStorage(data.guest_id, this.config.wheelSlug);
-                if (this.config.guestId) {
-                    this.config.guestId = String(data.guest_id);
+            // Обновляем guest_id и помечаем, что данные гостя заполнены
+            const guestIdFromResponse = data.guest_id ? String(data.guest_id) : null;
+            const targetGuestId = guestIdFromResponse || this.config.guestId;
+
+            if (guestIdFromResponse && !data.error) {
+                Utils.updateGuestIdInStorage(guestIdFromResponse, this.config.wheelSlug);
+            }
+
+            if (targetGuestId) {
+                this.config.guestId = targetGuestId;
+                const winDataToUpdate = this.state.getWinData();
+                if (winDataToUpdate) {
+                    this.state.saveWin(
+                        winDataToUpdate.prize,
+                        winDataToUpdate.code,
+                        true,
+                        winDataToUpdate.spin_id
+                    );
                 }
             }
 
