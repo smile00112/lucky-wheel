@@ -336,20 +336,20 @@ class DefaultTemplates
     <div class="certificate">
         <div class="title">СЕРТИФИКАТ ПОБЕДИТЕЛЯ</div>
         <div class="subtitle">{company_name}</div>
-        
+
         <div class="guest-name">Поздравляем, {guest_name}!</div>
         <div class="prize-name">{prize_full_name}</div>
-        
+
         {prize_email_image_html}
         <div class="description">{prize_description_html}</div>
         <div class="description">{prize_text_for_winner_html}</div>
-        
+
         <div class="code-block">
-            <div class="code-label">Идентификационный номер</div>
+            <div class="code-label">Промокод</div>
             <div class="code-value">{prize_value}</div>
             {code_note_html}
         </div>
-        
+
         <div class="footer">
             Этот сертификат подтверждает ваш выигрыш в розыгрыше "{wheel_name}".
         </div>
