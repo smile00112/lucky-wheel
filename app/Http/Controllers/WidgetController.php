@@ -522,7 +522,7 @@ class WidgetController extends Controller
 
             DB::commit();
 
-            $guestHasData = !empty($guest->email) && !empty($guest->phone) && !empty($guest->name);
+            $guestHasData = !empty($guest->email) && !empty($guest->name);// && !empty($guest->phone)
 
             return response()->json([
                 'spin_id' => $spin->id,
@@ -681,7 +681,7 @@ class WidgetController extends Controller
                 $winGuest = $lastWin->guest;
                 $hasData = false;
                 if ($winGuest) {
-                    $hasData = !empty($winGuest->email) /*&& !empty($winGuest->phone) */ && !empty($winGuest->name);
+                    $hasData = !empty($winGuest->email) && !empty($winGuest->name);  /*&& !empty($winGuest->phone) */
                 }
 
                 return response()->json([

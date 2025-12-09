@@ -416,6 +416,7 @@
     font-size: 16px;
     transition: all 0.3s ease;
     border: 1px solid #E2E8F0;
+    box-sizing: border-box;
 }
 
 .win-notification-form-group input:focus {

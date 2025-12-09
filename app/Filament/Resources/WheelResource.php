@@ -195,7 +195,7 @@ class WheelResource extends Resource
                                 })
                                 ,
                 ]),
-                Section::make('Настройки писем')
+                Section::make('Настройки шаблонов письма и PDF')
                     ->description('Локальные email/PDF настройки для этого колеса')
                     ->columnSpanFull()
                     ->collapsible()
