@@ -74,10 +74,10 @@ export class ApiService {
         const storageKey = this.config.getStorageKey('guest');
         var savedGuestId = localStorage.getItem(storageKey);
         //id гостя из ссылки
-        let GUEST_ID = new URLSearchParams(window.location.search).get('guest_id');
-        if (!!GUEST_ID && GUEST_ID * 1 > 0){
-            const savedGuestId = GUEST_ID;
-        }
+        // let GUEST_ID = new URLSearchParams(window.location.search).get('guest_id');
+        // if (!!GUEST_ID && GUEST_ID * 1 > 0){
+        //     const savedGuestId = GUEST_ID;
+        // }
         if (savedGuestId) {
             return savedGuestId;
         }

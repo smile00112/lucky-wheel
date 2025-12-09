@@ -57,14 +57,17 @@ export class WheelController {
             console.log('[LuckyWheel] Canvas element:', canvas ? 'found' : 'not found');
             if (canvas) {
                 this.canvas = canvas;
-                // Небольшая задержка для гарантии, что DOM обновился
-                setTimeout(() => {
-                    console.log('[LuckyWheel] Initializing canvas...');
-                    this.renderer.init(canvas);
-                    this.renderer.draw(0);
-                    console.log('[LuckyWheel] Canvas initialized and drawn');
-                    this.setupResizeHandler();
-                }, 50);
+                // Ожидаем инициализацию canvas перед проверкой выигрыша
+                await new Promise((resolve) => {
+                    setTimeout(() => {
+                        console.log('[LuckyWheel] Initializing canvas...');
+                        this.renderer.init(canvas);
+                        this.renderer.draw(0);
+                        console.log('[LuckyWheel] Canvas initialized and drawn');
+                        this.setupResizeHandler();
+                        resolve();
+                    }, 50);
+                });
             }
             this.updateSpinsInfo();
             console.log('[LuckyWheel] Checking and applying won prize...');

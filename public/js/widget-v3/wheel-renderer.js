@@ -277,7 +277,7 @@ export class WheelRenderer {
         }
 
         const prizeCenterAngle = this.getPrizeCenterAngle(prizeIndex);
-        const rotation = 0 - prizeCenterAngle;
+        const rotation = -prizeCenterAngle;          // было: -Math.PI / 2 - prizeCenterAngle
         return Utils.normalizeAngle(rotation);
     }
 }

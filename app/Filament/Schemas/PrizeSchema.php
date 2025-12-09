@@ -422,7 +422,6 @@ class PrizeSchema
         return $table
             ->columns($columns)
             ->filters($filters)
-            //->actions($actions)
             ->defaultSort('sort');
     }
 }

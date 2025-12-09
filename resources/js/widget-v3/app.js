@@ -32,7 +32,7 @@ class LuckyWheelApp {
 
     async init() {
         console.log('[LuckyWheel] App.init() started');
-        
+
         if (!this.config.guestId) {
             console.log('[LuckyWheel] No guestId, creating/getting guest...');
             try {
@@ -60,17 +60,6 @@ class LuckyWheelApp {
         this.fillGuestForm();
         this.setupFieldValidationListeners();
 
-        console.log('[LuckyWheel] Checking today win...');
-        let hasWin = false;
-        try {
-            await this.checkTodayWin();
-            console.log('[LuckyWheel] checkTodayWin() completed');
-            const winData = this.state.getWinData();
-            hasWin = winData && this.state.isTodayWin(winData);
-        } catch (error) {
-            console.error('[LuckyWheel] Error in checkTodayWin():', error);
-        }
-
         console.log('[LuckyWheel] Initializing controller...');
         try {
             await this.controller.init();
@@ -80,11 +69,15 @@ class LuckyWheelApp {
             this.controller.showWheelContent();
         }
 
+        // Проверяем выигрыш после загрузки призов
+        const winData = this.state.getWinData();
+        const hasWin = winData && this.state.isTodayWin(winData);
+
         // Показываем форму или блок информации о колесе при загрузке, если нет выигрыша
         if (!hasWin) {
             const wheelData = this.state.get('wheelData');
             const forceDataCollection = wheelData?.force_data_collection ?? true;
-            
+
             if (forceDataCollection) {
                 this.showInitialForm();
             } else {
@@ -316,7 +309,7 @@ class LuckyWheelApp {
             const nameElement = document.getElementById('wheelInfoName');
             const descElement = document.getElementById('wheelInfoDescription');
             const imageElement = document.getElementById('wheelInfoImage');
-            
+
             if (nameElement && wheelData.name) {
                 nameElement.textContent = wheelData.name;
             }
@@ -435,7 +428,7 @@ class LuckyWheelApp {
         try {
             const formData = this.formHandler.getFormData();
             await this.api.updateGuest(this.config.guestId, formData);
-            
+
             spinButton.textContent = originalText;
             await this.controller.spin();
         } catch (error) {

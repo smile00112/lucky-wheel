@@ -293,6 +293,7 @@ export class WheelRenderer {
 
     findPrizeIndex(prizeId) {
         const prizes = this.state.get('prizes');
+        console.warn('prizes', prizes);
         return prizes.findIndex(p => p.id === prizeId);
     }
 
@@ -318,9 +319,10 @@ export class WheelRenderer {
             console.warn('Prize not found:', prizeId);
             return 0;
         }
+        console.warn(1234)
 
         const prizeCenterAngle = this.getPrizeCenterAngle(prizeIndex);
-        const rotation = -Math.PI / 2 - prizeCenterAngle;
+        const rotation = -prizeCenterAngle;          // было: -Math.PI / 2 - prizeCenterAngle
         return Utils.normalizeAngle(rotation);
     }
 }
