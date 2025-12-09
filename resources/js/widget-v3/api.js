@@ -21,8 +21,8 @@ export class ApiService {
         }, timeout);
 
         try {
-            const response = await fetch(url, { 
-                ...defaultOptions, 
+            const response = await fetch(url, {
+                ...defaultOptions,
                 ...options,
                 signal: controller.signal
             });
@@ -33,7 +33,7 @@ export class ApiService {
             if (!response.ok) {
                 // Сервер передает локализованный текст в message, а error содержит код
                 let errorMsg = data.message || data.error || this.config.getText('error_request_failed');
-                
+
                 // Переводим известные коды ошибок
                 if (data.error === 'Validation failed') {
                     errorMsg = this.config.getText('error_validation_failed');
@@ -47,7 +47,7 @@ export class ApiService {
                         errorMsg = translation;
                     }
                 }
-                
+
                 console.error('[LuckyWheel] API error response:', url, errorMsg);
                 throw new Error(errorMsg);
             }
@@ -72,8 +72,16 @@ export class ApiService {
 
     async createOrGetGuest() {
         const storageKey = this.config.getStorageKey('guest');
-        const savedGuestId = localStorage.getItem(storageKey);
 
+        //id гостя из ссылки
+        let GUEST_ID = new URLSearchParams(window.location.search).get('guest_id');
+        if (!!GUEST_ID && GUEST_ID * 1 > 0){
+            const savedGuestId = GUEST_ID;
+        }else{
+            const savedGuestId = localStorage.getItem(storageKey);
+
+        }
+alert(savedGuestId);
         if (savedGuestId) {
             return savedGuestId;
         }

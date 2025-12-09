@@ -96,6 +96,19 @@ class PrizeResource extends Resource
                 }),
         ];
 
+        $actions = [
+            Action::make('reset_quantity_used')
+                ->label('Сбросить счётчик')
+                ->requiresConfirmation()
+                ->color('warning')
+                ->icon('heroicon-o-arrow-path')
+                ->action(function (Prize $record) {
+                    $record->update(['quantity_used' => 0]);
+                }),
+            \Filament\Actions\EditAction::make()->iconButton(),
+            \Filament\Actions\DeleteAction::make()->iconButton(),
+        ];
+
         return PrizeSchema::table(
             $table,
             includeWheelColumn: true,
@@ -123,10 +136,11 @@ class PrizeResource extends Resource
                     }),
             ])
             ->headerActions($headerActions)
-            ->actions([
-                EditAction::make()->iconButton(),
-                DeleteAction::make()->iconButton(),
-            ])
+//            ->actions([
+//                EditAction::make()->iconButton(),
+//                DeleteAction::make()->iconButton(),
+//            ])
+                ->recordActions($actions)
             ->bulkActions([
                 DeleteBulkAction::make(),
             ]);

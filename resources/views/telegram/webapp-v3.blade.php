@@ -15,7 +15,6 @@
         html, body {
             width: 100%;
             height: 100%;
-            overflow-x: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
@@ -26,8 +25,11 @@
             align-items: center;
             padding: 20px 10px;
             min-height: 100vh;
-        }
 
+        }
+        .lucky-wheel-content::-webkit-scrollbar {
+            width: 0;
+        }
     </style>
 </head>
 <body>
