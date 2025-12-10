@@ -218,7 +218,7 @@ class DefaultTemplates
             <div class="divider"></div>
 
             <div class="content-text">
-                <p>Уважаемый{guest_name}!</p>
+                <p>Уважаемый(ая){guest_name}!</p>
                 <p>Поздравляем вас с выигрышем приза <strong>{prize_full_name}</strong>!</p>
                 {prize_email_text_after_congratulation_html}
                 <p>Спасибо за участие в нашей акции!</p>
@@ -345,7 +345,7 @@ class DefaultTemplates
         <div class="description">{prize_text_for_winner_html}</div>
 
         <div class="code-block">
-            <div class="code-label">Промокод 2</div>
+            <div class="code-label">Промокод</div>
             <div class="code-value">{prize_value}</div>
             {code_note_html}
         </div>

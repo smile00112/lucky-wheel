@@ -116,7 +116,7 @@
         <div class="certificate-title">Сертификат выигрыша</div>
 
         @if(isset($guest) && $guest && $guest->name)
-        <div class="guest-name">Уважаемый {{ $guest->name }}!</div>
+        <div class="guest-name">Уважаемый(ая) {{ $guest->name }}!</div>
         @endif
 
         <div class="wheel-name">{{ $wheel->name ?? 'Колесо Фортуны' }}</div>

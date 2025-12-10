@@ -244,7 +244,7 @@ class WheelResource extends Resource
                 Forms\Components\CodeEditor::make('widget_embed_code')
                     ->label(__('filament.wheel.widget_embed_code'))
                     ->language(Language::Html)
-                    //->disabled()
+                    ->disabled()
                     ->dehydrated(false)
                     ->columnSpanFull()
                     ->visible(fn ($record) => $record !== null)

@@ -99,6 +99,12 @@ class Spin extends Model
             return false;
         }
 
+        // Защита от дублирования
+        if ($this->email_notification) {
+            \Illuminate\Support\Facades\Log::warning('Email notification already sent for spin', ['spin_id' => $this->id]);
+            return false;
+        }
+
         try {
             \Illuminate\Support\Facades\Mail::to($this->guest->email)
                 ->send(new \App\Mail\PrizeWinMail($this));

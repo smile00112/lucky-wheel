@@ -1304,7 +1304,7 @@ class WidgetController extends Controller
         $guestNameHtml = '';
         $guestName = '';
         if ($guest && $guest->name) {
-            $guestNameHtml = "<div class=\"guest-name\">Уважаемый {$guest->name}!</div>";
+            $guestNameHtml = "<div class=\"guest-name\">Уважаемый(ая) {$guest->name}!</div>";
             $guestName = $guest->name;
         }
 
