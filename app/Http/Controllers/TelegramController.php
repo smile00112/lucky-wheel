@@ -58,11 +58,15 @@ class TelegramController extends Controller
             ], 422);
         }
 
-        $integration = PlatformIntegration::getByPlatform(PlatformIntegration::PLATFORM_TELEGRAM);
+        // Ищем интеграцию по платформе и slug колеса
+        $integration = PlatformIntegration::getByPlatformAndWheelSlug(
+            PlatformIntegration::PLATFORM_TELEGRAM,
+            $request->wheel_slug
+        );
 
         if (!$integration || !$integration->is_active || !$integration->bot_token) {
             return response()->json([
-                'error' => 'Telegram integration not configured',
+                'error' => 'Telegram integration not configured for this wheel',
             ], 503);
         }
 
@@ -178,7 +182,11 @@ class TelegramController extends Controller
             $spinData = json_decode($spinResponse->getContent(), true);
 
             if (isset($spinData['spin_id'])) {
-                $integration = PlatformIntegration::getByPlatform(PlatformIntegration::PLATFORM_TELEGRAM);
+                // Ищем интеграцию по платформе и slug колеса
+                $integration = PlatformIntegration::getByPlatformAndWheelSlug(
+                    PlatformIntegration::PLATFORM_TELEGRAM,
+                    $request->wheel_slug
+                );
 
                 if ($integration && $integration->is_active) {
                     $spin = \App\Models\Spin::find($spinData['spin_id']);

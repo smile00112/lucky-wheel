@@ -14,6 +14,7 @@ use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
@@ -52,7 +53,6 @@ class PlatformIntegrationResource extends Resource
                         PlatformIntegration::PLATFORM_MAX => 'MAX',
                     ])
                     ->required()
-                    ->unique(ignoreRecord: true)
                     ->disabled(fn ($record) => $record !== null)
                     ->helperText('Выберите платформу для интеграции'),
                 Forms\Components\Select::make('wheel_id')

@@ -39,7 +39,17 @@ class SendTelegramPrizeNotification
             return;
         }
 
-        $integration = PlatformIntegration::getByPlatform(PlatformIntegration::PLATFORM_TELEGRAM);
+        // Ищем интеграцию по платформе и колесу из spin
+        $wheel = $spin->wheel;
+        if (!$wheel) {
+            return;
+        }
+
+        $integration = PlatformIntegration::getByPlatformAndWheel(
+            PlatformIntegration::PLATFORM_TELEGRAM,
+            $wheel->id
+        );
+        
         if (!$integration || !$integration->is_active) {
             return;
         }

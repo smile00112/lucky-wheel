@@ -247,6 +247,7 @@ class WheelResource extends Resource
                     ->disabled()
                     ->dehydrated(false)
                     ->columnSpanFull()
+
                     ->visible(fn ($record) => $record !== null)
                     ->afterStateHydrated(function ($component, $state, $record) {
                         if (!$record) {

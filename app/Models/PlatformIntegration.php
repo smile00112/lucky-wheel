@@ -28,9 +28,41 @@ class PlatformIntegration extends Model
         'words_settings' => 'array',
     ];
 
+    /**
+     * Получить интеграцию по платформе (старый метод для обратной совместимости)
+     * @deprecated Используйте getByPlatformAndWheel() для поиска по колесу
+     */
     public static function getByPlatform(string $platform): ?self
     {
         return self::where('platform', $platform)->first();
+    }
+
+    /**
+     * Получить интеграцию по платформе и колесу
+     */
+    public static function getByPlatformAndWheel(string $platform, ?int $wheelId = null): ?self
+    {
+        $query = self::where('platform', $platform);
+        
+        if ($wheelId !== null) {
+            $query->where('wheel_id', $wheelId);
+        } else {
+            $query->whereNull('wheel_id');
+        }
+        
+        return $query->first();
+    }
+
+    /**
+     * Получить интеграцию по платформе и slug колеса
+     */
+    public static function getByPlatformAndWheelSlug(string $platform, string $wheelSlug): ?self
+    {
+        return self::where('platform', $platform)
+            ->whereHas('wheel', function ($query) use ($wheelSlug) {
+                $query->where('slug', $wheelSlug);
+            })
+            ->first();
     }
 
     /**

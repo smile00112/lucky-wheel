@@ -28,6 +28,8 @@ class LuckyWheelApp {
             this.imageLoader,
             this.notification
         );
+        this.eventListenersSetup = false;
+        this.abortController = new AbortController();
     }
 
     async init() {
@@ -147,7 +149,13 @@ class LuckyWheelApp {
     }
 
     setupEventListeners() {
-        // Обработчики для кнопок копирования
+        if (this.eventListenersSetup) {
+            console.log('[LuckyWheel] Event listeners already setup, skipping');
+            return;
+        }
+
+        const signal = this.abortController.signal;
+
         const copyButtons = document.querySelectorAll('#winNotificationCodeContainer button, #winNotificationPromoCodeContainer button');
         copyButtons.forEach(button => {
             button.addEventListener('click', (e) => {
@@ -158,13 +166,13 @@ class LuckyWheelApp {
                         this.formHandler.copyCode(e, input);
                     }
                 }
-            });
+            }, { signal });
         });
 
         const copyButton = document.querySelector('[onclick*="copyPrizeCode"]');
         if (copyButton) {
             copyButton.removeAttribute('onclick');
-            copyButton.addEventListener('click', (e) => this.formHandler.copyCode(e));
+            copyButton.addEventListener('click', (e) => this.formHandler.copyCode(e), { signal });
         }
 
         const form = document.getElementById('winNotificationForm');
@@ -172,8 +180,9 @@ class LuckyWheelApp {
             form.removeAttribute('onsubmit');
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 this.formHandler.submit(e);
-            });
+            }, { signal });
         }
 
         const spinButton = document.getElementById('spinButton');
@@ -182,7 +191,7 @@ class LuckyWheelApp {
                 e.preventDefault();
                 e.stopPropagation();
                 await this.handleSpinButtonClick();
-            });
+            }, { signal });
         }
 
         const wheelInfoSpinButton = document.getElementById('wheelInfoSpinButton');
@@ -191,13 +200,17 @@ class LuckyWheelApp {
                 e.preventDefault();
                 e.stopPropagation();
                 await this.handleWheelInfoSpinButtonClick();
-            });
+            }, { signal });
         }
 
         const submitBtn2 = document.getElementById('winNotificationSubmitBtn2');
         if (submitBtn2) {
             submitBtn2.removeAttribute('onclick');
-            submitBtn2.addEventListener('click', (e) => this.formHandler.submit(e));
+            submitBtn2.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.formHandler.submit(e);
+            }, { signal });
         }
 
         window.addEventListener('message', (event) => {
@@ -206,11 +219,13 @@ class LuckyWheelApp {
                     this.controller.spin();
                 }
             }
-        });
+        }, { signal });
 
         window.hideWinNotification = () => this.notification.hide();
         window.submitPrizeForm = (e) => this.formHandler.submit(e);
         window.copyPrizeCode = (e) => this.formHandler.copyCode(e);
+
+        this.eventListenersSetup = true;
     }
 
     fillGuestForm() {
@@ -469,9 +484,11 @@ class LuckyWheelApp {
 window.__luckyWheelAppInstance = null;
 
 function initializeLuckyWheel() {
-    // Если уже есть экземпляр, уничтожаем его
     if (window.__luckyWheelAppInstance) {
         console.log('[LuckyWheel] Destroying previous instance');
+        if (window.__luckyWheelAppInstance.abortController) {
+            window.__luckyWheelAppInstance.abortController.abort();
+        }
         window.__luckyWheelAppInstance = null;
     }
 
@@ -481,24 +498,33 @@ function initializeLuckyWheel() {
     app.init();
 }
 
-console.log('[LuckyWheel] Script loaded, document.readyState:', document.readyState);
-
-// Инициализация при первой загрузке
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('[LuckyWheel] DOMContentLoaded fired');
-        initializeLuckyWheel();
-    });
+if (window.__luckyWheelInitialized) {
+    console.log('[LuckyWheel] Script already initialized, skipping auto-init');
 } else {
-    console.log('[LuckyWheel] DOM already loaded, initializing immediately');
-    initializeLuckyWheel();
+    console.log('[LuckyWheel] Script loaded, document.readyState:', document.readyState);
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('[LuckyWheel] DOMContentLoaded fired');
+            if (!window.__luckyWheelInitialized) {
+                initializeLuckyWheel();
+                window.__luckyWheelInitialized = true;
+            }
+        });
+    } else {
+        console.log('[LuckyWheel] DOM already loaded, initializing immediately');
+        if (!window.__luckyWheelInitialized) {
+            initializeLuckyWheel();
+            window.__luckyWheelInitialized = true;
+        }
+    }
 }
 
-// Экспортируем функцию для повторной инициализации
 window.reinitializeLuckyWheel = function() {
     console.log('[LuckyWheel] Reinitializing via window.reinitializeLuckyWheel()');
-    // Небольшая задержка, чтобы DOM успел обновиться
+    window.__luckyWheelInitialized = false;
     setTimeout(() => {
         initializeLuckyWheel();
+        window.__luckyWheelInitialized = true;
     }, 100);
 };

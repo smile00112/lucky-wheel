@@ -6,6 +6,7 @@ export class FormHandler {
         this.config = config;
         this.api = api;
         this.notification = notification;
+        this.isSubmitting = false;
     }
 
     validateFormFields() {
@@ -54,22 +55,34 @@ export class FormHandler {
     async submit(event) {
         if (event) {
             event.preventDefault();
+            event.stopPropagation();
         }
+
+        if (this.isSubmitting) {
+            console.log('[LuckyWheel] Form submission already in progress, ignoring');
+            return;
+        }
+        this.isSubmitting = true;
 
         const formContainer = document.getElementById('winNotificationFormContainer');
         const sendContainer = document.getElementById('winNotificationSendContainer');
         const submitBtn = this.getSubmitButton(formContainer, sendContainer);
 
-        if (!submitBtn) return;
+        if (!submitBtn) {
+            this.isSubmitting = false;
+            return;
+        }
 
         if (formContainer && formContainer.style.display !== 'none') {
             if (!this.validateFormFields()) {
+                this.isSubmitting = false;
                 return;
             }
 
             const agreementCheckbox = document.getElementById('winNotificationAgreement');
             if (agreementCheckbox && !agreementCheckbox.checked) {
                 alert('Необходимо дать согласие на обработку персональных данных');
+                this.isSubmitting = false;
                 return;
             }
         }
@@ -85,6 +98,7 @@ export class FormHandler {
         } catch (error) {
             console.error('Form submission error:', error);
             this.setButtonLoading(submitBtn, false);
+            this.isSubmitting = false;
         }
     }
 
@@ -240,7 +254,10 @@ export class FormHandler {
             }
 
             Utils.notifyParent('claim-prize', { guest_id: data.guest_id });
+            
+            this.isSubmitting = false;
         } catch (error) {
+            this.isSubmitting = false;
             this.handleError(error, submitBtn);
         }
     }
@@ -251,13 +268,16 @@ export class FormHandler {
 
         if (!spinId) {
             this.setButtonLoading(submitBtn, false);
+            this.isSubmitting = false;
             throw new Error(this.config.getText('error_spin_id_not_found'));
         }
 
         try {
             await this.api.sendPrizeEmail(spinId);
             this.setButtonSuccess(submitBtn);
+            this.isSubmitting = false;
         } catch (error) {
+            this.isSubmitting = false;
             this.handleError(error, submitBtn);
         }
     }
