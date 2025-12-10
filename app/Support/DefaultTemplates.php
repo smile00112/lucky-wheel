@@ -330,6 +330,19 @@ class DefaultTemplates
             margin-top: 10px;
             font-style: italic;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        table td, table th {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            padding: 8px;
+        }
+        table tr {
+            width: 100%;
+        }
     </style>
 </head>
 <body>

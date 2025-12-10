@@ -54,6 +54,14 @@ class Guest extends Model
     }
 
     /**
+     * VK пользователь
+     */
+    public function vkUser(): HasOne
+    {
+        return $this->hasOne(VKUser::class);
+    }
+
+    /**
      * Получить количество вращений для конкретного колеса
      */
     public function getSpinsCountForWheel(int $wheelId): int

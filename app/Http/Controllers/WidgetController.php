@@ -1260,7 +1260,48 @@ class WidgetController extends Controller
 
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
+
+        try {
+            $dompdf->render();
+        } catch (\Exception $e) {
+            $errorDetails = [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'spin_id' => $spinId,
+            ];
+
+            Log::error('PDF generation error', $errorDetails);
+
+            // В режиме отладки показываем детальную информацию
+            if (config('app.debug')) {
+                $errorMessage = 'Ошибка при генерации PDF: ' . $e->getMessage() .
+                               PHP_EOL . 'File: ' . basename($e->getFile()) .
+                               PHP_EOL . 'Line: ' . $e->getLine();
+
+                // Если это запрос через API, возвращаем JSON
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'error' => 'PDF generation failed',
+                        'message' => $errorMessage,
+                        'details' => $errorDetails,
+                    ], 500);
+                }
+
+                abort(500, $errorMessage);
+            } else {
+                // В продакшене показываем общее сообщение
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'error' => 'PDF generation failed',
+                        'message' => 'Ошибка при генерации PDF. Обратитесь к администратору.',
+                    ], 500);
+                }
+
+                abort(500, 'Ошибка при генерации PDF. Обратитесь к администратору.');
+            }
+        }
 
         $filename = 'win-certificate-' . $spinId . '.pdf';
 
@@ -1284,11 +1325,147 @@ class WidgetController extends Controller
         $replacements = $this->preparePdfReplacements($spin, $settings);
 
         // Замена переменных в шаблоне
-        return str_replace(
+        $html = str_replace(
             array_keys($replacements),
             array_values($replacements),
             $template
         );
+
+        // Логирование HTML после подстановки переменных (для отладки PDF)
+        Log::debug('PDF template after replacements', [
+            'spin_id' => $spin->id,
+            'html_preview' => mb_substr($html, 0, 5000),
+        ]);
+
+        // Логируем финальный HTML перед нормализацией таблиц для отладки PDF
+        Log::debug('PDF HTML before table normalization', [
+            'spin_id' => $spin->id,
+            'html' => $html,
+        ]);
+
+        // Добавляем CSS стили для таблиц и нормализуем структуру для Dompdf
+        if (stripos($html, '<table') !== false || stripos($html, '<td') !== false || stripos($html, '<th') !== false || stripos($html, '<tr') !== false) {
+            $html = $this->normalizeTablesHtml($html);
+
+            // Логируем HTML после нормализации таблиц
+            Log::debug('PDF HTML after table normalization', [
+                'spin_id' => $spin->id,
+                'html_preview' => mb_substr($html, 0, 5000),
+            ]);
+
+            $tableStyles = '';
+
+            // Вставляем стили перед закрывающим тегом </head>
+            if (stripos($html, '</head>') !== false) {
+                $html = str_replace('</head>', $tableStyles . '</head>', $html);
+            } elseif (stripos($html, '<style>') !== false) {
+                // Если есть style, добавляем перед закрывающим тегом </style>
+                $html = preg_replace('/(<\/style>)/i', $tableStyles . '$1', $html, 1);
+            } else {
+                // Если нет тега head, добавляем в начало body
+                if (stripos($html, '<body') !== false) {
+                    $html = preg_replace('/(<body[^>]*>)/i', '$1' . $tableStyles, $html, 1);
+                } else {
+                    // Если нет body, добавляем в начало HTML
+                    $html = $tableStyles . $html;
+                }
+            }
+
+        }
+
+        return $html;
+    }
+
+    /**
+     * Нормализовать структуру таблиц для Dompdf
+     */
+    private function normalizeTablesHtml(string $html): string
+    {
+        // Чистим опасные display:table-* которые могут ломать карту ячеек
+        $html = preg_replace('/display\s*:\s*table-row/i', 'display:block', $html);
+        $html = preg_replace('/display\s*:\s*table-cell/i', 'display:block', $html);
+
+        $previous = libxml_use_internal_errors(true);
+
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        $xpath = new \DOMXPath($dom);
+
+        /** @var \DOMElement $table */
+        foreach ($xpath->query('//table') as $table) {
+            // Если нет группировки, оборачиваем содержимое в tbody
+            $hasGroup = $xpath->query('./tbody|./thead|./tfoot', $table)->length > 0;
+            if (!$hasGroup) {
+                $tbody = $dom->createElement('tbody');
+                while ($table->firstChild) {
+                    $tbody->appendChild($table->firstChild);
+                }
+                $table->appendChild($tbody);
+            }
+
+            // Обрабатываем группы
+            foreach ($xpath->query('./tbody|./thead|./tfoot', $table) as $group) {
+                // Если в группе нет строк, но есть контент, переносим в одну строку
+                if ($xpath->query('./tr', $group)->length === 0) {
+                    $tr = $dom->createElement('tr');
+                    while ($group->firstChild) {
+                        $tr->appendChild($group->firstChild);
+                    }
+                    $group->appendChild($tr);
+                }
+
+                // Переносим td/th, лежащие напрямую в группе, в новую строку
+                foreach ($xpath->query('./td|./th', $group) as $cell) {
+                    $tr = $dom->createElement('tr');
+                    $tr->appendChild($cell->parentNode->removeChild($cell));
+                    $group->appendChild($tr);
+                }
+
+                $rows = [];
+                $maxCells = 0;
+
+                foreach ($xpath->query('./tr', $group) as $tr) {
+                    $cells = [];
+                    foreach ($xpath->query('./td|./th', $tr) as $cell) {
+                        $cells[] = $cell;
+                    }
+                    $cellCount = count($cells);
+                    $maxCells = max($maxCells, $cellCount);
+                    $rows[] = ['tr' => $tr, 'cells' => $cells];
+                }
+
+                // Если не было ни одной ячейки, добавляем одну пустую
+                if ($maxCells === 0 && !empty($rows)) {
+                    $maxCells = 1;
+                }
+
+                foreach ($rows as $row) {
+                    /** @var \DOMElement $tr */
+                    $tr = $row['tr'];
+                    $cellCount = count($row['cells']);
+
+                    if ($cellCount === 0) {
+                        $tr->appendChild($dom->createElement('td', "\u{00A0}"));
+                        $cellCount = 1;
+                    }
+
+                    while ($cellCount < $maxCells) {
+                        $tr->appendChild($dom->createElement('td', "\u{00A0}"));
+                        $cellCount++;
+                    }
+                }
+            }
+        }
+
+        $normalized = $dom->saveHTML() ?: $html;
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        if (preg_match('~<body[^>]*>(.*)</body>~is', $normalized, $matches)) {
+            return $matches[1];
+        }
+
+        return $normalized;
     }
 
     /**
@@ -1299,6 +1476,15 @@ class WidgetController extends Controller
         $prize = $spin->prize;
         $guest = $spin->guest;
         $wheel = $spin->wheel;
+
+        // Логотип
+        $logoHtml = '';
+        $logoUrl = '';
+        if ($settings->logo) {
+            $logoUrl = $this->getFileUrl($settings->logo);
+            $logoAlt = $settings->company_name ?: 'Логотип';
+            $logoHtml = "<img src=\"{$logoUrl}\" alt=\"{$logoAlt}\" class=\"email-logo\">";
+        }
 
         // Имя гостя
         $guestNameHtml = '';
@@ -1350,7 +1536,59 @@ class WidgetController extends Controller
         // Полное наименование приза
         $prizeFullName = ($prize && $prize->full_name) ? $prize->full_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '');
 
+        // Подготовка базовых замен для полей email приза
+        $prizeEmailReplacements = [
+            '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
+            '{prize_full_name}' => $prizeFullName,
+            '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
+            '{prize_type}' => ($prize && $prize->type) ? $prize->type : '',
+            '{prize_value}' => ($prize && $prize->value) ? $prize->value : '',
+            '{prize_text_for_winner}' => ($prize && $prize->text_for_winner) ? $prize->text_for_winner : '',
+            '{guest_name}' => $guestName,
+            '{guest_email}' => ($guest && $guest->email) ? $guest->email : '',
+            '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
+            '{code}' => $spin->code ?: 'не указан',
+            '{company_name}' => $settings->company_name ?: 'Колесо фортуны',
+        ];
+
+        // Название приза для email
+        $prizeEmailName = ($prize && $prize->email_name) ? $prize->email_name : (($prize && $prize->full_name) ? $prize->full_name : (($prize && $prize->name) ? $prize->getNameWithoutSeparator() : ''));
+
+        // Замена переменных в email_name
+        if ($prize && $prize->email_name) {
+            $prizeEmailName = $prize->replaceEmailVariables($prize->email_name, $prizeEmailReplacements);
+        }
+
+        $prizeEmailNameHtml = '';
+        if ($prizeEmailName) {
+            $prizeEmailNameHtml = "<div class=\"prize-email-name\">{$prizeEmailName}</div>";
+        }
+
+        // Текст после поздравления
+        $prizeEmailTextAfterCongratulation = '';
+        $prizeEmailTextAfterCongratulationHtml = '';
+        if ($prize && $prize->email_text_after_congratulation) {
+            $prizeEmailTextAfterCongratulation = $prize->replaceEmailVariables(
+                $prize->email_text_after_congratulation,
+                $prizeEmailReplacements
+            );
+            $prizeEmailTextAfterCongratulationHtml = "<div class=\"prize-email-text-after-congratulation\">{$prizeEmailTextAfterCongratulation}</div>";
+        }
+
+        // Текст после кода купона
+        $prizeEmailCouponAfterCodeText = '';
+        $prizeEmailCouponAfterCodeTextHtml = '';
+        if ($prize && $prize->email_coupon_after_code_text) {
+            $prizeEmailCouponAfterCodeText = $prize->replaceEmailVariables(
+                $prize->email_coupon_after_code_text,
+                $prizeEmailReplacements
+            );
+            $prizeEmailCouponAfterCodeTextHtml = "<div class=\"prize-email-coupon-after-code-text\">{$prizeEmailCouponAfterCodeText}</div>";
+        }
+
         return [
+            '{logo_html}' => $logoHtml,
+            '{logo_url}' => $logoUrl,
             '{company_name}' => $settings->company_name ?: 'Колесо фортуны',
             '{wheel_name}' => ($wheel && $wheel->name) ? $wheel->name : 'Колесо Фортуны',
             '{guest_name_html}' => $guestNameHtml,
@@ -1359,10 +1597,16 @@ class WidgetController extends Controller
             '{guest_phone}' => ($guest && $guest->phone) ? $guest->phone : '',
             '{prize_name}' => ($prize && $prize->name) ? $prize->getNameWithoutSeparator() : '',
             '{prize_full_name}' => $prizeFullName,
+            '{prize_email_name}' => $prizeEmailName,
+            '{prize_email_name_html}' => $prizeEmailNameHtml,
             '{prize_description_html}' => $prizeDescriptionHtml,
             '{prize_description}' => ($prize && $prize->description) ? $prize->description : '',
             '{prize_text_for_winner_html}' => $prizeTextForWinnerHtml,
             '{prize_text_for_winner}' => ($prize && $prize->text_for_winner) ? $prize->text_for_winner : '',
+            '{prize_email_text_after_congratulation}' => $prizeEmailTextAfterCongratulation,
+            '{prize_email_text_after_congratulation_html}' => $prizeEmailTextAfterCongratulationHtml,
+            '{prize_email_coupon_after_code_text}' => $prizeEmailCouponAfterCodeText,
+            '{prize_email_coupon_after_code_text_html}' => $prizeEmailCouponAfterCodeTextHtml,
             '{prize_type}' => ($prize && $prize->type) ? $prize->type : '',
             '{prize_value}' => ($prize && $prize->value) ? $prize->value : '',
             '{prize_email_image_html}' => $prizeImageHtml,

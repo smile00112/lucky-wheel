@@ -50,6 +50,15 @@ Route::post('/telegram/{integration}/webhook', [App\Http\Controllers\TelegramWeb
     ->name('telegram.webhook')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
 
+// VK Mini App
+Route::get('/vk/app', [App\Http\Controllers\VKController::class, 'webapp'])
+    ->name('vk.webapp');
+
+// VK Callback API (без CSRF защиты)
+Route::post('/vk/{integration}/callback', [App\Http\Controllers\VKWebhookController::class, 'handle'])
+    ->name('vk.callback')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
 // Тестовый роут для отправки письма о призе
 Route::get('/test/prize-email/{prizeId}', function ($prizeId) {
     $prize = \App\Models\Prize::findOrFail($prizeId);

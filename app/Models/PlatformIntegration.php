@@ -102,4 +102,33 @@ class PlatformIntegration extends Model
             'telegram.button_history' => __('telegram.button_history', [], $locale),
         ];
     }
+
+    /**
+     * Получить настройки по умолчанию для VK
+     */
+    public static function getDefaultVKSettings(): array
+    {
+        $locale = app()->getLocale();
+
+        return [
+            'vk.welcome' => __('vk.welcome', [], $locale),
+            'vk.contact_saved' => __('vk.contact_saved', [], $locale),
+            'vk.contact_saved_wheel_not_configured' => __('vk.contact_saved_wheel_not_configured', [], $locale),
+            'vk.contact_error' => __('vk.contact_error', [], $locale),
+            'vk.contact_processing_error' => __('vk.contact_processing_error', [], $locale),
+            'vk.wheel_not_configured' => __('vk.wheel_not_configured', [], $locale),
+            'vk.phone_required' => __('vk.phone_required', [], $locale),
+            'vk.user_not_found' => __('vk.user_not_found', [], $locale),
+            'vk.user_not_determined' => __('vk.user_not_determined', [], $locale),
+            'vk.history_empty' => __('vk.history_empty', [], $locale),
+            'vk.history_title' => __('vk.history_title', [], $locale),
+            'vk.use_start_command' => __('vk.use_start_command', [], $locale),
+            'vk.request_contact' => __('vk.request_contact', [], $locale),
+            'vk.spin_welcome' => __('vk.spin_welcome', [], $locale),
+            'vk.spin_button' => __('vk.spin_button', [], $locale),
+            'vk.button_send_phone' => __('vk.button_send_phone', [], $locale),
+            'vk.button_spin' => __('vk.button_spin', [], $locale),
+            'vk.button_history' => __('vk.button_history', [], $locale),
+        ];
+    }
 }

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Guest;
 use App\Models\TelegramUser;
+use App\Models\VKUser;
 use Illuminate\Support\Facades\Log;
 
 class UserService
@@ -148,6 +149,82 @@ class UserService
         }
 
         return $phone;
+    }
+
+    /**
+     * Найти или создать VK пользователя
+     */
+    public function findOrCreateVKUser(
+        int $vkId,
+        Guest $guest,
+        array $vkData = []
+    ): VKUser {
+        $vkUser = VKUser::findByVkId($vkId);
+
+        if (!$vkUser) {
+            $vkUser = VKUser::create([
+                'guest_id' => $guest->id,
+                'vk_id' => $vkId,
+                'first_name' => $vkData['first_name'] ?? null,
+                'last_name' => $vkData['last_name'] ?? null,
+                'phone' => $vkData['phone'] ?? null,
+                'metadata' => $vkData['metadata'] ?? [],
+            ]);
+
+            Log::info('Created new VK user', [
+                'vk_user_id' => $vkUser->id,
+                'vk_id' => $vkId,
+                'guest_id' => $guest->id,
+            ]);
+        } else {
+            // Обновляем данные VK пользователя
+            $updateData = [];
+            if (isset($vkData['first_name']) && $vkData['first_name'] !== $vkUser->first_name) {
+                $updateData['first_name'] = $vkData['first_name'];
+            }
+            if (isset($vkData['last_name']) && $vkData['last_name'] !== $vkUser->last_name) {
+                $updateData['last_name'] = $vkData['last_name'];
+            }
+            if (isset($vkData['phone']) && $vkData['phone'] !== $vkUser->phone) {
+                $updateData['phone'] = $vkData['phone'];
+            }
+            if (!empty($updateData)) {
+                $vkUser->update($updateData);
+            }
+
+            // Обновляем связь с Guest, если она изменилась
+            if ($vkUser->guest_id !== $guest->id) {
+                $vkUser->update(['guest_id' => $guest->id]);
+            }
+        }
+
+        return $vkUser;
+    }
+
+    /**
+     * Обработать контакт VK и связать с пользователем
+     */
+    public function processVKContact(int $vkId, array $contactData): VKUser
+    {
+        $phone = $this->normalizePhone($contactData['phone_number'] ?? '');
+
+        if (!$phone) {
+            throw new \InvalidArgumentException('Phone number is required');
+        }
+
+        // Найти или создать Guest по телефону
+        $guest = $this->findOrCreateByPhone($phone, [
+            'name' => trim(($contactData['first_name'] ?? '') . ' ' . ($contactData['last_name'] ?? '')),
+        ]);
+
+        // Найти или создать VKUser
+        $vkUser = $this->findOrCreateVKUser($vkId, $guest, [
+            'first_name' => $contactData['first_name'] ?? null,
+            'last_name' => $contactData['last_name'] ?? null,
+            'phone' => $phone,
+        ]);
+
+        return $vkUser;
     }
 }
 
