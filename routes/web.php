@@ -5,6 +5,7 @@ use App\Http\Controllers\WidgetController;
 use App\Http\Controllers\WidgetAssetController;
 use App\Http\Controllers\StorageFileController;
 use App\Http\Controllers\ImageProxyController;
+use App\Http\Controllers\TestSpinNotificationController;
 use App\Http\Middleware\WidgetCors;
 
 Route::get('/', function () {
@@ -25,6 +26,10 @@ Route::get('/widget/embed-v2/{slug}', [WidgetController::class, 'embedV2'])
 // Веб-маршрут для виджета v3 (новая версия с отдельным шаблоном)
 Route::get('/widget/embed-v3/{slug}', [WidgetController::class, 'embedV3'])
     ->name('widget.embed.v3');
+
+// Веб-маршрут для виджета v3 (новая версия с отдельным шаблоном)
+Route::get('/widget/vk-v3/{slug}', [WidgetController::class, 'vkV3'])
+    ->name('widget.vk.v3');
 
 Route::get('/widget/assets/{path}', WidgetAssetController::class)
     ->where('path', '.*')
@@ -55,8 +60,8 @@ Route::get('/vk/app', [App\Http\Controllers\VKController::class, 'webapp'])
     ->name('vk.webapp');
 
 // VK Callback API (без CSRF защиты)
-Route::post('/vk/{integration}/callback', [App\Http\Controllers\VKWebhookController::class, 'handle'])
-    ->name('vk.callback')
+Route::post('/vk/{integration}/webhook', [App\Http\Controllers\VKWebhookController::class, 'handle'])
+    ->name('vk.webhook')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
 
 // Тестовый роут для отправки письма о призе
@@ -119,3 +124,7 @@ Route::get('/test/prize-email/{prizeId}', function ($prizeId) {
         'prize_name' => $prize->name,
     ]);
 })->name('test.prize-email');
+
+// Тестовый роут для отправки сообщения о выигрыше гостю
+Route::get('/test/spin/{spinId}/send-notification', [TestSpinNotificationController::class, 'sendNotification'])
+    ->name('test.spin.send-notification');

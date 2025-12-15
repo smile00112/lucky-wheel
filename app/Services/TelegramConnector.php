@@ -8,10 +8,16 @@ use App\Models\Spin;
 use App\Models\TelegramUser;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\TelegramTextService;
 
 class TelegramConnector implements PlatformConnector
 {
     private const API_BASE_URL = 'https://api.telegram.org/bot';
+
+    public function __construct(TelegramTextService $textService)
+    {
+        $this->textService = $textService;
+    }
 
     public function registerWebhook(PlatformIntegration $integration, string $url): bool
     {
@@ -49,7 +55,7 @@ class TelegramConnector implements PlatformConnector
             return false;
         }
 
-        $message = $this->formatSpinMessage($spin);
+        $message = $this->formatSpinMessage($integration, $spin);
 
         // Получаем telegramUser для проверки наличия телефона
         $telegramUser = TelegramUser::findByTelegramId((int)$userId);
@@ -78,7 +84,11 @@ class TelegramConnector implements PlatformConnector
                 'parse_mode' => 'HTML',
                 'reply_markup' => $replyMarkup,
             ]);
-
+            Log::info('Telegram send message response', [
+                'chat_id' => $userId,
+                'message' => $message,
+                'response' =>$response,
+            ]);
             return $response->successful() && $response->json('ok');
         } catch (\Exception $e) {
             Log::error('Telegram send message error', [
@@ -153,27 +163,98 @@ class TelegramConnector implements PlatformConnector
         return hash_equals($calculatedHash, $hash);
     }
 
-    private function formatSpinMessage(Spin $spin): string
+    private function formatSpinMessage(PlatformIntegration $integration, Spin $spin): string
     {
         $wheel = $spin->wheel;
         $prize = $spin->prize;
 
-        $message = "🎡 <b>Результат вращения колеса</b>\n\n";
-        $message .= "Колесо: <b>{$wheel->name}</b>\n";
+        $title = $this->textService->get($integration, 'spin_result_title', '🎡 <b>Результат вращения колеса</b>');
+        $wheelLabel = $this->textService->get($integration, 'spin_result_wheel', 'Колесо:');
+
+        $message = $this->replaceVariables($title, $wheel, $prize, $spin) . "\n\n";
+        $message .= $this->replaceVariables($wheelLabel, $wheel, $prize, $spin) . " <b>{$wheel->name}</b>\n";
 
         if ($prize) {
-            $message .= "🎁 <b>Вы выиграли: {$prize->getNameWithoutSeparator()}</b>\n";
-            if ($prize->description) {
-                $message .= "{$prize->description}\n";
+            $prizeLabel = $this->textService->get($integration, 'spin_result_prize', '🎁 <b>Вы выиграли:');
+            $prizeText = $this->replaceVariables($prizeLabel, $wheel, $prize, $spin);
+            $message .= $prizeText . "\n"; //. " {$prize->getNameWithoutSeparator()}</b>\n";
+
+
+            $prizeDescription = $this->textService->get($integration, 'spin_result_prize_description', '');
+            if($prizeDescription){
+                $descriptionText = $this->replaceVariables($prizeLabel, $wheel, $prize, $spin);
+                $message .= $descriptionText . "\n"; //. " {$prize->getNameWithoutSeparator()}</b>\n";
             }
-            if ($spin->code) {
-                $message .= "\nКод для получения: <code>{$spin->code}</code>";
+
+
+//            if ($prize->description) {
+//                $message .= "{$prize->description}\n";
+//            }
+
+            if ($prize->value) {
+                $codeLabel = $this->textService->get($integration, 'spin_result_code', 'Код для получения:');
+                $codeText = $this->replaceVariables($codeLabel, $wheel, $prize, $spin);
+                $message .= "\n{$codeText}"; // "<code>{$spin->code}</code>";
             }
         } else {
-            $message .= "😔 К сожалению, в этот раз вам не повезло";
+            $noPrize = $this->textService->get($integration, 'spin_result_no_prize', '😔 К сожалению, в этот раз вам не повезло');
+            $message .= $this->replaceVariables($noPrize, $wheel, $prize, $spin);
         }
 
         return $message;
+    }
+
+    /**
+     * Заменить переменные в тексте значениями из колеса, приза и спина
+     *
+     * Доступные переменные:
+     * - {wheel_name} - название колеса
+     * - {wheel_description} - описание колеса
+     * - {wheel_slug} - slug колеса
+     * - {wheel_company_name} - название компании
+     * - {prize_name} - название приза
+     * - {prize_full_name} - полное название приза
+     * - {prize_mobile_name} - мобильное название приза
+     * - {prize_description} - описание приза
+     * - {prize_text_for_winner} - текст для победителя
+     * - {prize_value} - значение приза
+     * - {prize_type} - тип приза
+     * - {code} - код для получения приза
+     */
+    private function replaceVariables(string $text, ?Wheel $wheel, ?Prize $prize, ?Spin $spin): string
+    {
+        $replacements = [];
+
+        // Переменные колеса
+        if ($wheel) {
+            $replacements['{wheel_name}'] = $wheel->name ?? '';
+            $replacements['{wheel_description}'] = $wheel->description ?? '';
+            $replacements['{wheel_slug}'] = $wheel->slug ?? '';
+            $replacements['{wheel_company_name}'] = $wheel->company_name ?? '';
+        }
+
+        // Переменные приза
+        if ($prize) {
+            $replacements['{prize_name}'] = $prize->name ?? '';
+            $replacements['{prize_full_name}'] = $prize->full_name ?? '';
+            $replacements['{prize_mobile_name}'] = $prize->mobile_name ?? '';
+            $replacements['{prize_description}'] = $prize->description ?? '';
+            $replacements['{prize_text_for_winner}'] = $prize->text_for_winner ?? '';
+            $replacements['{prize_value}'] = $prize->value ?? '';
+            $replacements['{prize_type}'] = $prize->type ?? '';
+            $replacements['{prize_name_without_separator}'] = $prize->getNameWithoutSeparator();
+        }
+
+        // Переменные спина
+        if ($spin) {
+            $replacements['{code}'] = $spin->code ?? '';
+        }
+
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $text
+        );
     }
 }
 

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class TelegramUser extends Model
+class   TelegramUser extends Model
 {
     protected $fillable = [
         'guest_id',

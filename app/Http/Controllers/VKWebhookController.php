@@ -53,36 +53,36 @@ class VKWebhookController extends Controller
 
         // Обработка подтверждения сервера
         if (isset($data['type']) && $data['type'] === 'confirmation') {
-            $confirmationCode = $integration->settings['confirmation_code'] ?? null;
-            if ($confirmationCode) {
-                return response($confirmationCode, 200)->header('Content-Type', 'text/plain');
+            $confirmationCode = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'hook_verification_code');
+            if ($confirmationCode !== false) {
+                return response($integration->settings[$confirmationCode]['value'], 200)->header('Content-Type', 'text/plain');
             }
-            return response('ok', 200);
+            return response('ok', 200)->header('Content-Type', 'text/plain');
         }
 
         // Валидация подписи Callback API
-        $secret = $integration->settings['secret'] ?? null;
-        if ($secret) {
-            $connector = new VKConnector();
-            if (!$connector->validateCallback($data, $secret)) {
-                Log::warning('VK webhook validation failed', ['data' => $data]);
-                return response()->json(['ok' => false], 403);
-            }
-        }
+//        $secret = $integration->settings['secret'] ?? null;
+//        if ($secret) {
+//            $connector = new VKConnector();
+//            if (!$connector->validateCallback($data, $secret)) {
+//                Log::warning('VK webhook validation failed', ['data' => $data]);
+//                return response()->json(['ok' => false], 403);
+//            }
+//        }
 
         // Обработка события message_new
         if (isset($data['type']) && $data['type'] === 'message_new') {
             try {
                 $this->handleMessage($data['object']['message'] ?? [], $integration);
             } catch (\Exception $e) {
-                Log::error('Error handling VK webhook', [
+                Log::error('Error handling VK handleMessage', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                 ]);
             }
         }
 
-        return response()->json(['ok' => true]);
+        return response('ok' )->header('Content-Type', 'text/plain');
     }
 
     private function handleMessage(array $message, PlatformIntegration $integration): void
@@ -105,8 +105,12 @@ class VKWebhookController extends Controller
             'text' => $text,
         ]);
 
-        // Обработка команды /start
-        if ($text === '/start' || $text === 'start') {
+        // Обработка команды /Начать
+        if ($text === '/start' || $text === 'Начать') {
+            //Запрос данных пользователя
+            $userInfo = $this->botService->getUserInfo($integration, $vkId);
+            $this->handlePhoneSave($vkId, $userInfo['contacts'][0]['phone'], $integration);
+            //Отправка приветствия
             $this->handleStartCommand($vkId, $integration);
             return;
         }
@@ -192,6 +196,41 @@ class VKWebhookController extends Controller
         }
     }
 
+    private function handlePhoneSave(int $vkId, string $phone, PlatformIntegration $integration): void
+    {
+        $wheel = $integration->wheel;
+
+        try {
+            // Получаем информацию о пользователе из VK
+            $userInfo = $this->botService->getUserInfo($integration, $vkId);
+
+            // Обрабатываем контакт через сервис
+            $vkUser = $this->userService->processVKContact($vkId, [
+                'phone_number' => $phone,
+                'first_name' => $userInfo['first_name'] ?? null,
+                'last_name' => $userInfo['last_name'] ?? null,
+            ]);
+
+            $wheelSlug = $wheel->slug ?? null;
+            if (!$wheelSlug) {
+                $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
+                $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedButWheelNotConfigured($integration), $keyboard);
+                return;
+            }
+
+            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
+            $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedMessage($integration), $keyboard);
+        } catch (\Exception $e) {
+            Log::error('Error processing VK contact', [
+                'error' => $e->getMessage(),
+                'vk_id' => $vkId,
+                'phone' => $phone,
+            ]);
+
+            $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactError($integration));
+        }
+    }
+
     private function handleSpinCommand(int $vkId, PlatformIntegration $integration): void
     {
         $wheel = $integration->wheel;
@@ -220,7 +259,7 @@ class VKWebhookController extends Controller
 
         $connector = new VKConnector();
         $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $vkUser->guest->id]);
-        
+
         $appId = $integration->settings['app_id'] ?? null;
         if ($appId) {
             $keyboard = [

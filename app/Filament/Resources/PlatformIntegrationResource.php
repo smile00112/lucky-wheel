@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PlatformIntegrationResource\Pages;
+use App\Filament\Schemas\BotWebHookFieldSchema;
 use App\Models\PlatformIntegration;
 use App\Models\Wheel;
 use App\Services\TelegramConnector;
@@ -53,6 +54,7 @@ class PlatformIntegrationResource extends Resource
                         PlatformIntegration::PLATFORM_MAX => 'MAX',
                     ])
                     ->required()
+                    ->live()
                     ->disabled(fn ($record) => $record !== null)
                     ->helperText('Выберите платформу для интеграции'),
                 Forms\Components\Select::make('wheel_id')
@@ -72,9 +74,12 @@ class PlatformIntegrationResource extends Resource
                     ->label('Токен бота')
                     ->maxLength(255)
                     ->helperText('Токен бота от BotFather (для Telegram)'),
+
                 Forms\Components\TextInput::make('bot_username')
                     ->label('Имя бота')
                     ->maxLength(255)
+                    ->hidden(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? true : false )
+                    ->live()
                     ->helperText('Имя бота (например, @my_bot)'),
 
 //                Forms\Components\TextInput::make('settings.default_wheel_slug')
@@ -87,20 +92,49 @@ class PlatformIntegrationResource extends Resource
 //                    ->helperText('Дополнительные параметры для платформы (JSON)')
 //                    ->columnSpanFull(),
 
+                Section::make('Настройки фраз бота')
+                    ->description('')
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->collapsed(true)
+                    ->schema([
+                        Forms\Components\KeyValue::make('words_settings')
+                            ->label('Тексты сообщений и кнопок')
+                            ->columnSpanFull()
+                            ->helperText('* Доступные переменные:
+                                             * - {wheel_name} - название колеса
+                                             * - {wheel_description} - описание колеса
+                                             * - {wheel_slug} - slug колеса
+                                             * - {wheel_company_name} - название компании
+                                             * - {prize_name} - название приза
+                                             * - {prize_full_name} - полное название приза
+                                             * - {prize_mobile_name} - мобильное название приза
+                                             * - {prize_description} - описание приза
+                                             * - {prize_text_for_winner} - текст для победителя
+                                             * - {prize_value} - значение приза
+                                             * - {prize_type} - тип приза
+                                             * - {code} - код для получения приза'
+                            )
+                            //->visible(fn ($record) => !$record || $record->platform === PlatformIntegration::PLATFORM_TELEGRAM)
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                if ($record !== null && (empty($record->words_settings) || !is_array($state))) {
+                                    if($record->platform === PlatformIntegration::PLATFORM_TELEGRAM)
+                                        $component->state(PlatformIntegration::getDefaultTelegramSettings());
+                                    if($record->platform === PlatformIntegration::PLATFORM_VK)
+                                        $component->state(PlatformIntegration::getDefaultVkSettings());
+                                }
+                            }),
+                ]),
+
                 Forms\Components\Repeater::make('settings')
                     ->label('Дополнительные настройки')
-                    ->helperText('Дополнительные параметры для платформы')
+                    ->helperText(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? 'Дополнительные параметры для платформы.ВНИМАНИЕ! Обязательно заполните поле "Код для верификации хука VK"' : 'Дополнительные параметры для платформы')
                     ->schema([
                         Forms\Components\Select::make('key')
                             ->label('Ключ')
                             ->options([
-                                'welcome message' => 'Приветствие',
-                                '' => 'Телефон',
-                                'name' => 'Имя',
-                                'ip_address' => 'IP адрес',
-                                'user_agent' => 'User Agent',
-                                'metadata' => 'Метаданные',
-                                'custom' => 'Своё поле',
+                                'hook_verification_code' => 'Код для верификации хука VK',
+
                             ])
                             ->required()
                             ->reactive()
@@ -119,78 +153,12 @@ class PlatformIntegrationResource extends Resource
                     ->collapsible()
                     ->itemLabel(fn (array $state): ?string => $state['key'] === 'custom' ? ($state['custom_key'] ?? null) : ($state['key'] ?? null))
                     ->columnSpanFull()
-                    ->hidden(),
+                // ->hidden()
+                ,
 
-                Section::make('Настройки фраз бота')
-                    ->description('')
-                    ->columnSpanFull()
-                    ->collapsible()
-                    ->collapsed(true)
-                    ->schema([
-                        Forms\Components\KeyValue::make('words_settings')
-                            ->label('Тексты сообщений и кнопок')
-                            ->columnSpanFull()
-                            ->helperText('Настройки текстов сообщений и кнопок для Telegram')
-                            ->visible(fn ($record) => !$record || $record->platform === PlatformIntegration::PLATFORM_TELEGRAM)
-                            ->afterStateHydrated(function ($component, $state, $record) {
-                                if ($record === null && (empty($state) || !is_array($state))) {
-                                    $component->state(PlatformIntegration::getDefaultTelegramSettings());
-                                }
-                            }),
-                ]),
+                BotWebHookFieldSchema::field()
 
-                Section::make('Webhook')
-                    ->schema([
-                        Forms\Components\TextInput::make('webhook_url')
-                            ->label('URL вебхука')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->afterStateHydrated(function ($component, $record) {
-                                if (!$record) {
-                                    return;
-                                }
-                                $baseUrl = config('app.url');
-                                $url = $baseUrl . '/telegram/' . $record->id . '/webhook';
-                                $component->state($url);
-                            })
-                            ->helperText('URL для регистрации вебхука'),
-                        Actions::make([
-                            Action::make('register_webhook')
-                                ->label('Зарегистрировать вебхук')
-                                ->icon('heroicon-o-link')
-                                ->color('success')
-                                ->action(function ($record) {
-                                    if (!$record || !$record->bot_token) {
-                                        throw new \Exception('Токен бота не указан');
-                                    }
 
-                                    $baseUrl = config('app.url');
-                                    $webhookUrl = $baseUrl . '/telegram/' . $record->id . '/webhook';
-
-                                    $connector = new TelegramConnector();
-                                    $result = $connector->registerWebhook($record, $webhookUrl);
-
-                                    if ($result) {
-                                        \Filament\Notifications\Notification::make()
-                                            ->title('Вебхук успешно зарегистрирован')
-                                            ->success()
-                                            ->send();
-                                    } else {
-                                        \Filament\Notifications\Notification::make()
-                                            ->title('Не удалось зарегистрировать вебхук')
-                                            ->danger()
-                                            ->send();
-                                        //throw new \Exception('Не удалось зарегистрировать вебхук');
-                                    }
-                                })
-                                ->requiresConfirmation()
-                                ->modalHeading('Регистрация вебхука')
-                                ->modalDescription('Вы уверены, что хотите зарегистрировать вебхук для этого бота?')
-                                ->visible(fn ($record) => $record && $record->platform === PlatformIntegration::PLATFORM_TELEGRAM),
-                        ]),
-                    ])
-                    ->collapsible()
-                    ->visible(fn ($record) => $record && $record->platform === PlatformIntegration::PLATFORM_TELEGRAM),
             ]);
     }
 

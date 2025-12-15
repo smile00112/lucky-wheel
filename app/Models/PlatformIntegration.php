@@ -43,13 +43,13 @@ class PlatformIntegration extends Model
     public static function getByPlatformAndWheel(string $platform, ?int $wheelId = null): ?self
     {
         $query = self::where('platform', $platform);
-        
+
         if ($wheelId !== null) {
             $query->where('wheel_id', $wheelId);
         } else {
             $query->whereNull('wheel_id');
         }
-        
+
         return $query->first();
     }
 
@@ -100,35 +100,48 @@ class PlatformIntegration extends Model
             'telegram.button_send_phone' => __('telegram.button_send_phone', [], $locale),
             'telegram.button_spin' => __('telegram.button_spin', [], $locale),
             'telegram.button_history' => __('telegram.button_history', [], $locale),
+            'telegram.spin_result_title' => __('telegram.spin_result_title', [], $locale),
+            'telegram.spin_result_wheel' => __('telegram.spin_result_wheel', [], $locale),
+            'telegram.spin_result_prize' => __('telegram.spin_result_prize', [], $locale),
+            'telegram.spin_result_code' => __('telegram.spin_result_code', [], $locale),
+            'telegram.spin_result_no_prize' => __('telegram.spin_result_no_prize', [], $locale),
         ];
     }
 
     /**
      * Получить настройки по умолчанию для VK
      */
-    public static function getDefaultVKSettings(): array
+    public static function getDefaultVkSettings(): array
     {
         $locale = app()->getLocale();
 
         return [
-            'vk.welcome' => __('vk.welcome', [], $locale),
-            'vk.contact_saved' => __('vk.contact_saved', [], $locale),
-            'vk.contact_saved_wheel_not_configured' => __('vk.contact_saved_wheel_not_configured', [], $locale),
-            'vk.contact_error' => __('vk.contact_error', [], $locale),
-            'vk.contact_processing_error' => __('vk.contact_processing_error', [], $locale),
-            'vk.wheel_not_configured' => __('vk.wheel_not_configured', [], $locale),
-            'vk.phone_required' => __('vk.phone_required', [], $locale),
-            'vk.user_not_found' => __('vk.user_not_found', [], $locale),
-            'vk.user_not_determined' => __('vk.user_not_determined', [], $locale),
-            'vk.history_empty' => __('vk.history_empty', [], $locale),
-            'vk.history_title' => __('vk.history_title', [], $locale),
-            'vk.use_start_command' => __('vk.use_start_command', [], $locale),
-            'vk.request_contact' => __('vk.request_contact', [], $locale),
-            'vk.spin_welcome' => __('vk.spin_welcome', [], $locale),
-            'vk.spin_button' => __('vk.spin_button', [], $locale),
-            'vk.button_send_phone' => __('vk.button_send_phone', [], $locale),
-            'vk.button_spin' => __('vk.button_spin', [], $locale),
-            'vk.button_history' => __('vk.button_history', [], $locale),
+            'vk.welcome' => __('telegram.welcome', [], $locale),
+            'vk.contact_saved' => __('telegram.contact_saved', [], $locale),
+            'vk.contact_saved_wheel_not_configured' => __('telegram.contact_saved_wheel_not_configured', [], $locale),
+            'vk.contact_error' => __('telegram.contact_error', [], $locale),
+            'vk.contact_not_owned' => __('telegram.contact_not_owned', [], $locale),
+            'vk.contact_processing_error' => __('telegram.contact_processing_error', [], $locale),
+            'vk.wheel_not_configured' => __('telegram.wheel_not_configured', [], $locale),
+            'vk.phone_required' => __('telegram.phone_required', [], $locale),
+            'vk.user_not_found' => __('telegram.user_not_found', [], $locale),
+            'vk.user_not_determined' => __('telegram.user_not_determined', [], $locale),
+            'vk.history_empty' => __('telegram.history_empty', [], $locale),
+            'vk.history_title' => __('telegram.history_title', [], $locale),
+            'vk.use_start_command' => __('telegram.use_start_command', [], $locale),
+            'vk.request_contact' => __('telegram.request_contact', [], $locale),
+            'vk.spin_welcome' => __('telegram.spin_welcome', [], $locale),
+            'vk.spin_button' => __('telegram.spin_button', [], $locale),
+            'vk.button_send_phone' => __('telegram.button_send_phone', [], $locale),
+            'vk.button_spin' => __('telegram.button_spin', [], $locale),
+            'vk.button_history' => __('telegram.button_history', [], $locale),
+            'vk.spin_result_title' => __('telegram.spin_result_title', [], $locale),
+            'vk.spin_result_wheel' => __('telegram.spin_result_wheel', [], $locale),
+            'vk.spin_result_prize' => __('telegram.spin_result_prize', [], $locale),
+            'vk.spin_result_code' => __('telegram.spin_result_code', [], $locale),
+            'vk.spin_result_no_prize' => __('telegram.spin_result_no_prize', [], $locale),
         ];
     }
+
+
 }

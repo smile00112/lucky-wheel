@@ -70,11 +70,16 @@ class VKBotService
             $response = Http::post(self::API_BASE_URL . 'users.get', [
                 'access_token' => $integration->bot_token,
                 'user_ids' => $userId,
-                'fields' => 'photo_50',
+                'fields' => 'contacts, first_name, last_name',
                 'v' => self::API_VERSION,
             ]);
 
             $result = $response->json();
+
+            Log::info('get user info', [
+                'result' =>$result,
+                'user_id' => $userId,
+            ]);
 
             if (isset($result['response']) && !empty($result['response'])) {
                 return $result['response'][0];

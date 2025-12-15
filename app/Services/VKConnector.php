@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class VKConnector implements PlatformConnector
 {
     private const API_BASE_URL = 'https://api.vk.com/method/';
-    private const API_VERSION = '5.131';
+    private const API_VERSION = '5.199';
 
     public function registerWebhook(PlatformIntegration $integration, string $url): bool
     {

@@ -223,6 +223,7 @@ class TelegramWebhookController extends Controller
                 'wheel' => $wheel,
                 'wheelSlug' => $wheelSlug,
             ]);
+
             if (!$wheelSlug) {
                 Log::error('handleContact error 3', [
                     'wheelSlug' => $wheelSlug,
@@ -236,10 +237,11 @@ class TelegramWebhookController extends Controller
             $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactSavedMessage($integration), $keyboard);
 
             //добавляем кнопку на приложение
-            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
-            if($webAppUrl)
-                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+//            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
 
+//            if($webAppUrl)
+//                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+            $this->botService->removeMenuButton($bot);
 
         } catch (\Exception $e) {
             Log::error('Error processing contact', [
@@ -250,15 +252,15 @@ class TelegramWebhookController extends Controller
 
             $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactProcessingError($integration));
 
-            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
-            Log::info('1111111 22', [
+//            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+//            Log::info('1111111 22', [
+//
+//                'webAppUrl' => $webAppUrl,
+//
+//            ]);
 
-                'webAppUrl' => $webAppUrl,
-
-            ]);
-
-            if($webAppUrl)
-                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+//            if($webAppUrl)
+//                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
 
         }
     }
@@ -318,8 +320,10 @@ class TelegramWebhookController extends Controller
 
             log::info('$webAppUrl', ['$webAppUrl'=>$webAppUrl]);
 
-        if($webAppUrl)
-            $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+//        if($webAppUrl)
+//            $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+        $this->botService->removeMenuButton($bot);
+
 
     }
 

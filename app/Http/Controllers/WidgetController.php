@@ -170,6 +170,43 @@ class WidgetController extends Controller
     }
 
     /**
+     * Отобразить виджет для VK (версия v3)
+     */
+    public function vkV3(string $slug, Request $request)
+    {
+        $wheel = Wheel::where('slug', $slug)
+            ->where('is_active', true)
+            ->with('activePrizes')
+            ->firstOrFail();
+
+        // Проверка временных ограничений
+        $now = now();
+        if ($wheel->starts_at && $wheel->starts_at->isFuture()) {
+            abort(404, 'Wheel not available yet');
+        }
+        if ($wheel->ends_at && $wheel->ends_at->isPast()) {
+            abort(404, 'Wheel has expired');
+        }
+
+        // Обработка guest_id из GET параметра
+        $guest = null;
+        $guestId = $request->query('guest_id');
+        if ($guestId && is_numeric($guestId) && $guestId > 0) {
+            $guest = Guest::find((int) $guestId);
+        }
+
+        // Проверяем, нужен ли только контент (без HTML структуры)
+//        $contentOnly = request()->query('content_only', false);
+//
+//        if ($contentOnly) {
+//            return view('widget.wheel-v3', compact('wheel', 'guest'));
+//        }
+
+        return view('widget.wheel-v3-page-vk', compact('wheel', 'guest'));
+    }
+
+
+    /**
      * Получить данные колеса (JSON API)
      */
     public function getWheel(string $slug)
@@ -183,12 +220,12 @@ class WidgetController extends Controller
         $now = now();
         if ($wheel->starts_at && $wheel->starts_at->isFuture()) {
             return response()->json([
-                'error' => 'Wheel not available yet',
+                'error' => 'Колесо призов отключено',
             ], 404);
         }
         if ($wheel->ends_at && $wheel->ends_at->isPast()) {
             return response()->json([
-                'error' => 'Wheel has expired',
+                'error' => 'Колесо призов отключено',//Wheel has expired
             ], 404);
         }
 
@@ -492,6 +529,17 @@ class WidgetController extends Controller
                 $prize = $this->selectWeightedPrize($wheel, $guest->id);
             } else {
                 $prize = $this->selectRandomPrize($wheel, $guest->id);
+            }
+
+
+            if(!$prize){
+                //призов не осталось, выключаем колесо
+                $wheel->update(['is_active' => false]);
+                DB::commit(); // Добавить перед return
+                return response()->json([
+                    'error' => 'Spin failed',
+                    'message' => 'Ошибка розыгрыша, попробуйте позже',
+                ], 500);
             }
 
             // Создание записи о вращении
@@ -1332,26 +1380,26 @@ class WidgetController extends Controller
         );
 
         // Логирование HTML после подстановки переменных (для отладки PDF)
-        Log::debug('PDF template after replacements', [
-            'spin_id' => $spin->id,
-            'html_preview' => mb_substr($html, 0, 5000),
-        ]);
+//        Log::debug('PDF template after replacements', [
+//            'spin_id' => $spin->id,
+//            'html_preview' => mb_substr($html, 0, 5000),
+//        ]);
 
         // Логируем финальный HTML перед нормализацией таблиц для отладки PDF
-        Log::debug('PDF HTML before table normalization', [
-            'spin_id' => $spin->id,
-            'html' => $html,
-        ]);
+//        Log::debug('PDF HTML before table normalization', [
+//            'spin_id' => $spin->id,
+//            'html' => $html,
+//        ]);
 
         // Добавляем CSS стили для таблиц и нормализуем структуру для Dompdf
         if (stripos($html, '<table') !== false || stripos($html, '<td') !== false || stripos($html, '<th') !== false || stripos($html, '<tr') !== false) {
             $html = $this->normalizeTablesHtml($html);
 
             // Логируем HTML после нормализации таблиц
-            Log::debug('PDF HTML after table normalization', [
-                'spin_id' => $spin->id,
-                'html_preview' => mb_substr($html, 0, 5000),
-            ]);
+//            Log::debug('PDF HTML after table normalization', [
+//                'spin_id' => $spin->id,
+//                'html_preview' => mb_substr($html, 0, 5000),
+//            ]);
 
             $tableStyles = '';
 
