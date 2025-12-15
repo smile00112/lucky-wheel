@@ -62,7 +62,7 @@
         ];
     @endphp
     <script type="application/ld+json">
-    {!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+        {!! json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
     </script>
     <style>
         * {
@@ -76,6 +76,37 @@
             height: 100%;
             overflow-x: hidden;
         }
+        .lucky-wheel-content{
+            padding: 0 !important;
+        }
+        .lucky-wheel-container{
+            padding: 0px 20px !important;
+        }
+        .wheel-container {
+            max-width: 500px !important;
+        }
+        .wheel {
+            max-width: 500px !important;
+            max-height: 500px !important;
+        }
+        .win-notification {
+            width: 600px !important;
+        }
+        .lucky-wheel-content {
+            max-height: 700px;
+        }
+        @media (min-width: 480px) {
+            .wheel-content-contener{
+                padding: 10px 0 !important;
+                max-height: 700px !important;
+            }
+        }
+        .wheel-content-contener {
+            @media (max-width: 480px) {
+                padding: 10px 0 !important;
+                height: 100vh !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -83,6 +114,10 @@
 <div class="lucky-wheel-content">
     @include('widget.wheel-v3')
 </div>
-</body>
-</html>
 
+<script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
+<script>
+    vkBridge.send("VKWebAppInit", {});
+</script>
+</body>
+</html> 
