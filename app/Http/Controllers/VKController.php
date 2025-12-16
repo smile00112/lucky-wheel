@@ -101,7 +101,7 @@ class VKController extends Controller
             ], 503);
         }
 
-        $connector = new VKConnector();
+        $connector = app(VKConnector::class);
 
         // Валидация данных VK Mini App
         $authData = $connector->validateAuthData([

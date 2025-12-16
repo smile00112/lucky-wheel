@@ -4,15 +4,26 @@ namespace App\Services;
 
 use App\Contracts\PlatformConnector;
 use App\Models\PlatformIntegration;
+use App\Models\Prize;
 use App\Models\Spin;
 use App\Models\VKUser;
+use App\Models\Wheel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Services\VKTextService;
+use App\Services\VKKeyboardService;
 
 class VKConnector implements PlatformConnector
 {
     private const API_BASE_URL = 'https://api.vk.com/method/';
     private const API_VERSION = '5.199';
+
+    public function __construct(VKTextService $textService, VKKeyboardService $keyboardService)
+
+    {
+        $this->textService = $textService;
+        $this->keyboardService = $keyboardService;
+    }
 
     public function registerWebhook(PlatformIntegration $integration, string $url): bool
     {
@@ -36,17 +47,18 @@ class VKConnector implements PlatformConnector
             return false;
         }
 
-        $message = $this->formatSpinMessage($spin);
+        $message = $this->formatSpinMessage($integration, $spin);
 
         // Получаем vkUser для проверки наличия телефона
         $vkUser = VKUser::findByVkId((int)$userId);
         $hasPhone = $vkUser && !empty($vkUser->phone);
 
         // Формируем клавиатуру
-        $keyboard = $this->buildKeyboard($hasPhone, $integration, $spin->wheel->slug ?? null, $vkUser?->guest_id);
+        //$keyboard = $this->buildKeyboard($hasPhone, $integration, $spin->wheel->slug ?? null, $vkUser?->guest_id);
+        $keyboard = $this->keyboardService->getKeyboardForUser($userId, $integration, $spin->wheel->slug ?? null, $vkUser?->guest_id);
 
         try {
-            $response = Http::post(self::API_BASE_URL . 'messages.send', [
+            $response = Http::get(self::API_BASE_URL . 'messages.send', [
                 'access_token' => $integration->bot_token,
                 'user_id' => $userId,
                 'message' => $message,
@@ -134,28 +146,47 @@ class VKConnector implements PlatformConnector
         return true;
     }
 
-    private function formatSpinMessage(Spin $spin): string
+    private function formatSpinMessage(PlatformIntegration $integration, Spin $spin): string
     {
         $wheel = $spin->wheel;
         $prize = $spin->prize;
 
-        $message = "🎡 Результат вращения колеса\n\n";
-        $message .= "Колесо: {$wheel->name}\n";
+        $title = $this->textService->get($integration, 'spin_result_title', "🎡 \u{202B}Результат вращения колеса\u{202B}");
+        $wheelLabel = $this->textService->get($integration, 'spin_result_wheel', 'Колесо::');
+
+        $message = $this->replaceVariables($title, $wheel, $prize, $spin) . "\n\n";
+        $message .= $this->replaceVariables($wheelLabel, $wheel, $prize, $spin) . "\u{202F}{$wheel->name}\u{202C}\n";
 
         if ($prize) {
-            $message .= "🎁 Вы выиграли: {$prize->getNameWithoutSeparator()}\n";
-            if ($prize->description) {
-                $message .= "{$prize->description}\n";
+            $prizeLabel = $this->textService->get($integration, 'spin_result_prize', '🎁 Вы выиграли::');
+            $prizeText = $this->replaceVariables($prizeLabel, $wheel, $prize, $spin);
+            $message .= $prizeText . "\n"; //. " {$prize->getNameWithoutSeparator()}</b>\n";
+
+
+            $prizeDescription = $this->textService->get($integration, 'spin_result_prize_description', '');
+            if($prizeDescription){
+                $descriptionText = $this->replaceVariables($prizeLabel, $wheel, $prize, $spin);
+                $message .= $descriptionText . "\n"; //. " {$prize->getNameWithoutSeparator()}</b>\n";
             }
-            if ($spin->code) {
-                $message .= "\nКод для получения: {$spin->code}";
+
+
+//            if ($prize->description) {
+//                $message .= "{$prize->description}\n";
+//            }
+
+            if ($prize->value) {
+                $codeLabel = $this->textService->get($integration, 'spin_result_code', 'Код для получения:');
+                $codeText = $this->replaceVariables($codeLabel, $wheel, $prize, $spin);
+                $message .= "\n{$codeText}"; // "<code>{$spin->code}</code>";
             }
         } else {
-            $message .= "😔 К сожалению, в этот раз вам не повезло";
+            $noPrize = $this->textService->get($integration, 'spin_result_no_prize', '😔 К сожалению, в этот раз вам не повезло');
+            $message .= $this->replaceVariables($noPrize, $wheel, $prize, $spin);
         }
 
         return $message;
     }
+
 
     private function buildKeyboard(bool $hasPhone, PlatformIntegration $integration, ?string $wheelSlug, ?int $guestId): array
     {
@@ -213,7 +244,7 @@ class VKConnector implements PlatformConnector
         }
 
         return [
-            'one_time' => false,
+            'one_time' => true,
             'buttons' => $buttons,
         ];
     }
@@ -229,6 +260,59 @@ class VKConnector implements PlatformConnector
         // Но для упрощения можно использовать проверку через API VK
         // Здесь базовая проверка структуры
         return true;
+    }
+
+    /**
+     * Заменить переменные в тексте значениями из колеса, приза и спина
+     *
+     * Доступные переменные:
+     * - {wheel_name} - название колеса
+     * - {wheel_description} - описание колеса
+     * - {wheel_slug} - slug колеса
+     * - {wheel_company_name} - название компании
+     * - {prize_name} - название приза
+     * - {prize_full_name} - полное название приза
+     * - {prize_mobile_name} - мобильное название приза
+     * - {prize_description} - описание приза
+     * - {prize_text_for_winner} - текст для победителя
+     * - {prize_value} - значение приза
+     * - {prize_type} - тип приза
+     * - {code} - код для получения приза
+     */
+    private function replaceVariables(string $text, ?Wheel $wheel, ?Prize $prize, ?Spin $spin): string
+    {
+        $replacements = [];
+
+        // Переменные колеса
+        if ($wheel) {
+            $replacements['{wheel_name}'] = $wheel->name ?? '';
+            $replacements['{wheel_description}'] = $wheel->description ?? '';
+            $replacements['{wheel_slug}'] = $wheel->slug ?? '';
+            $replacements['{wheel_company_name}'] = $wheel->company_name ?? '';
+        }
+
+        // Переменные приза
+        if ($prize) {
+            $replacements['{prize_name}'] = $prize->name ?? '';
+            $replacements['{prize_full_name}'] = $prize->full_name ?? '';
+            $replacements['{prize_mobile_name}'] = $prize->mobile_name ?? '';
+            $replacements['{prize_description}'] = $prize->description ?? '';
+            $replacements['{prize_text_for_winner}'] = $prize->text_for_winner ?? '';
+            $replacements['{prize_value}'] = $prize->value ?? '';
+            $replacements['{prize_type}'] = $prize->type ?? '';
+            $replacements['{prize_name_without_separator}'] = $prize->getNameWithoutSeparator();
+        }
+
+        // Переменные спина
+        if ($spin) {
+            $replacements['{code}'] = $spin->code ?? '';
+        }
+
+        return str_replace(
+            array_keys($replacements),
+            array_values($replacements),
+            $text
+        );
     }
 }
 

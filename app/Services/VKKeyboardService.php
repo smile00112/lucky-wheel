@@ -41,7 +41,7 @@ class VKKeyboardService
             $spinText = $this->textService->get($integration, 'button_spin', '🎡 Крутить колесо');
             $historyText = $this->textService->get($integration, 'button_history', '📜 История призов');
 
-            $connector = new VKConnector();
+            $connector = app(VKConnector::class);
             $webAppUrl = $connector->buildLaunchUrl($integration, '', ['guest_id' => $vkUser->guest->id]);
 
             $miniapp_id_index = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'app_id');
@@ -82,29 +82,29 @@ class VKKeyboardService
             ];
 
             // Добавляем кнопку для Mini App, если есть wheelSlug
-            if ($wheelSlug && $guestId && $integration) {
-                $baseUrl = config('app.url');
-                $webAppUrl = $baseUrl . '/vk/app?wheel=' . $wheelSlug . '&guest_id=' . $guestId;
-                $appId = $integration->settings['app_id'] ?? null;
-
-                if ($appId) {
-                    $buttons[] = [
-                        [
-                            'action' => [
-                                'type' => 'open_app',
-                                'label' => '🎡 Открыть колесо',
-                                'app_id' => (int)$appId,
-                                'hash' => $webAppUrl,
-                            ],
-                            'color' => 'positive',
-                        ],
-                    ];
-                }
-            }
+//            if ($wheelSlug && $guestId && $integration) {
+//                $baseUrl = config('app.url');
+//                $webAppUrl = $baseUrl . '/vk/app?wheel=' . $wheelSlug . '&guest_id=' . $guestId;
+//                $appId = $integration->settings['app_id'] ?? null;
+//
+//                if ($appId) {
+//                    $buttons[] = [
+//                        [
+//                            'action' => [
+//                                'type' => 'open_app',
+//                                'label' => '🎡 Открыть колесо',
+//                                'app_id' => (int)$appId,
+//                                'hash' => $webAppUrl,
+//                            ],
+//                            'color' => 'positive',
+//                        ],
+//                    ];
+//                }
+//            }
         }
 
         return [
-            'one_time' => false,
+            'one_time' => true,
             'buttons' => $buttons,
         ];
     }

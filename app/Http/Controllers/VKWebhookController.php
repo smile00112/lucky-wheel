@@ -258,7 +258,7 @@ class VKWebhookController extends Controller
             return;
         }
 
-        $connector = new VKConnector();
+        $connector = app(VKConnector::class);
         $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $vkUser->guest->id]);
 
         $miniapp_id_index = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'app_id');
