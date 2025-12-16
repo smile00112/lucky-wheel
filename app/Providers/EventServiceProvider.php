@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Events\PrizeWon;
 use App\Listeners\SendPrizeWinEmail;
 use App\Listeners\SendTelegramPrizeNotification;
+use App\Listeners\SendVKPrizeNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -14,6 +15,8 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         PrizeWon::class => [
             SendPrizeWinEmail::class,
+            SendVKPrizeNotification::class,
+
         ],
 //        PrizeWon::class => [
 //            SendTelegramPrizeNotification::class,

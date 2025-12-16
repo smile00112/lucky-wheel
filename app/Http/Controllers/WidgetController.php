@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\PrizeWon;
+use App\Models\VKUser;
 use App\Models\Wheel;
 use App\Models\Guest;
 use App\Models\GuestIpAddress;
@@ -174,6 +175,7 @@ class WidgetController extends Controller
      */
     public function vkV3(string $slug, Request $request)
     {
+        //TODO - перенести в VKController
         $wheel = Wheel::where('slug', $slug)
             ->where('is_active', true)
             ->with('activePrizes')
@@ -193,6 +195,36 @@ class WidgetController extends Controller
         $guestId = $request->query('guest_id');
         if ($guestId && is_numeric($guestId) && $guestId > 0) {
             $guest = Guest::find((int) $guestId);
+        }
+
+        // Если guest_id не передан, но есть vk_user_id, находим или создаем Guest
+        if (!$guest) {
+            $vkUserId = $request->query('vk_user_id');
+            if ($vkUserId && is_numeric($vkUserId) && $vkUserId > 0) {
+                $vkUser = VKUser::findByVkId((int) $vkUserId);
+
+                if ($vkUser && $vkUser->guest_id) {
+                    $guest = $vkUser->guest;
+                } else {
+                    // Создаем нового Guest и VKUser, если их нет
+                    $userService = app(\App\Services\UserService::class);
+                    $guest = $userService->findOrCreateByVkId((int) $vkUserId, [
+                        'ip_address' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                        'metadata' => [
+                            'platform' => 'vk',
+                            'vk_id' => (int) $vkUserId,
+                        ],
+                    ]);
+
+                    // Убеждаемся, что VKUser создан и связан с Guest
+                    if (!$vkUser) {
+                        $userService->findOrCreateVKUser((int) $vkUserId, $guest, []);
+                    } elseif ($vkUser->guest_id !== $guest->id) {
+                        $vkUser->update(['guest_id' => $guest->id]);
+                    }
+                }
+            }
         }
 
         // Проверяем, нужен ли только контент (без HTML структуры)
@@ -436,24 +468,24 @@ class WidgetController extends Controller
 
         // Проверка выигрыша по IP адресу (для предотвращения обхода через инкогнито)
         $lastWinByIp = null;
-        if ($clientIp) {
-            // Ищем последний выигрыш с этого IP адреса для этого колеса
-            $lastWinByIp = Spin::where('wheel_id', $wheel->id)
-                ->whereNotNull('prize_id')
-                ->where(function ($query) use ($clientIp) {
-                    // Проверяем IP в основной таблице spins
-                    $query->where('ip_address', $clientIp)
-                        // Или проверяем через связанные IP адреса гостей
-                        ->orWhereHas('guest', function ($q) use ($clientIp) {
-                            $q->where('ip_address', $clientIp)
-                                ->orWhereHas('ipAddresses', function ($ipq) use ($clientIp) {
-                                    $ipq->where('ip_address', $clientIp);
-                                });
-                        });
-                })
-                ->orderBy('created_at', 'desc')
-                ->first();
-        }
+//        if ($clientIp) {
+//            // Ищем последний выигрыш с этого IP адреса для этого колеса
+//            $lastWinByIp = Spin::where('wheel_id', $wheel->id)
+//                ->whereNotNull('prize_id')
+//                ->where(function ($query) use ($clientIp) {
+//                    // Проверяем IP в основной таблице spins
+//                    $query->where('ip_address', $clientIp)
+//                        // Или проверяем через связанные IP адреса гостей
+//                        ->orWhereHas('guest', function ($q) use ($clientIp) {
+//                            $q->where('ip_address', $clientIp)
+//                                ->orWhereHas('ipAddresses', function ($ipq) use ($clientIp) {
+//                                    $ipq->where('ip_address', $clientIp);
+//                                });
+//                        });
+//                })
+//                ->orderBy('created_at', 'desc')
+//                ->first();
+//        }
 
         // Проверка выигрыша по guest_id
         $lastWin = Spin::where('guest_id', $guest->id)
@@ -659,25 +691,25 @@ class WidgetController extends Controller
 
         // Проверка выигрыша по IP адресу (для предотвращения обхода через инкогнито)
         $lastWinByIp = null;
-        if ($clientIp) {
-            // Ищем последний выигрыш с этого IP адреса для этого колеса
-            $lastWinByIp = Spin::where('wheel_id', $wheel->id)
-                ->whereNotNull('prize_id')
-                ->where(function ($query) use ($clientIp) {
-                    // Проверяем IP в основной таблице spins
-                    $query->where('ip_address', $clientIp)
-                        // Или проверяем через связанные IP адреса гостей
-                        ->orWhereHas('guest', function ($q) use ($clientIp) {
-                            $q->where('ip_address', $clientIp)
-                                ->orWhereHas('ipAddresses', function ($ipq) use ($clientIp) {
-                                    $ipq->where('ip_address', $clientIp);
-                                });
-                        });
-                })
-                ->orderBy('created_at', 'desc')
-                ->with(['prize', 'guest'])
-                ->first();
-        }
+//        if ($clientIp) {
+//            // Ищем последний выигрыш с этого IP адреса для этого колеса
+//            $lastWinByIp = Spin::where('wheel_id', $wheel->id)
+//                ->whereNotNull('prize_id')
+//                ->where(function ($query) use ($clientIp) {
+//                    // Проверяем IP в основной таблице spins
+//                    $query->where('ip_address', $clientIp)
+//                        // Или проверяем через связанные IP адреса гостей
+//                        ->orWhereHas('guest', function ($q) use ($clientIp) {
+//                            $q->where('ip_address', $clientIp)
+//                                ->orWhereHas('ipAddresses', function ($ipq) use ($clientIp) {
+//                                    $ipq->where('ip_address', $clientIp);
+//                                });
+//                        });
+//                })
+//                ->orderBy('created_at', 'desc')
+//                ->with(['prize', 'guest'])
+//                ->first();
+//        }
 
         // Проверка выигрыша по guest_id
         $lastWin = Spin::where('guest_id', $guestId)
@@ -1160,7 +1192,8 @@ class WidgetController extends Controller
             try {
                 $last_guest_spin = $currentGuest->spins()->latest('id')->first();
                 //$spin = Spin::where('guest_id', $guestId)->update(['guest_id' => $existingGuest->id]);
-                $last_guest_spin->sendWinEmail();
+                if($last_guest_spin)
+                    $last_guest_spin->sendWinEmail();
             } catch (\Exception $e) {
                 Log::error('Failed to send win email: ' . $e->getMessage());
                 // Не прерываем выполнение, если письмо не отправилось

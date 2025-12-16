@@ -50,6 +50,90 @@ class UserService
     }
 
     /**
+     * Найти или создать пользователя по IP
+     */
+    public function findOrCreateByIp(string $ip, array $additionalData = []): Guest
+    {
+
+        $guest = Guest::where('ip_address', $ip)->first();
+
+        if (!$guest) {
+            $guest = Guest::create([
+                'phone' => $additionalData['phone_number'] ?? null,
+                'name' => $additionalData['name'] ?? null,
+                'email' => $additionalData['email'] ?? null,
+                'metadata' => $additionalData['metadata'] ?? [],
+                'ip_address' => $ip,
+            ]);
+
+            Log::info('Created new guest by ip', [
+                'guest_id' => $guest->id,
+                'ip_address' => $ip,
+            ]);
+        } else {
+            Log::info('Find guest by ip', [
+                'guest_id' => $guest->id,
+                'ip_address' => $ip,
+            ]);
+            // Обновляем данные, если они предоставлены
+            $updateData = [];
+            if (isset($additionalData['name']) && !$guest->name) {
+                $updateData['name'] = $additionalData['name'];
+            }
+            if (isset($additionalData['email']) && !$guest->email) {
+                $updateData['email'] = $additionalData['email'];
+            }
+            if (!empty($updateData)) {
+                $guest->update($updateData);
+            }
+        }
+
+        return $guest;
+    }
+
+    /**
+     * Найти или создать пользователя по VkId
+     */
+    public function findOrCreateByVkId(int $vk_id, array $additionalData = []): Guest
+    {
+
+        $vkUser = VKUser::findByVkId($vk_id);
+        $guest = !empty($vkUser) ? $vkUser->guest : null;
+
+        if (!$guest) {
+            $guest = Guest::create([
+                'phone' => $additionalData['phone_number'] ?? null,
+                'name' => $additionalData['name'] ?? null,
+                'email' => $additionalData['email'] ?? null,
+                'metadata' => $additionalData['metadata'] ?? [],
+            ]);
+
+            Log::info('Created new guest by $vk_id', [
+                'guest_id' => $guest->id,
+                '$vk_id' => $vk_id,
+            ]);
+        } else {
+            Log::info('Find guest by $vk_id', [
+                'guest_id' => $guest->id,
+                '$vk_id' => $vk_id,
+            ]);
+            // Обновляем данные, если они предоставлены
+            $updateData = [];
+            if (isset($additionalData['name']) && !$guest->name) {
+                $updateData['name'] = $additionalData['name'];
+            }
+            if (isset($additionalData['email']) && !$guest->email) {
+                $updateData['email'] = $additionalData['email'];
+            }
+            if (!empty($updateData)) {
+                $guest->update($updateData);
+            }
+        }
+
+        return $guest;
+    }
+
+    /**
      * Найти или создать Telegram пользователя
      */
     public function findOrCreateTelegramUser(
@@ -207,15 +291,22 @@ class UserService
     public function processVKContact(int $vkId, array $contactData): VKUser
     {
         $phone = $this->normalizePhone($contactData['phone_number'] ?? '');
-
-        if (!$phone) {
-            throw new \InvalidArgumentException('Phone number is required');
-        }
+        //$ip = $contactData['ip'];
+//        if (!$phone) {
+//            throw new \InvalidArgumentException('Phone number is required');
+//        }
 
         // Найти или создать Guest по телефону
-        $guest = $this->findOrCreateByPhone($phone, [
-            'name' => trim(($contactData['first_name'] ?? '') . ' ' . ($contactData['last_name'] ?? '')),
-        ]);
+        if ($phone){
+            $guest = $this->findOrCreateByPhone($phone, [
+                'name' => trim(($contactData['first_name'] ?? '') . ' ' . ($contactData['last_name'] ?? '')),
+            ]);
+        }
+        else{//ищем пользователя по vk_id и создаём, если его нет
+            $guest = $this->findOrCreateByVkId($vkId, [
+                'name' => trim(($contactData['first_name'] ?? '') . ' ' . ($contactData['last_name'] ?? '')),
+            ]);
+        }
 
         // Найти или создать VKUser
         $vkUser = $this->findOrCreateVKUser($vkId, $guest, [

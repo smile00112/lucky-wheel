@@ -124,5 +124,22 @@ export class Utils {
             localStorage.setItem(key, guestIdStr);
         });
     }
+
+    static clearLocalStorage(wheelSlug = null) {
+        const keysToRemove = [];
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('lucky_wheel_')) {
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+        });
+
+        console.log('[LuckyWheel] Cleared localStorage:', keysToRemove.length, 'keys');
+    }
 }
 

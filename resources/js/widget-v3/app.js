@@ -35,6 +35,17 @@ class LuckyWheelApp {
     async init() {
         console.log('[LuckyWheel] App.init() started');
 
+        // Очистка localStorage при наличии параметра refresh=1
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('refresh') === '1') {
+            console.log('[LuckyWheel] Refresh parameter detected, clearing localStorage');
+            Utils.clearLocalStorage(this.config.wheelSlug);
+            // Удаляем параметр refresh из URL
+            urlParams.delete('refresh');
+            const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            window.history.replaceState({}, '', newUrl);
+        }
+
         if (!this.config.guestId) {
             console.log('[LuckyWheel] No guestId, creating/getting guest...');
             try {

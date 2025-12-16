@@ -128,13 +128,13 @@ class PlatformIntegrationResource extends Resource
 
                 Forms\Components\Repeater::make('settings')
                     ->label('Дополнительные настройки')
-                    ->helperText(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? 'Дополнительные параметры для платформы.ВНИМАНИЕ! Обязательно заполните поле "Код для верификации хука VK"' : 'Дополнительные параметры для платформы')
+                    ->helperText(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? 'Дополнительные параметры для платформы.ВНИМАНИЕ! Обязательно заполните поля "Код для верификации хука VK" и Ссылку на мини приложение VK' : 'Дополнительные параметры для платформы')
                     ->schema([
                         Forms\Components\Select::make('key')
                             ->label('Ключ')
                             ->options([
                                 'hook_verification_code' => 'Код для верификации хука VK',
-
+                                'app_id' => 'id Мини-приложения в VK',
                             ])
                             ->required()
                             ->reactive()

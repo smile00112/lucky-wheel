@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VKUser extends Model
 {
+    protected $table = 'vk_users';
     protected $fillable = [
         'guest_id',
         'vk_id',

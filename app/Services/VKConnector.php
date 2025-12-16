@@ -77,14 +77,32 @@ class VKConnector implements PlatformConnector
 
     public function buildLaunchUrl(PlatformIntegration $integration, string $wheelSlug, array $params = []): string
     {
-        $baseUrl = config('app.url');
-        $url = $baseUrl . '/vk/app?wheel=' . $wheelSlug . '&v=' . random_int(1, 100);
+        //$baseUrl = config('app.url');
+        $miniapp_id_index = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'app_id');
+        $miniapp_id = $integration->settings[$miniapp_id_index]['value'];
+        $miniapp_url = "https://vk.com/app" . $miniapp_id;
+
+        Log::error('VK buildLaunchUrl', [
+            '$miniapp_id' => $miniapp_id,
+            '$miniapp_url' => $miniapp_url,
+            'settings' => (array)$integration->settings,
+        ]);
+
+        if(!$miniapp_url)
+            return '';
+        //$url = $baseUrl . '?wheel=' . $wheelSlug . '&v=' . random_int(1, 100);
 
         if (!empty($params)) {
-            $url .= '&' . http_build_query($params);
+            $miniapp_url .= '&' . http_build_query($params);
         }
 
-        return $url;
+        Log::info('VK buildLaunchUrl', [
+            '$miniapp_url' => $miniapp_url,
+            'settings' => (array)$integration->settings,
+            '$integration' => $integration
+        ]);
+
+        return $miniapp_url;
     }
 
     public function validateAuthData(array $data): ?array

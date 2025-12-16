@@ -106,10 +106,9 @@ class VKWebhookController extends Controller
         ]);
 
         // Обработка команды /Начать
-        if ($text === '/start' || $text === 'Начать') {
+        if ($text === '/start' || $text === 'Начать'|| $text === 'начать' || $text === 'start') {
             //Запрос данных пользователя
-            $userInfo = $this->botService->getUserInfo($integration, $vkId);
-            $this->handlePhoneSave($vkId, $userInfo['contacts'][0]['phone'], $integration);
+            $this->handleGuestSave($vkId, $integration);
             //Отправка приветствия
             $this->handleStartCommand($vkId, $integration);
             return;
@@ -168,6 +167,7 @@ class VKWebhookController extends Controller
         try {
             // Получаем информацию о пользователе из VK
             $userInfo = $this->botService->getUserInfo($integration, $vkId);
+            //$ip = request()->get('HTTP_X_FORWARDED_FOR') ?? request()->ip();
 
             // Обрабатываем контакт через сервис
             $vkUser = $this->userService->processVKContact($vkId, [
@@ -196,19 +196,21 @@ class VKWebhookController extends Controller
         }
     }
 
-    private function handlePhoneSave(int $vkId, string $phone, PlatformIntegration $integration): void
+    private function handleGuestSave(int $vkId, PlatformIntegration $integration): void
     {
         $wheel = $integration->wheel;
 
         try {
             // Получаем информацию о пользователе из VK
             $userInfo = $this->botService->getUserInfo($integration, $vkId);
+            //$ip = request()->get('HTTP_X_FORWARDED_FOR') ?? request()->ip();
 
             // Обрабатываем контакт через сервис
             $vkUser = $this->userService->processVKContact($vkId, [
-                'phone_number' => $phone,
+                'phone_number' => !empty($userInfo['contacts']['mobile_phone']) ? $userInfo['contacts']['mobile_phone'] : null,
                 'first_name' => $userInfo['first_name'] ?? null,
                 'last_name' => $userInfo['last_name'] ?? null,
+                //'ip' => $ip
             ]);
 
             $wheelSlug = $wheel->slug ?? null;
@@ -218,13 +220,12 @@ class VKWebhookController extends Controller
                 return;
             }
 
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedMessage($integration), $keyboard);
+            //$keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
+            //$this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedMessage($integration), $keyboard);
         } catch (\Exception $e) {
             Log::error('Error processing VK contact', [
                 'error' => $e->getMessage(),
                 'vk_id' => $vkId,
-                'phone' => $phone,
             ]);
 
             $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactError($integration));
@@ -235,11 +236,11 @@ class VKWebhookController extends Controller
     {
         $wheel = $integration->wheel;
 
-        if (!$this->keyboardService->hasPhoneNumber($vkId)) {
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getPhoneRequired($integration), $keyboard);
-            return;
-        }
+//        if (!$this->keyboardService->hasPhoneNumber($vkId)) {
+//            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
+//            $this->botService->sendMessage($integration, $vkId, $this->messageService->getPhoneRequired($integration), $keyboard);
+//            return;
+//        }
 
         $wheelSlug = $wheel->slug ?? null;
 
@@ -260,8 +261,11 @@ class VKWebhookController extends Controller
         $connector = new VKConnector();
         $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $vkUser->guest->id]);
 
-        $appId = $integration->settings['app_id'] ?? null;
+        $miniapp_id_index = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'app_id');
+        $appId = !empty($integration->settings[$miniapp_id_index]['value']) ? $integration->settings[$miniapp_id_index]['value'] : null;
+
         if ($appId) {
+
             $keyboard = [
                 'one_time' => false,
                 'buttons' => [
@@ -273,12 +277,21 @@ class VKWebhookController extends Controller
                                 'app_id' => (int)$appId,
                                 'hash' => $webAppUrl,
                             ],
-                            'color' => 'positive',
+                            //'color' => 'positive',
                         ],
                     ],
                 ],
             ];
+            // Log::info('1111111', [
+            //     '$appId' => $appId,
+            // 'keyboard' => $keyboard
+            // ]);
         } else {
+
+            // Log::info('222222', [
+            //     '$appId' => $appId,
+
+            // ]);
             $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
         }
 

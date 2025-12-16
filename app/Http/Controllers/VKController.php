@@ -41,6 +41,36 @@ class VKController extends Controller
             $guest = Guest::find((int) $guestId);
         }
 
+        // Если guest_id не передан, но есть vk_user_id, находим или создаем Guest
+        if (!$guest) {
+            $vkUserId = $request->query('vk_user_id');
+            if ($vkUserId && is_numeric($vkUserId) && $vkUserId > 0) {
+                $vkUser = VKUser::findByVkId((int) $vkUserId);
+
+                if ($vkUser && $vkUser->guest_id) {
+                    $guest = $vkUser->guest;
+                } else {
+                    // Создаем нового Guest и VKUser, если их нет
+                    $userService = app(\App\Services\UserService::class);
+                    $guest = $userService->findOrCreateByVkId((int) $vkUserId, [
+                        'ip_address' => $request->ip(),
+                        'user_agent' => $request->userAgent(),
+                        'metadata' => [
+                            'platform' => 'vk',
+                            'vk_id' => (int) $vkUserId,
+                        ],
+                    ]);
+
+                    // Убеждаемся, что VKUser создан и связан с Guest
+                    if (!$vkUser) {
+                        $userService->findOrCreateVKUser((int) $vkUserId, $guest, []);
+                    } elseif ($vkUser->guest_id !== $guest->id) {
+                        $vkUser->update(['guest_id' => $guest->id]);
+                    }
+                }
+            }
+        }
+
         return view('vk.webapp-v3', compact('wheel', 'guest'));
     }
 

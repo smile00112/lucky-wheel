@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 class VKBotService
 {
     private const API_BASE_URL = 'https://api.vk.com/method/';
-    private const API_VERSION = '5.131';
+    private const API_VERSION = '5.199';
 
     public function sendMessage(
         PlatformIntegration $integration,
@@ -67,10 +67,10 @@ class VKBotService
         }
 
         try {
-            $response = Http::post(self::API_BASE_URL . 'users.get', [
+            $response = Http::get(self::API_BASE_URL . 'users.get', [
                 'access_token' => $integration->bot_token,
                 'user_ids' => $userId,
-                'fields' => 'contacts, first_name, last_name',
+                'fields' => 'contacts',
                 'v' => self::API_VERSION,
             ]);
 
