@@ -85,7 +85,7 @@ class TelegramMessageService
 
             $dateText = $this->textService->get($integration, 'history_item_date');
             if ($dateText) {
-                $messageText .= str_replace('{date}', $date, $dateText) . "\n";
+                $messageText .= $connector->replaceVariables($dateText, $wheel, $prize, $win) . "\n";
             } else {
                 $messageText .= __('telegram.history_item_date', ['date' => $date], 'ru') . "\n";
             }

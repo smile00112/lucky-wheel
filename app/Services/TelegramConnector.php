@@ -223,6 +223,8 @@ class TelegramConnector implements PlatformConnector
      * - {prize_value} - значение приза
      * - {prize_type} - тип приза
      * - {code} - код для получения приза
+     * - {date} - дата спина (если спин есть)
+     * - {prize_date} - дата спина (если спин есть) или дата приза
      */
     public function replaceVariables(string $text, ?\App\Models\Wheel $wheel, ?Prize $prize, ?Spin $spin): string
     {
@@ -248,18 +250,26 @@ class TelegramConnector implements PlatformConnector
         if ($prize) {
             $replacements['{prize_name_without_separator}'] = $prize->getNameWithoutSeparator();
             $replacements['{prize_email_image}'] = $this->getFileUrl($prize->email_image ?? '');
-            $replacements['{prize_date}'] = $prize->created_at->format('d.m.Y H:i') ?? '';
         } else {
             $replacements['{prize_name_without_separator}'] = '';
             $replacements['{prize_email_image}'] = '';
-            $replacements['{prize_date}'] = '';
         }
 
         // Переменные спина
         if ($spin) {
             $replacements['{code}'] = $spin->code ?? '';
+            $replacements['{date}'] = $spin->created_at->format('d.m.Y H:i');
+            // Для истории призов используем дату спина для {prize_date}
+            $replacements['{prize_date}'] = $spin->created_at->format('d.m.Y H:i');
         } else {
             $replacements['{code}'] = '';
+            $replacements['{date}'] = '';
+            // Если спина нет, используем дату приза
+            if ($prize && $prize->created_at) {
+                $replacements['{prize_date}'] = $prize->created_at->format('d.m.Y H:i');
+            } else {
+                $replacements['{prize_date}'] = '';
+            }
         }
 
         return str_replace(
