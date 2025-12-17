@@ -156,7 +156,7 @@ class Prize extends Model
 
     /**
      * Заменить переменные в тексте полей email
-     * 
+     *
      * @param string $text Текст с переменными
      * @param array $replacements Массив замен [ключ => значение]
      * @return string Текст с замененными переменными
@@ -194,5 +194,10 @@ class Prize extends Model
 //        }
 
         return $this->name;
+    }
+
+    public function getCode(): string
+    {
+        return $this->value;
     }
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>{{ $wheel->name ?? 'Колесо Фортуны' }}</title>
-    <script src="https://unpkg.com/@vkid/sdk@2/dist/umd/index.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -23,12 +23,43 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 10px;
+            /* padding: 20px 10px; */
             min-height: 100vh;
 
         }
         .lucky-wheel-content::-webkit-scrollbar {
             width: 0;
+        }
+        .lucky-wheel-content{
+            padding: 0 !important;
+        }
+        .lucky-wheel-container{
+            padding: 0px 20px !important;
+        }
+        .wheel-container {
+            max-width: 500px !important;
+        }
+        .wheel {
+            max-width: 500px !important;
+            max-height: 500px !important;
+        }
+        .win-notification {
+            width: 600px !important;
+        }
+        .lucky-wheel-content {
+            max-height: 800px;
+        }
+        @media (min-width: 480px) {
+            .wheel-content-contener{
+                padding: 10px 0 !important;
+                max-height: 800px !important;
+            }
+        }
+        .wheel-content-contener {
+            @media (max-width: 480px) {
+                padding: 10px 0 !important;
+                height: 100vh !important;
+            }
         }
     </style>
 </head>

@@ -76,11 +76,39 @@ class TelegramMessageService
         $title = $this->textService->get($integration, 'history_title');
         $messageText = $title . "\n\n";
 
+        $connector = app(TelegramConnector::class);
+
         foreach ($wins as $win) {
             $date = $win->created_at->format('d.m.Y H:i');
-            $prizeName = $win->prize ? $win->prize->getNameWithoutSeparator() : 'Неизвестный приз';
-            $messageText .= __('telegram.history_item_date', ['date' => $date], 'ru') . "\n";
-            $messageText .= __('telegram.history_item_prize', ['prize' => $prizeName], 'ru') . "\n\n";
+            $prize = $win->prize;
+            $wheel = $win->wheel ?? null;
+
+            $dateText = $this->textService->get($integration, 'history_item_date');
+            if ($dateText) {
+                $messageText .= str_replace('{date}', $date, $dateText) . "\n";
+            } else {
+                $messageText .= __('telegram.history_item_date', ['date' => $date], 'ru') . "\n";
+            }
+
+            $prizeText = $this->textService->get($integration, 'history_item_prize');
+            if ($prizeText) {
+                $messageText .= $connector->replaceVariables($prizeText, $wheel, $prize, $win) . "\n";
+            } else {
+                $prizeName = $prize ? $prize->getNameWithoutSeparator() : 'Неизвестный приз';
+                $messageText .= __('telegram.history_item_prize', ['prize' => $prizeName], 'ru') . "\n";
+            }
+
+            $codeText = $this->textService->get($integration, 'history_item_code');
+            if ($codeText) {
+                $messageText .= $connector->replaceVariables($codeText, $wheel, $prize, $win) . "\n";
+            }
+
+            $qrImageText = $this->textService->get($integration, 'history_item_qr_image');
+            if ($qrImageText) {
+                $messageText .= $connector->replaceVariables($qrImageText, $wheel, $prize, $win) . "\n";
+            }
+
+            $messageText .= "\n";
         }
 
         return $messageText;

@@ -113,7 +113,10 @@ class PlatformIntegrationResource extends Resource
                                              * - {prize_text_for_winner} - текст для победителя
                                              * - {prize_value} - значение приза
                                              * - {prize_type} - тип приза
-                                             * - {code} - код для получения приза'
+                                             * - {code} - код для получения приза
+                                             * - {prize_email_image} - ссылка на qr код приза
+                                             * - {prize_date} - дата получения приза
+                                             '
                             )
                             //->visible(fn ($record) => !$record || $record->platform === PlatformIntegration::PLATFORM_TELEGRAM)
                             ->afterStateHydrated(function ($component, $state, $record) {
@@ -125,36 +128,44 @@ class PlatformIntegrationResource extends Resource
                                 }
                             }),
                 ]),
+            Section::make('Дополнительные настройки бота')
+                //->description('')
+                ->description(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? 'Дополнительные параметры для платформы.ВНИМАНИЕ! Обязательно заполните поля "Код для верификации хука VK" и Ссылку на мини приложение VK' : 'Дополнительные параметры для платформы')
 
-                Forms\Components\Repeater::make('settings')
-                    ->label('Дополнительные настройки')
-                    ->helperText(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? 'Дополнительные параметры для платформы.ВНИМАНИЕ! Обязательно заполните поля "Код для верификации хука VK" и Ссылку на мини приложение VK' : 'Дополнительные параметры для платформы')
-                    ->schema([
-                        Forms\Components\Select::make('key')
-                            ->label('Ключ')
-                            ->options([
-                                'hook_verification_code' => 'Код для верификации хука VK',
-                                'app_id' => 'id Мини-приложения в VK',
-                            ])
-                            ->required()
-                            ->reactive()
-                            ->afterStateUpdated(fn ($state, $set) => $state !== 'custom' ? $set('custom_key', null) : null),
-                        Forms\Components\TextInput::make('custom_key')
-                            ->label('Свой ключ')
-                            ->visible(fn ($get) => $get('key') === 'custom')
-                            ->required(fn ($get) => $get('key') === 'custom')
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('value')
-                            ->label('Значение')
-                            ->required()
-                            ->maxLength(255),
-                    ])
-                    ->defaultItems(0)
-                    ->collapsible()
-                    ->itemLabel(fn (array $state): ?string => $state['key'] === 'custom' ? ($state['custom_key'] ?? null) : ($state['key'] ?? null))
-                    ->columnSpanFull()
-                // ->hidden()
-                ,
+                ->columnSpanFull()
+                ->collapsible()
+                ->collapsed(true)
+                ->schema([
+                    Forms\Components\Repeater::make('settings')
+                        ->label('')
+                        //->helperText(fn ($record) => $record &&  $record->platform === PlatformIntegration::PLATFORM_VK ? 'Дополнительные параметры для платформы.ВНИМАНИЕ! Обязательно заполните поля "Код для верификации хука VK" и Ссылку на мини приложение VK' : 'Дополнительные параметры для платформы')
+                        ->schema([
+                            Forms\Components\Select::make('key')
+                                ->label('Ключ')
+                                ->options([
+                                    'hook_verification_code' => 'Код для верификации хука VK',
+                                    'app_id' => 'id Мини-приложения в VK',
+                                ])
+                                ->required()
+                                ->reactive()
+                                ->afterStateUpdated(fn ($state, $set) => $state !== 'custom' ? $set('custom_key', null) : null),
+                            Forms\Components\TextInput::make('custom_key')
+                                ->label('Свой ключ')
+                                ->visible(fn ($get) => $get('key') === 'custom')
+                                ->required(fn ($get) => $get('key') === 'custom')
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('value')
+                                ->label('Значение')
+                                ->required()
+                                ->maxLength(255),
+                        ])
+                        ->defaultItems(0)
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['key'] === 'custom' ? ($state['custom_key'] ?? null) : ($state['key'] ?? null))
+                        ->columnSpanFull()
+                    // ->hidden()
+                    ,
+                ]),
 
                 BotWebHookFieldSchema::field()
 

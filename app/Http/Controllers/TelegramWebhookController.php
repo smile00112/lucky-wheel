@@ -310,10 +310,10 @@ class VKWebhookController extends Controller
 
         $guest = $vkUser->guest;
         $wins = $guest->wins()->with('prize')->orderBy('created_at', 'desc')->get();
-        Log::info('handleHistoryCommand', [
-            '$guest' => $guest,
-            'wins' => $wins
-        ]);
+//        Log::info('handleHistoryCommand', [
+//            '$guest' => $guest,
+//            'wins' => $wins
+//        ]);
         if ($wins->isEmpty()) {
             $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
             $this->botService->sendMessage($integration, $vkId, $this->messageService->getHistoryEmpty($integration), $keyboard);

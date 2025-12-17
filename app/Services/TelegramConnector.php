@@ -221,7 +221,7 @@ class TelegramConnector implements PlatformConnector
      * - {prize_type} - тип приза
      * - {code} - код для получения приза
      */
-    private function replaceVariables(string $text, ?Wheel $wheel, ?Prize $prize, ?Spin $spin): string
+    public function replaceVariables(string $text, ?Wheel $wheel, ?Prize $prize, ?Spin $spin): string
     {
         $replacements = [];
 
@@ -243,6 +243,9 @@ class TelegramConnector implements PlatformConnector
             $replacements['{prize_value}'] = $prize->value ?? '';
             $replacements['{prize_type}'] = $prize->type ?? '';
             $replacements['{prize_name_without_separator}'] = $prize->getNameWithoutSeparator();
+            $replacements['{prize_email_image}'] = $this->getFileUrl($prize->email_image ?? '');
+            $replacements['{prize_date}'] = $prize->created_at->format('d.m.Y H:i') ?? '';
+
         }
 
         // Переменные спина
@@ -255,6 +258,34 @@ class TelegramConnector implements PlatformConnector
             array_values($replacements),
             $text
         );
+    }
+
+    /**
+     * Получить URL файла из storage
+     */
+    private function getFileUrl(string $path): string
+    {
+        if (empty($path)) {
+            return '';
+        }
+
+        // Если это полный URL, возвращаем как есть
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        // Если путь начинается с /, это абсолютный путь
+        if (str_starts_with($path, '/')) {
+            return url($path);
+        }
+
+        // Проверяем, существует ли файл в public storage
+        if (Storage::disk('public')->exists($path)) {
+            return Storage::disk('public')->url($path);
+        }
+
+        // По умолчанию используем asset для storage
+        return asset('storage/' . ltrim($path, '/'));
     }
 }
 
