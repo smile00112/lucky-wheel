@@ -10,6 +10,7 @@ use App\Models\VKUser;
 use App\Models\Wheel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use App\Services\VKTextService;
 use App\Services\VKKeyboardService;
 
@@ -279,7 +280,7 @@ class VKConnector implements PlatformConnector
      * - {prize_type} - тип приза
      * - {code} - код для получения приза
      */
-    public function replaceVariables(string $text, ?Wheel $wheel, ?Prize $prize, ?Spin $spin): string
+    public function replaceVariables(string $text, ?\App\Models\Wheel $wheel, ?Prize $prize, ?Spin $spin): string
     {
         $replacements = [];
 
@@ -291,24 +292,30 @@ class VKConnector implements PlatformConnector
             $replacements['{wheel_company_name}'] = $wheel->company_name ?? '';
         }
 
-        // Переменные приза
+        // Переменные приза - заменяем всегда, даже если $prize null
+        $replacements['{prize_name}'] = $prize->name ?? '';
+        $replacements['{prize_full_name}'] = $prize->full_name ?? '';
+        $replacements['{prize_mobile_name}'] = $prize->mobile_name ?? '';
+        $replacements['{prize_description}'] = $prize->description ?? '';
+        $replacements['{prize_text_for_winner}'] = $prize->text_for_winner ?? '';
+        $replacements['{prize_value}'] = $prize->value ?? '';
+        $replacements['{prize_type}'] = $prize->type ?? '';
+
         if ($prize) {
-            $replacements['{prize_name}'] = $prize->name ?? '';
-            $replacements['{prize_full_name}'] = $prize->full_name ?? '';
-            $replacements['{prize_mobile_name}'] = $prize->mobile_name ?? '';
-            $replacements['{prize_description}'] = $prize->description ?? '';
-            $replacements['{prize_text_for_winner}'] = $prize->text_for_winner ?? '';
-            $replacements['{prize_value}'] = $prize->value ?? '';
-            $replacements['{prize_type}'] = $prize->type ?? '';
             $replacements['{prize_name_without_separator}'] = $prize->getNameWithoutSeparator();
             $replacements['{prize_email_image}'] = $this->getFileUrl($prize->email_image ?? '');
             $replacements['{prize_date}'] = $prize->created_at->format('d.m.Y H:i') ?? '';
-
+        } else {
+            $replacements['{prize_name_without_separator}'] = '';
+            $replacements['{prize_email_image}'] = '';
+            $replacements['{prize_date}'] = '';
         }
 
         // Переменные спина
         if ($spin) {
             $replacements['{code}'] = $spin->code ?? '';
+        } else {
+            $replacements['{code}'] = '';
         }
 
         return str_replace(

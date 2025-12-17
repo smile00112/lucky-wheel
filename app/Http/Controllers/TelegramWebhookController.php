@@ -5,30 +5,31 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\PlatformIntegration;
-use App\Models\VKUser;
-use App\Services\VKBotService;
-use App\Services\VKConnector;
-use App\Services\VKKeyboardService;
-use App\Services\VKMessageService;
-use App\Services\VKTextService;
+use App\Models\TelegramUser;
+use App\Services\TelegramBotService;
+use App\Services\TelegramConnector;
+use App\Services\TelegramKeyboardService;
+use App\Services\TelegramMessageService;
+use App\Services\TelegramTextService;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use TelegramBot\Api\BotApi;
 
-class VKWebhookController extends Controller
+class TelegramWebhookController extends Controller
 {
     private UserService $userService;
-    private VKBotService $botService;
-    private VKKeyboardService $keyboardService;
-    private VKMessageService $messageService;
-    private VKTextService $textService;
+    private TelegramBotService $botService;
+    private TelegramKeyboardService $keyboardService;
+    private TelegramMessageService $messageService;
+    private TelegramTextService $textService;
 
     public function __construct(
         UserService $userService,
-        VKBotService $botService,
-        VKKeyboardService $keyboardService,
-        VKMessageService $messageService,
-        VKTextService $textService
+        TelegramBotService $botService,
+        TelegramKeyboardService $keyboardService,
+        TelegramMessageService $messageService,
+        TelegramTextService $textService
     ) {
         $this->userService = $userService;
         $this->botService = $botService;
@@ -40,7 +41,7 @@ class VKWebhookController extends Controller
     public function handle(PlatformIntegration $integration, Request $request)
     {
         if (!$integration || !$integration->is_active || !$integration->bot_token) {
-            Log::warning('VK webhook received but integration is not active', [
+            Log::warning('Telegram webhook received but integration is not active', [
                 'has_integration' => $integration !== null,
                 'is_active' => $integration?->is_active,
             ]);
@@ -49,280 +50,393 @@ class VKWebhookController extends Controller
 
         $data = $request->all();
 
-        Log::info('VK webhook received', ['data' => $data]);
+        Log::info('Telegram webhook received', ['data' => $data]);
 
-        // Обработка подтверждения сервера
-        if (isset($data['type']) && $data['type'] === 'confirmation') {
-            $confirmationCode = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'hook_verification_code');
-            if ($confirmationCode !== false) {
-                return response($integration->settings[$confirmationCode]['value'], 200)->header('Content-Type', 'text/plain');
-            }
-            return response('ok', 200)->header('Content-Type', 'text/plain');
+        if (!isset($data['message']) && !isset($data['callback_query'])) {
+            return response()->json(['ok' => true]);
         }
 
-        // Валидация подписи Callback API
-//        $secret = $integration->settings['secret'] ?? null;
-//        if ($secret) {
-//            $connector = new VKConnector();
-//            if (!$connector->validateCallback($data, $secret)) {
-//                Log::warning('VK webhook validation failed', ['data' => $data]);
-//                return response()->json(['ok' => false], 403);
-//            }
-//        }
+        $bot = $this->botService->createBot($integration);
+        $connector = app(TelegramConnector::class);
 
-        // Обработка события message_new
-        if (isset($data['type']) && $data['type'] === 'message_new') {
-            try {
-                $this->handleMessage($data['object']['message'] ?? [], $integration);
-            } catch (\Exception $e) {
-                Log::error('Error handling VK handleMessage', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
+        // Устанавливаем меню команд при каждом запросе (если еще не установлено)
+        $this->botService->setBotCommands($bot);
+
+        try {
+            if (isset($data['message'])) {
+                $this->handleMessage($data['message'], $integration, $connector, $bot);
             }
+
+            if (isset($data['callback_query'])) {
+                $this->handleCallbackQuery($data['callback_query'], $integration, $connector, $bot);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error handling Telegram webhook', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
         }
 
-        return response('ok' )->header('Content-Type', 'text/plain');
+        return response()->json(['ok' => true]);
     }
 
-    private function handleMessage(array $message, PlatformIntegration $integration): void
-    {
-        $userId = $message['from_id'] ?? null;
+    private function handleMessage(
+        array $message,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $chatId = $message['chat']['id'] ?? null;
         $text = $message['text'] ?? '';
-        $peerId = $message['peer_id'] ?? null;
-
-        if (!$userId || !$peerId) {
+        $contact = $message['contact'] ?? null;
+        $from = $message['from'] ?? null;
+        $telegramId = $from['id'] ?? null;
+        Log::info('handleMessage 1', [
+            'message' => $message
+        ]);
+        if (!$chatId) {
             return;
         }
 
-        // В группах peer_id может отличаться от user_id
-        // Для личных сообщений они совпадают
-        $vkId = $userId;
-
-        Log::info('VK handleMessage', [
-            'user_id' => $userId,
-            'peer_id' => $peerId,
-            'text' => $text,
+        // Обработка расшаренного контакта
+        if ($contact) {
+            $this->handleContact($message, $integration, $connector, $bot);
+            return;
+        }
+        Log::info('handleMessage 2', [
+            'message' => $message
         ]);
-
-        // Обработка команды /Начать
-        if ($text === '/start' || $text === 'Начать'|| $text === 'начать' || $text === 'start') {
-            //Запрос данных пользователя
-            $this->handleGuestSave($vkId, $integration);
-            //Отправка приветствия
-            $this->handleStartCommand($vkId, $integration);
+        // Обработка команды /start
+        if ($text === '/start') {
+            $this->handleStartCommand($chatId, $integration, $bot, $telegramId);
             return;
         }
 
         // Обработка команды /spin или текста из настроек кнопки "Крутить колесо"
-        if ($this->matchesCommand($text, $integration, ['button_spin', 'spin_button'], ['/spin', 'spin'])) {
-            $this->handleSpinCommand($vkId, $integration);
+        if ($this->matchesCommand($text, $integration, ['button_spin', 'spin_button'], ['/spin'])) {
+            $this->handleSpinCommand($chatId, $integration, $connector, $bot, $telegramId);
             return;
         }
 
         // Обработка команды /history или текста из настроек кнопки "История"
-        if ($this->matchesCommand($text, $integration, ['button_history'], ['/history', 'history'])) {
-            $this->handleHistoryCommand($vkId, $integration);
+        if ($this->matchesCommand($text, $integration, ['button_history'], ['/history'])) {
+            $this->handleHistoryCommand($chatId, $message, $integration, $bot);
             return;
         }
 
         // Обработка кнопки "Отправить номер" из настроек
         if ($this->matchesCommand($text, $integration, ['button_send_phone'])) {
-            $this->handleRequestContact($vkId, $integration);
-            return;
-        }
-
-        // Попытка извлечь телефон из текста сообщения
-        $phone = $this->extractPhoneFromText($text);
-        if ($phone) {
-            $this->handlePhoneMessage($vkId, $phone, $integration);
+            $this->handleRequestContact($chatId, $integration, $bot, $telegramId);
             return;
         }
 
         // Обработка других сообщений
-        $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-        $this->botService->sendMessage($integration, $vkId, $this->messageService->getUseStartCommand($integration), $keyboard);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+        $this->botService->sendMessage($bot, $chatId, $this->messageService->getUseStartCommand($integration), $keyboard);
     }
 
-    private function handleStartCommand(int $vkId, PlatformIntegration $integration): void
-    {
+    private function handleStartCommand(
+        int|string $chatId,
+        PlatformIntegration $integration,
+        BotApi $bot,
+        ?int $telegramId = null
+    ): void {
+        // Устанавливаем меню команд
+        $this->botService->setBotCommands($bot);
+
         $message = $this->messageService->getWelcomeMessage($integration);
-        $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
 
-        $this->botService->sendMessage($integration, $vkId, $message, $keyboard);
+        Log::info('handleStartCommand', [
+            'bot' => $bot,
+            'chatId' => $chatId,
+            'message' => $message,
+            'keyboard' => $keyboard,
+        ]);
+
+        $this->botService->sendMessage($bot, $chatId, $message, $keyboard);
+        //чистим кнопку приложения
+        $this->botService->removeMenuButton($bot, $chatId);
     }
 
-    private function handleRequestContact(int $vkId, PlatformIntegration $integration): void
-    {
-        $message = $this->messageService->getRequestContactMessage($integration);
-        $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
+    private function handleContact(
+        array $message,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $chatId = $message['chat']['id'] ?? null;
+        $contact = $message['contact'] ?? null;
+        $from = $message['from'] ?? null;
 
-        $this->botService->sendMessage($integration, $vkId, $message, $keyboard);
-    }
+        Log::info('handleContact 1', [
+            'message' => $message
+        ]);
 
-    private function handlePhoneMessage(int $vkId, string $phone, PlatformIntegration $integration): void
-    {
+        if (!$chatId || !$contact || !$from) {
+            return;
+        }
+
+        $telegramId = $from['id'] ?? null;
+        $phoneNumber = $contact['phone_number'] ?? null;
+
         $wheel = $integration->wheel;
 
-        try {
-            // Получаем информацию о пользователе из VK
-            $userInfo = $this->botService->getUserInfo($integration, $vkId);
-            //$ip = request()->get('HTTP_X_FORWARDED_FOR') ?? request()->ip();
+        if (!$telegramId || !$phoneNumber) {
+            Log::error('handleContact error 1', [
+                'message' => $message
+            ]);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactError($integration));
+            return;
+        }
 
-            // Обрабатываем контакт через сервис
-            $vkUser = $this->userService->processVKContact($vkId, [
-                'phone_number' => $phone,
-                'first_name' => $userInfo['first_name'] ?? null,
-                'last_name' => $userInfo['last_name'] ?? null,
+        try {
+            // Проверяем, что контакт принадлежит пользователю
+            $contactUserId = $contact['user_id'] ?? null;
+
+            Log::info('handleContact 2', [
+                'message' => $message
             ]);
 
-            $wheelSlug = $wheel->slug ?? null;
-            if (!$wheelSlug) {
-                $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-                $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedButWheelNotConfigured($integration), $keyboard);
+            if ($contactUserId && (int)$contactUserId !== (int)$telegramId) {
+                $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactNotOwned($integration));
+
+                Log::error('handleContact error 2', [
+                    'contactUserId' => $contactUserId,
+                    'telegramId' => $telegramId
+                ]);
+
                 return;
             }
 
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedMessage($integration), $keyboard);
-        } catch (\Exception $e) {
-            Log::error('Error processing VK contact', [
-                'error' => $e->getMessage(),
-                'vk_id' => $vkId,
-                'phone' => $phone,
-            ]);
-
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactError($integration));
-        }
-    }
-
-    private function handleGuestSave(int $vkId, PlatformIntegration $integration): void
-    {
-        $wheel = $integration->wheel;
-
-        try {
-            // Получаем информацию о пользователе из VK
-            $userInfo = $this->botService->getUserInfo($integration, $vkId);
-            //$ip = request()->get('HTTP_X_FORWARDED_FOR') ?? request()->ip();
-
             // Обрабатываем контакт через сервис
-            $vkUser = $this->userService->processVKContact($vkId, [
-                'phone_number' => !empty($userInfo['contacts']['mobile_phone']) ? $userInfo['contacts']['mobile_phone'] : null,
-                'first_name' => $userInfo['first_name'] ?? null,
-                'last_name' => $userInfo['last_name'] ?? null,
-                //'ip' => $ip
+            $telegramUser = $this->userService->processTelegramContact($telegramId, [
+                'phone_number' => $phoneNumber,
+                'first_name' => $from['first_name'] ?? null,
+                'last_name' => $from['last_name'] ?? null,
+                'username' => $from['username'] ?? null,
             ]);
 
+            // Отправляем сообщение об успешной регистрации и показываем постоянную клавиатуру
             $wheelSlug = $wheel->slug ?? null;
+            Log::info('handleContact 3', [
+                'wheel' => $wheel,
+                'wheelSlug' => $wheelSlug,
+            ]);
+
             if (!$wheelSlug) {
-                $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-                $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedButWheelNotConfigured($integration), $keyboard);
+                Log::error('handleContact error 3', [
+                    'wheelSlug' => $wheelSlug,
+                ]);
+                $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactSavedButWheelNotConfigured($integration), $keyboard);
                 return;
             }
 
-            //$keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
-            //$this->botService->sendMessage($integration, $vkId, $this->messageService->getContactSavedMessage($integration), $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactSavedMessage($integration), $keyboard);
+
+            //добавляем кнопку на приложение
+//            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+
+//            if($webAppUrl)
+//                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+            $this->botService->removeMenuButton($bot);
+
         } catch (\Exception $e) {
-            Log::error('Error processing VK contact', [
+            Log::error('Error processing contact', [
                 'error' => $e->getMessage(),
-                'vk_id' => $vkId,
+                'telegram_id' => $telegramId,
+                'phone' => $phoneNumber,
             ]);
 
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getContactError($integration));
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getContactProcessingError($integration));
+
+//            $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+//            Log::info('1111111 22', [
+//
+//                'webAppUrl' => $webAppUrl,
+//
+//            ]);
+
+//            if($webAppUrl)
+//                $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+
         }
     }
 
-    private function handleSpinCommand(int $vkId, PlatformIntegration $integration): void
-    {
+    private function handleSpinCommand(
+        int|string $chatId,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot,
+        ?int $telegramId = null
+    ): void {
+        // Если telegramId не передан, используем chatId (в приватных чатах они совпадают)
+        if (!$telegramId) {
+            $telegramId = is_int($chatId) && $chatId > 0 ? $chatId : null;
+        }
+
         $wheel = $integration->wheel;
 
-//        if (!$this->keyboardService->hasPhoneNumber($vkId)) {
-//            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-//            $this->botService->sendMessage($integration, $vkId, $this->messageService->getPhoneRequired($integration), $keyboard);
-//            return;
-//        }
+        if (!$telegramId || !$this->keyboardService->hasPhoneNumber($telegramId)) {
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
+            return;
+        }
 
         $wheelSlug = $wheel->slug ?? null;
 
         if (!$wheelSlug) {
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getWheelNotConfigured($integration), $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getWheelNotConfigured($integration), $keyboard);
             return;
         }
 
-        $vkUser = VKUser::findByVkId($vkId);
+        //к url вызова колеса добавляем id гостя
+        $telegramUser = TelegramUser::findByTelegramId($telegramId);
 
-        if (!$vkUser || !$vkUser->guest_id) {
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getPhoneRequired($integration), $keyboard);
+        log::info('handleSpinCommand 1', [
+            'telegram_id' => $telegramId,
+            'wheel_slug' => $wheelSlug,
+            '$chatId' => $chatId,
+            '$telegramId' => $telegramId,
+            '$telegramUser' => $telegramUser,
+            '$telegramUser2' => $telegramUser->guest_id,
+
+
+        ]) ;
+
+        if (!$telegramUser || !$telegramUser->guest_id) {
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
             return;
         }
 
-        $connector = app(VKConnector::class);
-        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $vkUser->guest->id]);
+        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+        $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinWelcomeMessage($integration), $webAppUrl, $this->keyboardService, $integration);
 
-        $miniapp_id_index = array_find_key((array)$integration->settings,  fn($item) => $item['key'] === 'app_id');
-        $appId = !empty($integration->settings[$miniapp_id_index]['value']) ? $integration->settings[$miniapp_id_index]['value'] : null;
+        $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
 
-        if ($appId) {
+            log::info('$webAppUrl', ['$webAppUrl'=>$webAppUrl]);
 
-            $keyboard = [
-                'one_time' => false,
-                'buttons' => [
-                    [
-                        [
-                            'action' => [
-                                'type' => 'open_app',
-                                'label' => $this->textService->get($integration, 'spin_button', '🎡 Крутить колесо'),
-                                'app_id' => (int)$appId,
-                                'hash' => $webAppUrl,
-                            ],
-                            //'color' => 'positive',
-                        ],
-                    ],
-                ],
-            ];
-            // Log::info('1111111', [
-            //     '$appId' => $appId,
-            // 'keyboard' => $keyboard
-            // ]);
-        } else {
+//        if($webAppUrl)
+//            $this->botService->setMenuButton($bot, 'Крутить колесо', $webAppUrl);
+        $this->botService->removeMenuButton($bot);
 
-            // Log::info('222222', [
-            //     '$appId' => $appId,
 
-            // ]);
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration, $wheelSlug, $vkUser->guest_id);
-        }
-
-        $this->botService->sendMessage($integration, $vkId, $this->messageService->getSpinWelcomeMessage($integration), $keyboard);
     }
 
-    private function handleHistoryCommand(int $vkId, PlatformIntegration $integration): void
-    {
-        $vkUser = VKUser::findByVkId($vkId);
+    private function handleHistoryCommand(
+        int|string $chatId,
+        array $message,
+        PlatformIntegration $integration,
+        BotApi $bot
+    ): void {
+        $from = $message['from'] ?? null;
+        $telegramId = $from['id'] ?? null;
 
-        if (!$vkUser || !$vkUser->guest_id) {
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getUserNotFound($integration), $keyboard);
+        if (!$telegramId) {
+            $keyboard = $this->keyboardService->getKeyboardForUser(null, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getUserNotDetermined($integration), $keyboard);
             return;
         }
 
-        $guest = $vkUser->guest;
+        $telegramUser = TelegramUser::findByTelegramId($telegramId);
+
+        if (!$telegramUser || !$telegramUser->guest_id) {
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getUserNotFound($integration), $keyboard);
+            return;
+        }
+
+        $guest = $telegramUser->guest;
         $wins = $guest->wins()->with('prize')->orderBy('created_at', 'desc')->get();
-//        Log::info('handleHistoryCommand', [
-//            '$guest' => $guest,
-//            'wins' => $wins
-//        ]);
+
         if ($wins->isEmpty()) {
-            $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-            $this->botService->sendMessage($integration, $vkId, $this->messageService->getHistoryEmpty($integration), $keyboard);
+            $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+            $this->botService->sendMessage($bot, $chatId, $this->messageService->getHistoryEmpty($integration), $keyboard);
             return;
         }
 
         $messageText = $this->messageService->getHistoryMessage($wins, $integration);
-        $keyboard = $this->keyboardService->getKeyboardForUser($vkId, $integration);
-        $this->botService->sendMessage($integration, $vkId, $messageText, $keyboard);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+        $this->botService->sendMessage($bot, $chatId, $messageText, $keyboard);
+        //$this->botService->removeMenuButton($bot);
+
+
+    }
+
+    private function handleRequestContact(
+        int|string $chatId,
+        PlatformIntegration $integration,
+        BotApi $bot,
+        ?int $telegramId = null
+    ): void {
+        $message = $this->messageService->getRequestContactMessage($integration);
+        $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+
+        $this->botService->sendMessage($bot, $chatId, $message, $keyboard);
+    }
+
+    private function handleCallbackQuery(
+        array $callbackQuery,
+        PlatformIntegration $integration,
+        TelegramConnector $connector,
+        BotApi $bot
+    ): void {
+        $chatId = $callbackQuery['message']['chat']['id'] ?? null;
+        $data = $callbackQuery['data'] ?? '';
+        $queryId = $callbackQuery['id'] ?? null;
+        $from = $callbackQuery['from'] ?? null;
+        $telegramId = $from['id'] ?? null;
+
+        if (!$chatId) {
+            return;
+        }
+
+        try {
+            // Отвечаем на callback query
+            if ($queryId) {
+                $this->botService->answerCallbackQuery($bot, $queryId);
+            }
+
+            if ($data === 'spin') {
+                $wheel = $integration->wheel;
+
+                // Проверяем наличие телефона перед показом кнопки
+                if (!$telegramId || !$this->keyboardService->hasPhoneNumber($telegramId)) {
+                    $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                    $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
+                    return;
+                }
+
+                $wheelSlug = $wheel->slug ?? null;
+
+                if (!$wheelSlug) {
+                    $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                    $this->botService->sendMessage($bot, $chatId, $this->messageService->getWheelNotConfigured($integration), $keyboard);
+                    return;
+                }
+
+                //к url вызова колеса добавляем id гостя
+                $telegramUser = TelegramUser::findByTelegramId($telegramId);
+
+                if (!$telegramUser || !$telegramUser->guest_id) {
+                    $keyboard = $this->keyboardService->getKeyboardForUser($telegramId, $integration);
+                    $this->botService->sendMessage($bot, $chatId, $this->messageService->getPhoneRequired($integration), $keyboard);
+                    return;
+                }
+
+                $webAppUrl = $connector->buildLaunchUrl($integration, $wheelSlug, ['guest_id' => $telegramUser->guest->id]);
+                $this->botService->sendWebAppButton($bot, $chatId, $this->messageService->getSpinButtonMessage($integration), $webAppUrl, $this->keyboardService, $integration);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error handling callback query', [
+                'error' => $e->getMessage(),
+                'callback_query' => $callbackQuery,
+            ]);
+        }
     }
 
     private function matchesCommand(
@@ -335,10 +449,8 @@ class VKWebhookController extends Controller
             return false;
         }
 
-        $text = trim(mb_strtolower($text));
-
         foreach ($staticVariants as $variant) {
-            if ($variant !== '' && mb_strtolower($variant) === $text) {
+            if ($variant !== '' && $text === $variant) {
                 return true;
             }
         }
@@ -346,41 +458,11 @@ class VKWebhookController extends Controller
         foreach ($textCodes as $code) {
             $value = $this->textService->get($integration, $code);
 
-            if ($value !== '' && mb_strtolower($value) === $text) {
+            if ($value !== '' && $text === $value) {
                 return true;
             }
         }
 
         return false;
     }
-
-    private function extractPhoneFromText(string $text): ?string
-    {
-        // Простой паттерн для извлечения телефона
-        // Удаляем все символы кроме цифр и +
-        $cleaned = preg_replace('/[^\d+]/', '', $text);
-
-        // Проверяем, что это похоже на телефон (минимум 10 цифр)
-        if (preg_match('/^\+?[0-9]{10,15}$/', $cleaned)) {
-            // Если начинается с 8, заменяем на +7
-            if (str_starts_with($cleaned, '8') && strlen($cleaned) === 11) {
-                return '+7' . substr($cleaned, 1);
-            }
-            // Если начинается с 7 и нет +, добавляем +
-            if (str_starts_with($cleaned, '7') && !str_starts_with($cleaned, '+7') && strlen($cleaned) === 11) {
-                return '+' . $cleaned;
-            }
-            // Если 10 цифр без +, добавляем +7
-            if (!str_starts_with($cleaned, '+') && strlen($cleaned) === 10) {
-                return '+7' . $cleaned;
-            }
-            // Если уже с +, возвращаем как есть
-            if (str_starts_with($cleaned, '+')) {
-                return $cleaned;
-            }
-        }
-
-        return null;
-    }
 }
-
