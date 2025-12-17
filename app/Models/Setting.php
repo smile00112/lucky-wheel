@@ -12,6 +12,7 @@ class Setting extends Model
         'email_template',
         'pdf_template',
         'settings',
+        'notification_email',
     ];
 
     protected $casts = [

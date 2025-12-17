@@ -44,6 +44,12 @@ class SettingResource extends Resource
                     ->directory('settings')
                     ->visibility('public')
                     ->columnSpanFull(),
+                Forms\Components\TextInput::make('notification_email')
+                    ->label('Email для оповещений об отключении колеса')
+                    ->email()
+                    ->helperText('На этот email будут отправляться уведомления при автоматическом отключении колеса из-за выхода из лимитов')
+                    ->maxLength(255)
+                    ->columnSpanFull(),
                 Section::make(__('filament.setting.email_template'))
                     ->description('')
                     ->columnSpanFull()

@@ -13,6 +13,7 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Dompdf\Dompdf;
@@ -567,7 +568,11 @@ class WidgetController extends Controller
             if(!$prize){
                 //призов не осталось, выключаем колесо
                 $wheel->update(['is_active' => false]);
-                DB::commit(); // Добавить перед return
+                
+                // Отправка уведомления на email из настроек
+                $this->sendWheelDisabledNotification($wheel);
+                
+                DB::commit();
                 return response()->json([
                     'error' => 'Spin failed',
                     'message' => 'Ошибка розыгрыша, попробуйте позже',
@@ -1735,6 +1740,37 @@ class WidgetController extends Controller
 
         // По умолчанию используем asset для storage
         return asset('storage/' . ltrim($path, '/'));
+    }
+
+    /**
+     * Отправить уведомление об отключении колеса
+     */
+    protected function sendWheelDisabledNotification(Wheel $wheel): void
+    {
+        try {
+            $settings = Setting::getInstance();
+            
+            if (!$settings->notification_email) {
+                Log::info('Notification email not configured, skipping wheel disabled notification', [
+                    'wheel_id' => $wheel->id,
+                ]);
+                return;
+            }
+
+            Mail::to($settings->notification_email)->send(new \App\Mail\WheelDisabledMail($wheel));
+            
+            Log::info('Wheel disabled notification sent successfully', [
+                'wheel_id' => $wheel->id,
+                'wheel_name' => $wheel->name,
+                'notification_email' => $settings->notification_email,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to send wheel disabled notification', [
+                'error' => $e->getMessage(),
+                'wheel_id' => $wheel->id,
+                'notification_email' => $settings->notification_email ?? 'not set',
+            ]);
+        }
     }
 
     // Шаблон PDF по умолчанию переехал в App\Support\DefaultTemplates::pdf()
