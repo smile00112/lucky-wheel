@@ -18,6 +18,7 @@ class StatsOverview extends BaseWidget
     public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
+    public ?int $wheelId = null;
 
     //protected $listeners = ['updateWidgets'];
     protected function getListeners(): array
@@ -26,12 +27,13 @@ class StatsOverview extends BaseWidget
             'updateWidgets',
         ];
     }
-    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null, $wheelId = null): void
     {
         //dd([$filter , $startDate , $endDate ]);
         $this->filter = $filter ?? '30days';
         $this->customStartDate = $startDate;
         $this->customEndDate = $endDate;
+        $this->wheelId = $wheelId;
     }
 
     protected function getFilters(): ?array
@@ -138,6 +140,10 @@ class StatsOverview extends BaseWidget
 
         if (!$user) {
             return $query->whereRaw('1 = 0');
+        }
+
+        if ($this->wheelId) {
+            $query->where('wheel_id', $this->wheelId);
         }
 
         if ($user->isOwner()) {

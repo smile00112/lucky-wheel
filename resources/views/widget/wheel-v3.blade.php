@@ -73,7 +73,7 @@
                     <div class="won-prize-name" id="wonPrizeCode"></div>
                 </div>
             </div>
-            <div id="spinsInfo" class="spins-info"></div>
+{{--            <div id="spinsInfo" class="spins-info"></div>--}}
         </div>
 
 <div id="winNotification" class="win-notification" style="display: none;">

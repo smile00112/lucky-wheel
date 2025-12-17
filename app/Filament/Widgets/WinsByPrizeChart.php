@@ -21,6 +21,7 @@ class WinsByPrizeChart extends ChartWidget
     public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
+    public ?int $wheelId = null;
 
     protected function getListeners(): array
     {
@@ -29,11 +30,12 @@ class WinsByPrizeChart extends ChartWidget
         ];
     }
 
-    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null, $wheelId = null): void
     {
         $this->filter = $filter ?? 'all';
         $this->customStartDate = $startDate;
         $this->customEndDate = $endDate;
+        $this->wheelId = $wheelId;
     }
 
     protected function getFilters(): ?array
@@ -53,6 +55,10 @@ class WinsByPrizeChart extends ChartWidget
             ->whereBetween('spins.created_at', [$startDate, $endDate])
             ->join('prizes', 'spins.prize_id', '=', 'prizes.id')
             ->join('wheels', 'prizes.wheel_id', '=', 'wheels.id');
+
+        if ($this->wheelId) {
+            $query->where('spins.wheel_id', $this->wheelId);
+        }
 
         $user = auth()->user();
         if ($user && $user->isManager()) {

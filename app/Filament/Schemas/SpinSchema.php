@@ -248,6 +248,21 @@ class SpinSchema
                 ->preload();
         }
 
+        if ($includeGuestColumn) {
+            $filters[] = Tables\Filters\SelectFilter::make('guest_id')
+                ->label(__('filament.spin.guest_id'))
+                ->relationship('guest', 'name', modifyQueryUsing: function ($query) {
+                    return $query->where(function ($q) {
+                        $q->whereNotNull('name')
+                            ->orWhereNotNull('email')
+                            ->orWhereNotNull('phone');
+                    });
+                })
+                ->searchable(['name', 'email', 'phone'])
+                ->getOptionLabelFromRecordUsing(fn ($record) => ($record->name ?: $record->email ?: $record->phone) . ' (ID: ' . $record->id . ')')
+                ->preload();
+        }
+
         $filters = array_merge($filters, [
             Tables\Filters\Filter::make('date_today')
                 ->label('Сегодня')

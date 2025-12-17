@@ -21,6 +21,7 @@ class SpinsByDayChart extends ChartWidget
     public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
+    public ?int $wheelId = null;
 
     protected function getListeners(): array
     {
@@ -29,11 +30,12 @@ class SpinsByDayChart extends ChartWidget
         ];
     }
 
-    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null, $wheelId = null): void
     {
         $this->filter = $filter ?? 'all';
         $this->customStartDate = $startDate;
         $this->customEndDate = $endDate;
+        $this->wheelId = $wheelId;
     }
 
     protected function getFilters(): ?array
@@ -135,6 +137,10 @@ class SpinsByDayChart extends ChartWidget
 
         if (!$user) {
             return $query->whereRaw('1 = 0');
+        }
+
+        if ($this->wheelId) {
+            $query->where('wheel_id', $this->wheelId);
         }
 
         if ($user->isOwner()) {

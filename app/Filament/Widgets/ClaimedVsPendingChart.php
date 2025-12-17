@@ -20,6 +20,7 @@ class ClaimedVsPendingChart extends ChartWidget
     public ?string $filter = 'all';
     public ?string $customStartDate = null;
     public ?string $customEndDate = null;
+    public ?int $wheelId = null;
 
     //protected $listeners = ['updateWidgets'];
     protected function getListeners(): array
@@ -29,11 +30,12 @@ class ClaimedVsPendingChart extends ChartWidget
         ];
     }
 
-    public function updateWidgets($filter = null, $startDate = null, $endDate = null): void
+    public function updateWidgets($filter = null, $startDate = null, $endDate = null, $wheelId = null): void
     {
         $this->filter = $filter ?? 'all';
         $this->customStartDate = $startDate;
         $this->customEndDate = $endDate;
+        $this->wheelId = $wheelId;
     }
 
     protected function getFilters(): ?array
@@ -49,6 +51,10 @@ class ClaimedVsPendingChart extends ChartWidget
 
         $baseQuery = Spin::whereNotNull('spins.prize_id')
             ->whereBetween('spins.created_at', [$startDate, $endDate]);
+
+        if ($this->wheelId) {
+            $baseQuery->where('wheel_id', $this->wheelId);
+        }
 
         $user = auth()->user();
         if ($user && $user->isManager()) {
