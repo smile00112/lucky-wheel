@@ -550,6 +550,39 @@
                     /*width: 100%;*/
                 }
             }
+
+            /* Модальное окно для изображения */
+            .image-modal {
+                display: none;
+                position: fixed;
+                z-index: 10000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.9);
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+            }
+            .image-modal.show {
+                display: flex;
+            }
+            .image-modal-content {
+                max-width: 90%;
+                max-height: 90%;
+                object-fit: contain;
+                border-radius: 8px;
+            }
+            .image-modal-close {
+                position: absolute;
+                top: 20px;
+                right: 30px;
+                color: #fff;
+                font-size: 40px;
+                font-weight: bold;
+                cursor: pointer;
+            }
         </style>
 
 
@@ -634,8 +667,14 @@
 
         <!-- Контейнер для изображения приза (показывается после отправки формы) -->
         <div class="win-notification-image-container" id="winNotificationImageContainer" style="display: none;">
-            <img id="winNotificationImage" src="" alt="Приз">
+            <img id="winNotificationImage" src="" alt="Приз" style="cursor: pointer;" onclick="openImageModal(this.src)">
         </div>
+    </div>
+
+    <!-- Модальное окно для просмотра изображения -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <span class="image-modal-close">&times;</span>
+        <img id="imageModalContent" class="image-modal-content">
     </div>
 
  <script>
@@ -2358,6 +2397,17 @@
         function show_prize_image(){
             const imageContainer = document.getElementById('winNotificationImageContainer');
             imageContainer.style.display = 'block';
+        }
+
+        function openImageModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('imageModalContent');
+            modalImg.src = src;
+            modal.classList.add('show');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('show');
         }
 
         // Обработчик кнопки
