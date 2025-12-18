@@ -2351,7 +2351,7 @@
 
                 imageElement.src = imageUrl;
                 imageElement.alt = 'Приз';
-                //imageContainer.style.display = 'block';
+                imageContainer.style.display = 'block';
             }
         }
 
