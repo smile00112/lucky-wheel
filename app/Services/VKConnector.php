@@ -180,6 +180,13 @@ class VKConnector implements PlatformConnector
                 $codeText = $this->replaceVariables($codeLabel, $wheel, $prize, $spin);
                 $message .= "\n{$codeText}"; // "<code>{$spin->code}</code>";
             }
+
+            if ($prize->email_image) {
+                $qrLabel = $this->textService->get($integration, 'spin_result_email_image', 'qr код:');
+                $qrText = $this->replaceVariables($qrLabel, $wheel, $prize, $spin);
+                $message .= "\n{$qrText}";
+            }
+
         } else {
             $noPrize = $this->textService->get($integration, 'spin_result_no_prize', '😔 К сожалению, в этот раз вам не повезло');
             $message .= $this->replaceVariables($noPrize, $wheel, $prize, $spin);

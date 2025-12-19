@@ -108,6 +108,8 @@ class PlatformIntegration extends Model
             'telegram.spin_result_prize' => __('telegram.spin_result_prize', [], $locale),
             'telegram.spin_result_code' => __('telegram.spin_result_code', [], $locale),
             'telegram.spin_result_no_prize' => __('telegram.spin_result_no_prize', [], $locale),
+            'telegram.spin_result_email_image' => __('telegram.spin_result_email_image', [], $locale),
+
         ];
     }
 
@@ -146,6 +148,7 @@ class PlatformIntegration extends Model
             'vk.spin_result_prize' => __('telegram.spin_result_prize', [], $locale),
             'vk.spin_result_code' => __('telegram.spin_result_code', [], $locale),
             'vk.spin_result_no_prize' => __('telegram.spin_result_no_prize', [], $locale),
+            'vk.spin_result_email_image' => __('telegram.spin_result_email_image', [], $locale),
         ];
     }
 

@@ -29,6 +29,7 @@ return [
     'spin_result_prize' => '🎁 <b>Вы выиграли:',
     'spin_result_code' => 'Код для получения:',
     'spin_result_no_prize' => '😔 К сожалению, в этот раз вам не повезло',
+    'spin_result_email_image' => 'qr код приза',
 ];
 
 
