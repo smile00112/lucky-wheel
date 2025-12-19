@@ -385,7 +385,7 @@
 }
 
 .win-notification-image-container {
-    display: none;
+    /*display: none;*/
     text-align: center;
     margin: 20px 0;
     width: 100%;

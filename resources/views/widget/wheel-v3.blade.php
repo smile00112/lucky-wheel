@@ -95,7 +95,7 @@
 
             </div>
             <div class="win-notification-image-container" id="winNotificationImageContainer" style="display: none;">
-                <img id="winNotificationImage" src="" alt="{{ $texts['prize_image_alt'] }}">
+                <img id="winNotificationImage" src="" alt="{{ $texts['prize_image_alt'] }}" style="cursor: pointer;" onclick="openImageModal(this.src)">
             </div>
         </div>
         <div class="win-notification-code" id="winNotificationPromoCodeContainer" style="display: none;">
@@ -180,7 +180,26 @@
     </div>
 
     <div id="error" class="error"></div>
+
+    <!-- Модальное окно для просмотра изображения -->
+    <div id="imageModal" class="image-modal" onclick="closeImageModal()">
+        <span class="image-modal-close">&times;</span>
+        <img id="imageModalContent" class="image-modal-content">
+    </div>
 </div>
+
+<script>
+    function openImageModal(src) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('imageModalContent');
+        modalImg.src = src;
+        modal.classList.add('show');
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').classList.remove('show');
+    }
+</script>
 
 <script>
     window.API_URL = '{{ url("/api/widget") }}';
