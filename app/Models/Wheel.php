@@ -13,6 +13,7 @@ class Wheel extends Model
     protected $fillable = [
         'user_id',
         'name',
+        'technical_name',
         'description',
         'slug',
         'is_active',

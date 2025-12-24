@@ -52,6 +52,10 @@ Route::prefix('widget')->group(function () {
     // API для скачивания PDF сертификата выигрыша
     Route::get('/spin/{spinId}/download-pdf', [WidgetController::class, 'downloadWinPdf'])
         ->name('widget.spin.download-pdf');
+
+    // API для просмотра HTML версии PDF сертификата выигрыша
+    Route::get('/spin/{spinId}/view-pdf-html', [WidgetController::class, 'viewWinPdfHtml'])
+        ->name('widget.spin.view-pdf-html');
 });
 
 // Telegram API

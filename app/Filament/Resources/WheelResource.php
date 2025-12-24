@@ -60,6 +60,10 @@ class WheelResource extends Resource
                 ,
                     //->live(onBlur: true)
                     //->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                Forms\Components\TextInput::make('technical_name')
+                    ->label(__('filament.wheel.technical_name'))
+                    ->maxLength(255)
+                    ->helperText('Техническое название для отображения в таблице админки'),
                 Forms\Components\TextInput::make('slug')
                     ->label(__('filament.wheel.slug'))
                     ->required()
@@ -315,8 +319,12 @@ class WheelResource extends Resource
                     ->disk('public')
                     ->visibility('public')
                     ->circular(),
-                Tables\Columns\TextColumn::make('name')
-                    ->label(__('filament.wheel.name'))
+                // Tables\Columns\TextColumn::make('name')
+                //     ->label(__('filament.wheel.name'))
+                //     ->searchable()
+                //     ->sortable(),
+                Tables\Columns\TextColumn::make('technical_name')
+                    ->label(__('filament.wheel.technical_name'))
                     ->searchable()
                     ->sortable(),
 //                Tables\Columns\TextColumn::make('user.name')
