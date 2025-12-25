@@ -201,10 +201,17 @@ class WheelResource extends Resource
                     ->collapsible()
                     ->collapsed(true)
                     ->schema([
+                        Forms\Components\TextInput::make('notification_email')
+                            ->label('Email для уведомлений о выключении колеса')
+                            ->email()
+                            ->maxLength(255)
+                            ->helperText('Email для получения уведомлений при автоматическом выключении колеса. Если не указан, будет использован email владельца колеса.')
+                            ->columnSpanFull(),
                         Forms\Components\Toggle::make('use_wheel_email_settings')
                             ->label('Использовать настройки этого колеса для писем')
                             ->default(false)
                             ->live(),
+
                         Forms\Components\TextInput::make('company_name')
                             ->label('Компания (email)')
                             ->maxLength(255)

@@ -30,6 +30,7 @@ class Wheel extends Model
         'email_template',
         'pdf_template',
         'use_wheel_email_settings',
+        'notification_email',
     ];
 
     protected $casts = [

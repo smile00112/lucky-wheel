@@ -1748,27 +1748,40 @@ class WidgetController extends Controller
     protected function sendWheelDisabledNotification(Wheel $wheel): void
     {
         try {
-            $settings = Setting::getInstance();
+            // Определяем email для уведомления: сначала email колеса, потом email владельца
+            $email = $wheel->notification_email;
             
-            if (!$settings->notification_email) {
-                Log::info('Notification email not configured, skipping wheel disabled notification', [
+            if (!$email) {
+                // Загружаем связь user, если она еще не загружена
+                if (!$wheel->relationLoaded('user')) {
+                    $wheel->load('user');
+                }
+                
+                if ($wheel->user && $wheel->user->email) {
+                    $email = $wheel->user->email;
+                }
+            }
+            
+            if (!$email) {
+                Log::info('Notification email not configured for wheel, skipping wheel disabled notification', [
                     'wheel_id' => $wheel->id,
+                    'wheel_name' => $wheel->name,
                 ]);
                 return;
             }
 
-            Mail::to($settings->notification_email)->send(new \App\Mail\WheelDisabledMail($wheel));
+            Mail::to($email)->send(new \App\Mail\WheelDisabledMail($wheel));
             
             Log::info('Wheel disabled notification sent successfully', [
                 'wheel_id' => $wheel->id,
                 'wheel_name' => $wheel->name,
-                'notification_email' => $settings->notification_email,
+                'notification_email' => $email,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to send wheel disabled notification', [
                 'error' => $e->getMessage(),
                 'wheel_id' => $wheel->id,
-                'notification_email' => $settings->notification_email ?? 'not set',
+                'wheel_name' => $wheel->name,
             ]);
         }
     }
