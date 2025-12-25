@@ -4,6 +4,7 @@ return [
     'wheel' => [
         'user_id' => 'Владелец',
         'name' => 'Название',
+        'technical_name' => 'Техн. название',
         'description' => 'Описание',
         'slug' => 'URL (slug)',
         'is_active' => 'Активно',

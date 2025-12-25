@@ -46,6 +46,10 @@ Route::get('/img/{path}', ImageProxyController::class)
     ->middleware(WidgetCors::class)
     ->name('image.proxy');
 
+// Маршрут для просмотра HTML версии PDF сертификата выигрыша
+Route::get('/widget/spin/{spinId}/view-pdf-html', [WidgetController::class, 'viewWinPdfHtml'])
+    ->name('widget.spin.view-pdf-html');
+
 // Telegram WebApp
 Route::get('/telegram/app', [App\Http\Controllers\TelegramController::class, 'webapp'])
     ->name('telegram.webapp');

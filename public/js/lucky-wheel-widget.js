@@ -111,16 +111,41 @@
                             // Проверяем, нужно ли открыть модальное окно
                             // Приоритет: config.open > localStorage
                             const shouldOpen = this.config.open === true || this.config.open === 'true';
+                            const isMainPage = window.location.pathname === '/';
+                            
+                            // На главной странице всегда открываем, если задан параметр open
+                            if (isMainPage && shouldOpen) {
+                                this.openModal();
+                                return;
+                            }
+                            
+                            // Для остальных страниц проверяем localStorage
                             const storedOpen = localStorage.getItem('lucky_wheel_modal_open') === 'true';
                             const hasStoredOpen = localStorage.getItem('lucky_wheel_modal_open');
-                            if (shouldOpen && !hasStoredOpen){
+                            
+                            // Проверяем, не истекло ли 15 минут с момента закрытия
+                            const closedTime = localStorage.getItem('lucky_wheel_modal_closed_time');
+                            if (closedTime) {
+                                const timeDiff = Date.now() - parseInt(closedTime);
+                                const fifteenMinutes = 15 * 60 * 1000; // 15 минут в миллисекундах
+                                if (timeDiff >= fifteenMinutes) {
+                                    // Сбрасываем состояние, если прошло 15 минут
+                                    localStorage.removeItem('lucky_wheel_modal_open');
+                                    localStorage.removeItem('lucky_wheel_modal_closed_time');
+                                    // После сброса открываем, если задан параметр
+                                    if (shouldOpen) {
+                                        this.openModal();
+                                    }
+                                    return;
+                                }
+                            }
+                            
+                            // Стандартная логика для остальных случаев
+                            if (shouldOpen && !hasStoredOpen) {
                                 this.openModal();
-                            }
-                            if (shouldOpen && hasStoredOpen && !storedOpen){
-                                //не открываем
-                            }
-                            else
-                            if (shouldOpen && storedOpen) {
+                            } else if (shouldOpen && hasStoredOpen && !storedOpen) {
+                                // не открываем
+                            } else if (shouldOpen && storedOpen) {
                                 this.openModal();
                             }
                         })
@@ -570,6 +595,7 @@
 
             // Сохраняем состояние открытия в localStorage
             localStorage.setItem('lucky_wheel_modal_open', 'true');
+            localStorage.removeItem('lucky_wheel_modal_closed_time'); // Удаляем timestamp закрытия
         },
 
         /**
@@ -799,6 +825,7 @@
 
                 // Сохраняем состояние закрытия в localStorage
                 localStorage.setItem('lucky_wheel_modal_open', 'false');
+                localStorage.setItem('lucky_wheel_modal_closed_time', Date.now().toString());
             }
         },
 

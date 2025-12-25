@@ -1395,6 +1395,31 @@ class WidgetController extends Controller
     }
 
     /**
+     * Просмотреть HTML версию PDF сертификата выигрыша
+     */
+    public function viewWinPdfHtml(Request $request, int $spinId)
+    {
+        $spin = Spin::with(['prize', 'guest', 'wheel'])->find($spinId);
+
+        if (!$spin) {
+            abort(404, 'Spin not found');
+        }
+
+        if (!$spin->isWin()) {
+            abort(400, 'This spin is not a win');
+        }
+
+        if (!$spin->prize) {
+            abort(404, 'Prize not found');
+        }
+
+        // Генерируем HTML из шаблона настроек
+        $html = $this->buildPdfHtml($spin);
+
+        return response($html)->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
+    /**
      * Построить HTML PDF из шаблона настроек
      */
     protected function buildPdfHtml(Spin $spin): string
